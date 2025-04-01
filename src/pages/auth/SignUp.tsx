@@ -16,6 +16,8 @@ import useToast from '../../hooks/useToast';
 import useEmailVerification from '../../hooks/useEmailVerification';
 import { signUpSchema } from '../../utils/validation';
 import { useAuth } from '../../context/AuthContext';
+import { SignUpRequest } from '../../api/auth';
+import { VerificationType } from '../../types/auth';
 
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
@@ -112,22 +114,7 @@ const SignUp: React.FC = () => {
     verifyCode,
     resendVerification,
     resetVerification,
-  } = useEmailVerification({
-    onSendVerification: async (email) => {
-      // 실제 구현에서는 API 호출
-      showToast('인증 메일이 발송되었습니다. 이메일을 확인해주세요.', 'success');
-      return true;
-    },
-    onVerifyCode: async (email, code) => {
-      // 실제 구현에서는 API 호출
-      // 임시 구현: 코드가 '123456'인 경우 성공
-      if (code === '123456') {
-        showToast('이메일 인증이 완료되었습니다.', 'success');
-        return true;
-      }
-      return false;
-    },
-  });
+  } = useEmailVerification();
 
   const handleSendVerification = async () => {
     const email = getValues('email');
@@ -136,7 +123,9 @@ const SignUp: React.FC = () => {
       return;
     }
 
-    await sendVerification(email);
+    await sendVerification(email, VerificationType.SIGNUP);
+
+    showToast('인증 메일을 발송했습니다. 이메일을 확인해주세요.', 'success');
   };
 
   const handleVerifyCode = async () => {
@@ -166,7 +155,7 @@ const SignUp: React.FC = () => {
     }
 
     try {
-      const success = await resendVerification(email);
+      const success = await resendVerification(email, VerificationType.SIGNUP);
       if (success) {
         showToast('인증 메일을 재전송했습니다. 이메일을 확인해주세요.', 'success');
 
@@ -196,14 +185,39 @@ const SignUp: React.FC = () => {
     }
 
     try {
-      const success = await signUp(data);
+      const signUpData: SignUpRequest = {
+        agent: {
+          name: data.name,
+          licenseNumber: data.licenseNumber || undefined,
+          email: data.email,
+          password: data.password,
+          contact: data.phone,
+          emailVerified: isVerified, // 이메일 인증 여부
+        },
+        realEstate: {
+          name: data.agencyName || undefined,
+          businessRegistrationNumber: data.agencyBusinessNumber || undefined,
+          address: data.agencyAddress || undefined,
+          roadAddress: data.agencyRoadAddress || undefined,
+        },
+      };
 
-      if (success) {
-        showToast('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.', 'success');
-        setTimeout(() => {
-          navigate('/signin');
-        }, 2000);
+      // realEstate 객체에 모든 필드가 undefined인 경우 undefined로 설정
+      if (!Object.values(signUpData.realEstate || {}).some((value) => value !== undefined)) {
+        signUpData.realEstate = undefined;
       }
+
+      console.log(signUpData);
+      // const success = await signUp(signUpData);
+
+      // if (success) {
+      //   showToast('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.', 'success');
+      //   setTimeout(() => {
+      //     navigate('/signin');
+      //   }, 2000);
+      // } else {
+      //   showToast('회원가입에 실패했습니다. 다시 시도해주세요.', 'error');
+      // }
     } catch (error) {
       showToast('회원가입 중 오류가 발생했습니다.', 'error');
     }

@@ -49,3 +49,8 @@ export interface EmailVerificationData {
   email: string;
   code: string;
 }
+
+export enum VerificationType {
+  SIGNUP = 'SIGNUP',
+  RESET_PASSWORD = 'RESET_PASSWORD',
+}
