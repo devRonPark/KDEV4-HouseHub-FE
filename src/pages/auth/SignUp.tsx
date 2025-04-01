@@ -208,16 +208,16 @@ const SignUp: React.FC = () => {
       }
 
       console.log(signUpData);
-      // const success = await signUp(signUpData);
+      const success = await signUp(signUpData);
 
-      // if (success) {
-      //   showToast('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.', 'success');
-      //   setTimeout(() => {
-      //     navigate('/signin');
-      //   }, 2000);
-      // } else {
-      //   showToast('회원가입에 실패했습니다. 다시 시도해주세요.', 'error');
-      // }
+      if (success) {
+        showToast('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.', 'success');
+        setTimeout(() => {
+          navigate('/signin');
+        }, 2000);
+      } else {
+        showToast('회원가입에 실패했습니다. 다시 시도해주세요.', 'error');
+      }
     } catch (error) {
       showToast('회원가입 중 오류가 발생했습니다.', 'error');
     }
