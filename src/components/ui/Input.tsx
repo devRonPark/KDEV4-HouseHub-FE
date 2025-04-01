@@ -8,17 +8,36 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
+  isValid?: boolean; // 유효성 검사 통과 여부
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    { label, error, helperText, leftIcon, rightIcon, fullWidth = true, className = '', ...props },
+    {
+      label,
+      error,
+      helperText,
+      leftIcon,
+      rightIcon,
+      fullWidth = true,
+      className = '',
+      isValid,
+      ...props
+    },
     ref
   ) => {
     const inputWrapperClasses = `relative ${fullWidth ? 'w-full' : ''}`;
 
+    // 유효성 검사 상태에 따른 테두리 색상 설정
+    const getBorderColor = () => {
+      if (error) return 'border-red-500 focus:ring-red-500 focus:border-red-500';
+      if (isValid) return 'border-green-500 focus:ring-green-500 focus:border-green-500';
+      return 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
+    };
+
     const inputClasses = `
       block px-4 py-2 w-full rounded-md border 
+      ${getBorderColor()}
       ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} 
       focus:outline-none focus:ring-2 focus:ring-opacity-50
       disabled:opacity-50 disabled:cursor-not-allowed
@@ -30,7 +49,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={inputWrapperClasses}>
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
             {label}
             {props.required && <span className="text-red-500 ml-1">*</span>}
           </label>
