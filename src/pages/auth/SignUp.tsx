@@ -18,6 +18,7 @@ import { signUpSchema } from '../../utils/validation';
 import { useAuth } from '../../context/AuthContext';
 import { SignUpRequest } from '../../api/auth';
 import { VerificationType } from '../../types/auth';
+import AddressInput from '../../components/ui/AddressInput';
 
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
@@ -36,6 +37,7 @@ const SignUp: React.FC = () => {
     handleSubmit,
     watch,
     formState: { errors, isSubmitting, dirtyFields },
+    setValue,
     getValues,
     trigger,
   } = useForm<SignUpFormData>({
@@ -227,6 +229,23 @@ const SignUp: React.FC = () => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
+  const handleAddressSelect = (address: {
+    jibunAddress: string;
+    roadAddress: string;
+    detailAddress: string;
+    zipCode: string;
+  }) => {
+    // react-hook-form의 setValue를 사용하여 폼 필드 값 업데이트
+    setValue('agencyAddress', address.jibunAddress + ' ' + address.detailAddress, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setValue('agencyRoadAddress', address.roadAddress + ' ' + address.detailAddress, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
 
   return (
@@ -484,35 +503,8 @@ const SignUp: React.FC = () => {
                 )}
               />
 
-              {/* 구 주소 */}
-              <Controller
-                name="agencyAddress"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label="구 주소"
-                    placeholder="구 주소 입력"
-                    error={errors.agencyAddress?.message}
-                    leftIcon={<MapPin size={18} />}
-                  />
-                )}
-              />
-
-              {/* 도로명 주소 */}
-              <Controller
-                name="agencyRoadAddress"
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    label="도로명 주소"
-                    placeholder="도로명 주소 입력"
-                    error={errors.agencyRoadAddress?.message}
-                    leftIcon={<MapPin size={18} />}
-                  />
-                )}
-              />
+              {/* 주소 입력 컴포넌트 */}
+              <AddressInput onAddressSelect={handleAddressSelect} />
             </div>
           )}
         </div>
