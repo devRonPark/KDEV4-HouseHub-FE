@@ -41,3 +41,9 @@ export const emailVerificationSchema = z.object({
   email: emailSchema,
   code: z.string().length(6, '인증번호는 6자리입니다.'),
 });
+
+// 로그인 스키마
+export const signInSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+});
