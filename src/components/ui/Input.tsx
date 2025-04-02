@@ -38,7 +38,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputClasses = `
       block px-4 py-2 w-full rounded-md border 
       ${getBorderColor()}
-      ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'} 
       focus:outline-none focus:ring-2 focus:ring-opacity-50
       disabled:opacity-50 disabled:cursor-not-allowed
       ${leftIcon ? 'pl-10' : ''}
