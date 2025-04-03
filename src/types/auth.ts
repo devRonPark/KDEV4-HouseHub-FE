@@ -1,3 +1,5 @@
+import { AgentDetail } from './agent';
+
 export interface User {
   id: string;
   email: string;
@@ -14,10 +16,9 @@ export interface User {
 }
 
 export interface AuthState {
-  user: User | null;
+  user: AgentDetail | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  error: string | null;
 }
 
 export interface SignUpFormData {
