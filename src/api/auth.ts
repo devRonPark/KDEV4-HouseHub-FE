@@ -105,3 +105,59 @@ export const signUp = async (userData: SignUpRequest): Promise<ApiResponse> => {
     };
   }
 };
+
+// 세션 확인 API
+export const checkSession = async (): Promise<ApiResponse> => {
+  try {
+    const response = await apiClient.get<ApiResponse>('/auth/session');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse;
+    }
+    return {
+      success: false,
+      error: '세션 확인 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 로그인 API (자동 로그인 옵션 추가)
+export const signIn = async (
+  email: string,
+  password: string,
+  rememberMe = false
+): Promise<ApiResponse> => {
+  try {
+    const response = await apiClient.post<ApiResponse>('/auth/signin', {
+      email,
+      password,
+      rememberMe, // 자동 로그인 옵션 추가
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse;
+    }
+    return {
+      success: false,
+      error: '로그인 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 로그아웃 API
+export const signOut = async (): Promise<ApiResponse> => {
+  try {
+    const response = await apiClient.post<ApiResponse>('/auth/logout');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse;
+    }
+    return {
+      success: false,
+      error: '로그아웃 중 오류가 발생했습니다.',
+    };
+  }
+};

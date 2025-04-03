@@ -3,16 +3,32 @@
 import type React from 'react';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { AuthState } from '../types/auth';
-import { signUp as apiSignUp, type SignUpRequest } from '../api/auth';
+import {
+  signUp as apiSignUp,
+  signIn as apiSignIn,
+  type SignUpRequest,
+  checkSession,
+} from '../api/auth';
+import apiClient from '../api/client';
+import { AgentDetail } from '../types/agent';
+import { getMyProfile } from '../api/agent';
 
 interface AuthContextType extends AuthState {
-  signIn: (email: string, password: string) => Promise<boolean>;
-  // signOut: () => void;
-  signUp: (userData: SignUpRequest) => Promise<boolean>;
-  // resetPassword: (email: string) => Promise<boolean>;
+  signUp: (data: SignUpRequest) => Promise<boolean>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
+  signOut: () => Promise<boolean>;
+  refreshUserProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  isLoading: true,
+  user: null,
+  signUp: async () => false,
+  signIn: async () => false,
+  signOut: async () => false,
+  refreshUserProfile: async () => {},
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -27,49 +43,56 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-    error: null,
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<AgentDetail | null>(null);
 
+  // 사용자 프로필 정보 가져오기
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const response = await getMyProfile();
+      if (response.success && response.data) {
+        setUser(response.data);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+      return false;
+    }
+  }, []);
+
+  // 초기 인증 상태 확인
   useEffect(() => {
-    // 로컬 스토리지에서 사용자 정보 가져오기
     const checkAuth = async () => {
       try {
-        const storedUser = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
-
-        if (storedUser && token) {
-          // 실제 구현에서는 토큰 유효성 검증 필요
-          setAuthState({
-            user: JSON.parse(storedUser),
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
+        // 세션 상태 확인 API 호출
+        const response = await checkSession();
+        if (response.success) {
+          setIsAuthenticated(response.data.authenticated);
+          await fetchUserProfile();
         } else {
-          setAuthState({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-          });
+          setIsAuthenticated(false);
+          setUser(null);
         }
       } catch (error) {
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: '인증 상태 확인 중 오류가 발생했습니다.',
-        });
+        // 인증되지 않은 상태
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkAuth();
-  }, []);
+  }, [fetchUserProfile]);
+
+  // 사용자 프로필 새로고침
+  const refreshUserProfile = useCallback(async () => {
+    if (isAuthenticated) {
+      await fetchUserProfile();
+    }
+  }, [isAuthenticated, fetchUserProfile]);
 
   // 회원가입
   const signUp = useCallback(async (data: SignUpRequest): Promise<boolean> => {
@@ -85,61 +108,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // 로그인
-  const signIn = async (email: string, password: string) => {
-    setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
-
+  const signIn = async (email: string, password: string, rememberMe = false): Promise<boolean> => {
+    setIsLoading(true);
     try {
-      // 실제 구현에서는 API 호출
-      // 임시 구현: 테스트 계정으로 로그인
-      if (email === 'test@example.com' && password === 'password') {
-        const mockUser: User = {
-          id: '1',
-          email: 'test@example.com',
-          name: '김부동',
-          role: 'realtor',
-          phone: '010-1234-5678',
-          licenseNumber: '12345-67890',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+      const response = await apiSignIn(email, password, rememberMe);
 
-        const mockToken = 'mock-jwt-token';
-
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        localStorage.setItem('token', mockToken);
-
-        setAuthState({
-          user: mockUser,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
-
+      if (response.success) {
+        setIsAuthenticated(true);
+        await fetchUserProfile();
         return true;
-      } else {
-        setAuthState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: '이메일 또는 비밀번호를 확인하세요.',
-        }));
-        return false;
       }
-    } catch (error) {
-      setAuthState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: '로그인 중 오류가 발생했습니다.',
-      }));
       return false;
+    } catch (error) {
+      return false;
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // 로그아웃
+  const logout = useCallback(async (): Promise<boolean> => {
+    try {
+      // 로그아웃 API 호출
+      const response = await apiClient.post('/auth/logout');
+
+      if (response.data.success) {
+        setIsAuthenticated(false);
+        setUser(null);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        ...authState,
+        isAuthenticated,
+        isLoading,
+        user,
         signUp,
         signIn,
+        signOut: logout,
+        refreshUserProfile,
       }}
     >
       {children}

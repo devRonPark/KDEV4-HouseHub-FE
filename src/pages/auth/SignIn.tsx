@@ -43,16 +43,10 @@ const SignIn: React.FC = () => {
 
   // 필드 변경 감지 및 유효성 검사를 위한 단일 useEffect
   useEffect(() => {
-    // 필수 필드 목록
-    const requiredFields = ['email', 'password'];
-
     // 변경된 필드 감지를 위한 함수
     const validateField = async (fieldName: keyof SignInFormData) => {
       // 필드가 수정되었는지 확인
       if (dirtyFields[fieldName]) {
-        // 선택 필드인 경우 값이 있을 때만 유효성 검사 실행
-        const value = getValues(fieldName);
-
         // 유효성 검사 실행
         const isValid = await trigger(fieldName);
 
@@ -76,11 +70,15 @@ const SignIn: React.FC = () => {
     return () => subscription.unsubscribe();
   }, [watch, trigger, dirtyFields, getValues]);
 
+  // 로그인 버튼 클릭 시 호출되는 함수
+  // 로그인 성공 시 대시보드로 리다이렉트
+  // 로그인 실패 시 에러 메시지 표시
   const onSubmit = async (data: SignInFormData) => {
     try {
       const success = await signIn(data.email, data.password);
 
       if (success) {
+        showToast('로그인 성공', 'success');
         navigate('/dashboard');
       } else if (authError) {
         showToast(authError, 'error');
