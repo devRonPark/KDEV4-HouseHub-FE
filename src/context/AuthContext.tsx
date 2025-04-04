@@ -66,9 +66,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // 현재 경로 확인
+        const currentPath = window.location.pathname;
+        const publicPaths = ['/signin', '/signup'];
+        // 공개 라우트인 경우 인증 검증 건너뜀
+        if (publicPaths.includes(currentPath)) {
+          setIsLoading(false);
+          return;
+        }
+
         // 세션 상태 확인 API 호출
         const response = await checkSession();
-        if (response.success) {
+        if (response.success && response.data.authenticated) {
           setIsAuthenticated(response.data.authenticated);
           await fetchUserProfile();
         } else {

@@ -1,0 +1,280 @@
+'use client';
+
+import type React from 'react';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Home } from 'react-feather';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Textarea from '../../components/ui/Textarea';
+import AddressInput from '../../components/ui/AddressInput';
+import CustomerSearchInput from '../../components/property/CustomerSearchInput';
+import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
+import { useToast } from '../../context/ToastContext';
+import { getPropertyById } from '../../api/property';
+import type { PropertyType, FindPropertyDetailResDto, Customer } from '../../types/property';
+
+const PropertyEdit: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [property, setProperty] = useState<FindPropertyDetailResDto | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 폼 상태 관리
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
+  const [roadAddress, setRoadAddress] = useState('');
+  const [jibunAddress, setJibunAddress] = useState('');
+  const [detailAddress, setDetailAddress] = useState('');
+  const [memo, setMemo] = useState('');
+  const [isCustomerSearchActive, setIsCustomerSearchActive] = useState(false);
+
+  useEffect(() => {
+    const fetchPropertyDetail = async () => {
+      if (!id) return;
+
+      setIsLoading(true);
+      try {
+        const response = await getPropertyById(Number(id));
+        if (response.success && response.data) {
+          const propertyData = response.data;
+          setProperty(propertyData);
+
+          // 폼 초기값 설정
+          setPropertyType(propertyData.propertyType);
+          setRoadAddress(propertyData.roadAddress);
+          setJibunAddress(propertyData.jibunAddress || '');
+          setDetailAddress(propertyData.detailAddress);
+          setMemo(propertyData.memo || '');
+
+          // 고객 정보 설정
+          if (propertyData.customer) {
+            setSelectedCustomer({
+              id: propertyData.customer.id,
+              name: propertyData.customer.name,
+              phone: propertyData.customer.phone,
+              email: propertyData.customer.email,
+            });
+          }
+        } else {
+          showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
+        }
+      } catch (error) {
+        showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPropertyDetail();
+  }, [id, showToast]);
+
+  // 주소 선택 핸들러
+  const handleAddressSelect = (address: {
+    jibunAddress: string;
+    roadAddress: string;
+    detailAddress: string;
+    zipCode: string;
+  }) => {
+    setRoadAddress(address.roadAddress);
+    setJibunAddress(address.jibunAddress);
+    setDetailAddress(address.detailAddress);
+  };
+
+  // 폼 제출 핸들러
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 필수 필드 검증
+    if (!selectedCustomer) {
+      showToast('고객을 선택해주세요.', 'error');
+      return;
+    }
+
+    if (!propertyType) {
+      showToast('매물 유형을 선택해주세요.', 'error');
+      return;
+    }
+
+    if (!roadAddress) {
+      showToast('주소를 입력해주세요.', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // 여기에 실제 API 호출 코드를 추가해야 합니다.
+    // 현재는 예시로 성공 메시지만 표시합니다.
+    try {
+      // 실제 구현 시 updateProperty API 호출 필요
+      setTimeout(() => {
+        showToast('매물 정보가 성공적으로 수정되었습니다.', 'success');
+        navigate(`/properties/${id}`);
+      }, 1000);
+    } catch (error) {
+      showToast('매물 수정 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded mb-4"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!property) {
+    return (
+      <DashboardLayout>
+        <div className="text-left py-12">
+          <h3 className="mt-2 text-lg font-medium text-gray-900">매물을 찾을 수 없습니다</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            요청하신 매물 정보가 존재하지 않거나 접근 권한이 없습니다.
+          </p>
+          <div className="mt-6">
+            <Button variant="primary" onClick={() => navigate('/properties')}>
+              매물 목록으로 돌아가기
+            </Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">매물 정보 수정</h1>
+        <div className="mt-3 sm:mt-0 sm:ml-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/properties/${id}`)}
+            leftIcon={<ArrowLeft size={16} />}
+          >
+            상세 정보로 돌아가기
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <form onSubmit={handleSubmit}>
+          <Card className="mb-6">
+            <div className="space-y-6">
+              {/* 고객 정보 */}
+              {!isCustomerSearchActive ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    의뢰인 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="p-4 bg-gray-50 rounded-md flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedCustomer?.name}</p>
+                      <p className="text-sm text-gray-500">{selectedCustomer?.phone}</p>
+                      {selectedCustomer?.email && (
+                        <p className="text-sm text-gray-500">{selectedCustomer?.email}</p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsCustomerSearchActive(true)}
+                    >
+                      변경
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      의뢰인 검색 <span className="text-red-500">*</span>
+                    </label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsCustomerSearchActive(false)}
+                    >
+                      취소
+                    </Button>
+                  </div>
+                  <CustomerSearchInput
+                    onCustomerSelect={(customer) => {
+                      setSelectedCustomer(customer);
+                      setIsCustomerSearchActive(false);
+                    }}
+                    selectedCustomer={null}
+                  />
+                </div>
+              )}
+
+              {/* 매물 유형 선택 */}
+              <PropertyTypeSelector selectedType={propertyType} onChange={setPropertyType} />
+
+              {/* 주소 입력 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  주소 정보 <span className="text-red-500">*</span>
+                </label>
+                <div className="p-4 bg-gray-50 rounded-md mb-4">
+                  <p className="font-medium text-gray-900">기존 주소</p>
+                  <p className="text-sm text-gray-700">{property.roadAddress}</p>
+                  <p className="text-sm text-gray-500">{property.detailAddress}</p>
+                </div>
+                <AddressInput
+                  onAddressSelect={handleAddressSelect}
+                  initialAddress={{
+                    roadAddress: roadAddress,
+                    jibunAddress: jibunAddress,
+                    detailAddress: detailAddress,
+                  }}
+                />
+              </div>
+
+              {/* 메모 */}
+              <Textarea
+                label="메모 (선택사항)"
+                placeholder="매물에 대한 추가 정보를 입력하세요."
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </Card>
+
+          <div className="flex justify-end space-x-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(`/properties/${id}`)}
+              disabled={isSubmitting}
+            >
+              취소
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={isSubmitting}
+              leftIcon={<Home size={16} />}
+            >
+              수정 완료
+            </Button>
+          </div>
+        </form>
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default PropertyEdit;
