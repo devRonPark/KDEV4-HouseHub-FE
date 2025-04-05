@@ -9,7 +9,7 @@ import {
   deleteMyCustomer,
 } from '../../api/customer';
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Filter, RefreshCw, Edit, Trash2 } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Table from '../../components/ui/Table';
@@ -25,7 +25,7 @@ import { useToast } from '../../context/ToastContext';
 import type { CreateCustomerReqDto, Customer } from '../../types/customer';
 
 const CustomersPage = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { showToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
