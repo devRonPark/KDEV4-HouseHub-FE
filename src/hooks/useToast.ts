@@ -20,7 +20,17 @@ const defaultToast: ToastState = {
 
 const useToast = () => {
   const [toast, setToast] = useState<ToastState>(defaultToast);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  // 토스트 메시지 숨기기
+  const hideToast = useCallback(() => {
+    setToast((prev) => ({ ...prev, isVisible: false }));
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      setTimeoutId(null);
+    }
+  }, [timeoutId]);
 
   /**
    * 토스트 메시지를 표시하는 함수
@@ -52,18 +62,8 @@ const useToast = () => {
 
       setTimeoutId(id);
     },
-    [timeoutId]
+    [timeoutId, hideToast]
   );
-
-  // 토스트 메시지 숨기기
-  const hideToast = useCallback(() => {
-    setToast((prev) => ({ ...prev, isVisible: false }));
-
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setTimeoutId(null);
-    }
-  }, [timeoutId]);
 
   // 컴포넌트 언마운트 시 타이머 정리
   useEffect(() => {

@@ -5,7 +5,7 @@ export interface Agent {
   email: string;
   contact: string;
   licenseNumber?: string;
-  role: 'admin' | 'agent';
+  role: 'ADMIN' | 'AGENT';
   profileImage?: string;
   createdAt: string;
   updatedAt: string;

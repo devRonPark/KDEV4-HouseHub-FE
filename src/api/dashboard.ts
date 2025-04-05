@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { ApiResponse } from './auth';
+import type { ApiResponse } from '../types/api';
 import type { DashboardStats, Activity, Notification, ChartData } from '../types/dashboard';
 
 // 대시보드 주요 지표 조회
@@ -7,7 +7,7 @@ export const getDashboardStats = async (): Promise<ApiResponse<DashboardStats>> 
   try {
     const response = await apiClient.get<ApiResponse<DashboardStats>>('/dashboard/stats');
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '대시보드 지표를 불러오는 중 오류가 발생했습니다.',
@@ -22,7 +22,7 @@ export const getRecentActivities = async (limit = 10): Promise<ApiResponse<Activ
       `/dashboard/activities?limit=${limit}`
     );
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '최근 활동 내역을 불러오는 중 오류가 발생했습니다.',
@@ -37,7 +37,7 @@ export const getNotifications = async (limit = 10): Promise<ApiResponse<Notifica
       `/dashboard/notifications?limit=${limit}`
     );
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '알림을 불러오는 중 오류가 발생했습니다.',
@@ -54,7 +54,7 @@ export const markNotificationAsRead = async (
       `/dashboard/notifications/${notificationId}/read`
     );
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '알림 읽음 처리 중 오류가 발생했습니다.',
@@ -67,7 +67,7 @@ export const markAllNotificationsAsRead = async (): Promise<ApiResponse<void>> =
   try {
     const response = await apiClient.put<ApiResponse<void>>('/dashboard/notifications/read-all');
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '모든 알림 읽음 처리 중 오류가 발생했습니다.',
@@ -85,7 +85,7 @@ export const getChartData = async (
       `/dashboard/charts/${chartType}?period=${period}`
     );
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '차트 데이터를 불러오는 중 오류가 발생했습니다.',
