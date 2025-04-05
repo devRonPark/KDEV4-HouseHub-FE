@@ -4,7 +4,7 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import { getInquiryTemplateById } from '../../api/inquiryTemplate';
 import { QuestionType, type InquiryTemplate, type Question } from '../../types/inquiryTemplate';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { Calendar, Paperclip, Mail, Phone, Hash } from 'react-feather';
