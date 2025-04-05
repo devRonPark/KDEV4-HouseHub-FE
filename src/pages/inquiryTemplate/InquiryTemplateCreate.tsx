@@ -12,8 +12,7 @@ import Checkbox from '../../components/ui/Checkbox';
 import Modal from '../../components/ui/Modal';
 import QuestionList from '../../components/inquiryTemplate/QuestionList';
 import QuestionForm from '../../components/inquiryTemplate/QuestionForm';
-import { useToast } from '../../context/ToastContext';
-import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/useToast';
 import {
   getInquiryTemplateById,
   createInquiryTemplate,
@@ -31,7 +30,6 @@ const InquiryTemplateCreate: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { user } = useAuth();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -106,7 +104,7 @@ const InquiryTemplateCreate: React.FC = () => {
             setLoadingError(errorMessage);
             showToast(errorMessage, 'error');
           }
-        } catch (error) {
+        } catch {
           const errorMessage = '템플릿을 불러오는 중 오류가 발생했습니다.';
           setLoadingError(errorMessage);
           showToast(errorMessage, 'error');
@@ -202,7 +200,7 @@ const InquiryTemplateCreate: React.FC = () => {
         name,
         description,
         isActive,
-        questions: questions.map(({ id, ...rest }) => rest), // id 제외
+        questions: questions.map(({ ...rest }) => rest), // id 제외
       };
 
       let response;
@@ -215,7 +213,7 @@ const InquiryTemplateCreate: React.FC = () => {
             name: originalTemplate.name,
             description: originalTemplate.description,
             isActive: originalTemplate.isActive,
-            questions: originalTemplate.questions.map(({ id, ...rest }) => rest),
+            questions: originalTemplate.questions.map(({ ...rest }) => rest),
           };
 
           // 변경된 필드만 포함하는 객체 생성
@@ -248,7 +246,7 @@ const InquiryTemplateCreate: React.FC = () => {
       } else {
         showToast(response.error || '템플릿 저장에 실패했습니다.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('템플릿 저장 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsSubmitting(false);
@@ -421,7 +419,6 @@ const InquiryTemplateCreate: React.FC = () => {
         onClose={() => setIsQuestionModalOpen(false)}
         title={currentQuestion ? '질문 수정' : '질문 추가'}
         size="md"
-        hideFooter
       >
         <QuestionForm
           question={currentQuestion}

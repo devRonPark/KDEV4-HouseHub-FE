@@ -1,7 +1,6 @@
 'use client';
 
 import type React from 'react';
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Edit, Eye, Trash } from 'react-feather';
@@ -22,16 +21,10 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
   onDelete,
   isLoading,
 }) => {
-  const [expandedActions, setExpandedActions] = useState<string | null>(null);
-
-  const toggleActions = (id: string) => {
-    setExpandedActions(expandedActions === id ? null : id);
-  };
-
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'yyyy년 MM월 dd일', { locale: ko });
-    } catch (error) {
+    } catch {
       return '날짜 정보 없음';
     }
   };

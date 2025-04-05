@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useState, useCallback, useEffect } from 'react';
 import Toast from '../components/ui/Toast';
 
 export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
@@ -26,17 +26,24 @@ const defaultToast: ToastState = {
   duration: 3000,
 };
 
-const ToastContext = createContext<ToastContextType>({
+export const ToastContext = createContext<ToastContextType>({
   toast: defaultToast,
   showToast: () => {},
   hideToast: () => {},
 });
 
-export const useToast = () => useContext(ToastContext);
-
-const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toast, setToast] = useState<ToastState>(defaultToast);
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  const hideToast = useCallback(() => {
+    setToast((prev) => ({ ...prev, isVisible: false }));
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      setTimeoutId(null);
+    }
+  }, [timeoutId]);
 
   const showToast = useCallback(
     (message: string, variant: ToastVariant = 'info', duration = 3000) => {
@@ -58,17 +65,8 @@ const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
       setTimeoutId(id);
     },
-    [timeoutId]
+    [timeoutId, hideToast]
   );
-
-  const hideToast = useCallback(() => {
-    setToast((prev) => ({ ...prev, isVisible: false }));
-
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setTimeoutId(null);
-    }
-  }, [timeoutId]);
 
   useEffect(() => {
     return () => {
@@ -93,5 +91,3 @@ const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     </ToastContext.Provider>
   );
 };
-
-export default ToastProvider;

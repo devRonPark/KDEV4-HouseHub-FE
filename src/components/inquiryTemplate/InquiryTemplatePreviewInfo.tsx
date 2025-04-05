@@ -19,7 +19,7 @@ const InquiryTemplatePreviewInfo: React.FC<InquiryTemplatePreviewInfoProps> = ({
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'yyyy년 MM월 dd일', { locale: ko });
-    } catch (error) {
+    } catch {
       return '날짜 정보 없음';
     }
   };
@@ -46,10 +46,10 @@ const InquiryTemplatePreviewInfo: React.FC<InquiryTemplatePreviewInfoProps> = ({
           <h5 className="text-sm font-medium text-gray-500">상태</h5>
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              template.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+              template.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
             }`}
           >
-            {template.active ? '활성화' : '비활성화'}
+            {template.isActive ? '활성화' : '비활성화'}
           </span>
         </div>
 

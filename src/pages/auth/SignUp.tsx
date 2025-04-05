@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
-import { Eye, EyeOff, Mail, User, Phone, Briefcase, MapPin } from 'react-feather';
+import { Eye, EyeOff, Mail, User, Phone, Briefcase } from 'react-feather';
 
 import AuthLayout from '../../components/layout/AuthLayout';
 import Input from '../../components/ui/Input';
@@ -15,7 +15,7 @@ import Toast from '../../components/ui/Toast';
 import useToast from '../../hooks/useToast';
 import useEmailVerification from '../../hooks/useEmailVerification';
 import { signUpSchema } from '../../utils/validation';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import { SignUpRequest } from '../../api/auth';
 import { VerificationType } from '../../types/auth';
 import AddressInput from '../../components/ui/AddressInput';
@@ -59,9 +59,6 @@ const SignUp: React.FC = () => {
 
   // 필드 변경 감지 및 유효성 검사를 위한 단일 useEffect
   useEffect(() => {
-    // 필수 필드 목록
-    const requiredFields = ['email', 'password', 'passwordConfirm', 'name', 'phone'];
-
     // 선택 필드 목록
     const optionalFields = [
       'licenseNumber',
@@ -91,7 +88,7 @@ const SignUp: React.FC = () => {
     };
 
     // 필드 변경 감지를 위한 구독 설정
-    const subscription = watch((value, { name, type }) => {
+    const subscription = watch((_, { name, type }) => {
       // 값이 변경된 경우에만 유효성 검사 실행
       if (name && type === 'change') {
         validateField(name as keyof SignUpFormData);
@@ -132,7 +129,7 @@ const SignUp: React.FC = () => {
       } else {
         showToast(result.message || '인증 메일 발송에 실패했습니다.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('인증 메일 발송 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -149,7 +146,7 @@ const SignUp: React.FC = () => {
       }
       // 인증 코드 입력 후 이메일 필드 비활성화
       setValue('email', getValues('email'), { shouldValidate: true, shouldDirty: true });
-    } catch (error) {
+    } catch {
       showToast('인증 코드 확인 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -194,7 +191,7 @@ const SignUp: React.FC = () => {
       } else {
         showToast('이메일 재전송에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('이메일 재전송 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -239,7 +236,7 @@ const SignUp: React.FC = () => {
       } else {
         showToast('회원가입에 실패했습니다. 다시 시도해주세요.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('회원가입 중 오류가 발생했습니다.', 'error');
     }
   };

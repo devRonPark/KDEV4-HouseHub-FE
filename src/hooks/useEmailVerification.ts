@@ -7,7 +7,7 @@ import { ApiResponse } from '../types/api';
 
 declare global {
   interface Window {
-    cooldownInterval?: NodeJS.Timeout;
+    cooldownInterval?: ReturnType<typeof setTimeout>;
   }
 }
 
@@ -24,7 +24,10 @@ interface UseEmailVerificationReturn {
   timeRemaining: number;
   isExpired: boolean;
   setVerificationCode: (code: string) => void;
-  sendVerification: (email: string, type: VerificationType) => Promise<boolean>;
+  sendVerification: (
+    email: string,
+    type: VerificationType
+  ) => Promise<ApiResponse<SendVerificationEmailResponse>>;
   verifyCode: (email: string, code: string) => Promise<boolean>;
   resendVerification: (email: string, type: VerificationType) => Promise<boolean>;
   resetVerification: () => void;
@@ -40,7 +43,7 @@ const useEmailVerification = ({
   const [verificationCode, setVerificationCode] = useState('');
   const [timeRemaining, setTimeRemaining] = useState(expirationTime);
   const [isExpired, setIsExpired] = useState(false);
-  const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
+  const [timerId, setTimerId] = useState<ReturnType<typeof setInterval> | null>(null);
 
   // 타이머 시작 함수
   const startTimer = useCallback(
@@ -101,6 +104,7 @@ const useEmailVerification = ({
           return {
             success: true,
             data: response.data,
+            message: response.message || '인증 메일이 발송되었습니다.',
           };
         } else {
           const errorMessage = response.message || '인증 메일 발송에 실패했습니다.';
@@ -111,7 +115,7 @@ const useEmailVerification = ({
             message: errorMessage,
           };
         }
-      } catch (err) {
+      } catch {
         const errorMessage = '인증 메일 발송 중 오류가 발생했습니다.';
         setError(errorMessage);
         return {
@@ -156,7 +160,7 @@ const useEmailVerification = ({
           setError(response.error || '인증 코드가 일치하지 않습니다.');
           return false;
         }
-      } catch (err) {
+      } catch {
         setError('인증 코드 확인 중 오류가 발생했습니다.');
         return false;
       } finally {
@@ -164,15 +168,6 @@ const useEmailVerification = ({
       }
     },
     [isExpired, timerId]
-  );
-
-  // 재발송
-  const resendVerification = useCallback(
-    async (email: string, type: VerificationType): Promise<boolean> => {
-      resetVerification();
-      return await sendVerification(email, type);
-    },
-    [sendVerification]
   );
 
   // 인증 상태 초기화
@@ -189,6 +184,16 @@ const useEmailVerification = ({
       setTimerId(null);
     }
   }, [expirationTime, timerId]);
+
+  // 재발송
+  const resendVerification = useCallback(
+    async (email: string, type: VerificationType): Promise<boolean> => {
+      resetVerification();
+      const response = await sendVerification(email, type);
+      return response.success;
+    },
+    [resetVerification, sendVerification]
+  );
 
   return {
     isVerificationSent,

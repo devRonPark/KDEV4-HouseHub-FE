@@ -21,7 +21,7 @@ export const getInquiryTemplates = async (
       `/inquiry-templates?${params.toString()}`
     );
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '문의 템플릿 목록을 불러오는 중 오류가 발생했습니다.',
@@ -36,7 +36,7 @@ export const getInquiryTemplateById = async (id: string): Promise<ApiResponse<In
       `/inquiry-templates/${id}/preview`
     );
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '문의 템플릿 정보를 불러오는 중 오류가 발생했습니다.',
@@ -51,7 +51,7 @@ export const createInquiryTemplate = async (
   try {
     const response = await apiClient.post<ApiResponse<InquiryTemplate>>('/inquiry-templates', data);
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '문의 템플릿 생성 중 오류가 발생했습니다.',
@@ -70,7 +70,7 @@ export const updateInquiryTemplate = async (
       data
     );
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '문의 템플릿 수정 중 오류가 발생했습니다.',
@@ -83,7 +83,7 @@ export const deleteInquiryTemplate = async (id: string): Promise<ApiResponse<voi
   try {
     const response = await apiClient.delete<ApiResponse<void>>(`/inquiry-templates/${id}`);
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '문의 템플릿 삭제 중 오류가 발생했습니다.',

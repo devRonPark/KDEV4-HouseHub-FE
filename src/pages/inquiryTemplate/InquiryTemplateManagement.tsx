@@ -3,27 +3,17 @@
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Download, Upload, RefreshCw } from 'react-feather';
+import { Plus, Search, Filter, RefreshCw } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import InquiryTemplateList from '../../components/inquiryTemplate/InquiryTemplateList';
 import InquiryTemplatePreview from '../../components/inquiryTemplate/InquiryTemplatePreview';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Modal from '../../components/ui/Modal';
-import { useToast } from '../../context/ToastContext';
-import { useAuth } from '../../context/AuthContext';
-import {
-  getInquiryTemplates,
-  createInquiryTemplate,
-  updateInquiryTemplate,
-  deleteInquiryTemplate,
-} from '../../api/inquiryTemplate';
-import type {
-  InquiryTemplate,
-  InquiryTemplateRequest,
-  InquiryTemplateFilter,
-} from '../../types/inquiryTemplate';
-import { getObjectDiff } from '../../utils/objectUtil';
+import { useToast } from '../../context/useToast';
+import { useAuth } from '../../context/useAuth';
+import { getInquiryTemplates, deleteInquiryTemplate } from '../../api/inquiryTemplate';
+import type { InquiryTemplate, InquiryTemplateFilter } from '../../types/inquiryTemplate';
 
 const InquiryTemplateManagement: React.FC = () => {
   const { user } = useAuth();
@@ -34,7 +24,6 @@ const InquiryTemplateManagement: React.FC = () => {
   const [selectedInquiryTemplate, setSelectedInquiryTemplate] = useState<InquiryTemplate | null>(
     null
   );
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,7 +35,7 @@ const InquiryTemplateManagement: React.FC = () => {
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 0,
-    totalItems: 0,
+    totalElements: 0,
     size: 10,
   });
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -66,7 +55,7 @@ const InquiryTemplateManagement: React.FC = () => {
       } else {
         showToast(response.error || '문의 템플릿 목록을 불러오는데 실패했습니다.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('문의 템플릿 목록을 불러오는 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsLoading(false);
@@ -140,7 +129,7 @@ const InquiryTemplateManagement: React.FC = () => {
       } else {
         showToast(response.error || '문의 템플릿 삭제에 실패했습니다.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('문의 템플릿 삭제 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsSubmitting(false);
@@ -236,13 +225,13 @@ const InquiryTemplateManagement: React.FC = () => {
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  전체 <span className="font-medium">{pagination.totalItems}</span> 개 중{' '}
+                  전체 <span className="font-medium">{pagination.totalElements}</span> 개 중{' '}
                   <span className="font-medium">
                     {(pagination.currentPage - 1) * pagination.size + 1}
                   </span>{' '}
                   -{' '}
                   <span className="font-medium">
-                    {Math.min(pagination.currentPage * pagination.size, pagination.totalItems)}
+                    {Math.min(pagination.currentPage * pagination.size, pagination.totalElements)}
                   </span>{' '}
                   표시
                 </p>
@@ -326,7 +315,6 @@ const InquiryTemplateManagement: React.FC = () => {
         onClose={() => setIsPreviewModalOpen(false)}
         title="문의 템플릿 미리보기"
         size="lg"
-        hideFooter
       >
         {selectedInquiryTemplate && (
           <InquiryTemplatePreview

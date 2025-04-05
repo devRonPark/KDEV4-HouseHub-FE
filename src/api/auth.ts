@@ -58,7 +58,7 @@ export const sendVerificationEmail = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse;
+      return error.response.data as ApiResponse<SendVerificationEmailResponse>;
     }
     return {
       success: false,

@@ -30,7 +30,7 @@ export const getObjectDiff = <T extends Record<string, any>>(
     ) {
       const nestedDiff = getObjectDiff(original[typedKey], updated[typedKey]);
       if (Object.keys(nestedDiff).length > 0) {
-        diff[typedKey] = nestedDiff;
+        diff[typedKey] = nestedDiff as T[keyof T];
       }
     }
     // 기본 타입인 경우

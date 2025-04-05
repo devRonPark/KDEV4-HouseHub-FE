@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { ApiResponse } from './auth';
+import type { ApiResponse } from '../types/api';
 import type { CreateCustomerResDto, CreateCustomerReqDto } from '../types/customer';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회

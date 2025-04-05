@@ -76,7 +76,7 @@ export const SortableItem: React.FC<SortableItemProps> = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center">
           <span className="font-medium text-gray-900 truncate">{question.label}</span>
-          {question.required && (
+          {question.isRequired && (
             <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
               필수
             </span>

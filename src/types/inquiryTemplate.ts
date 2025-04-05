@@ -6,7 +6,7 @@ export interface InquiryTemplate {
   isActive: boolean;
   questions: Question[];
   createdAt: string;
-  // updatedAt: string;
+  updatedAt: string;
 }
 
 // 질문 유형 열거형

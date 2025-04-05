@@ -1,11 +1,11 @@
 'use client';
 
 import type React from 'react';
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { createContext, useState, useCallback, useEffect } from 'react';
 import {
   signUp as apiSignUp,
   signIn as apiSignIn,
+  signOut as apiSignOut,
   checkSession,
   type SignUpRequest,
 } from '../api/auth';
@@ -22,7 +22,7 @@ interface AuthContextType {
   refreshUserProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: false,
   user: null,
@@ -32,21 +32,14 @@ const AuthContext = createContext<AuthContextType>({
   refreshUserProfile: async () => {},
 });
 
-export const useAuth = () => useContext(AuthContext);
-
-// 인증이 필요하지 않은 경로 목록
-const publicPaths = ['/signin', '/signup', '/forgot-password'];
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true); // 초기값 true로 설정
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // isAuthenticated 상태 추가
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<AgentDetail | null>(null);
-  const location = useLocation();
-
-  // 현재 경로가 인증이 필요하지 않은 경로인지 확인
-  const isPublicPath = publicPaths.some(
-    (path) => location.pathname === path || location.pathname.startsWith(`${path}/`)
-  );
 
   // 사용자 프로필 정보 가져오기
   const fetchUserProfile = useCallback(async () => {
@@ -58,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       setUser(null);
       return false;
-    } catch (error) {
+    } catch {
       setUser(null);
       return false;
     }
@@ -75,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(false);
         setUser(null);
       }
-    } catch (error) {
+    } catch {
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -115,7 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await apiSignUp(data);
       return response.success;
-    } catch (error) {
+    } catch {
       return false;
     } finally {
       setIsLoading(false);
@@ -135,7 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return true;
         }
         return false;
-      } catch (error) {
+      } catch {
         return false;
       } finally {
         setIsLoading(false);
@@ -148,15 +141,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = useCallback(async (): Promise<boolean> => {
     try {
       // 로그아웃 API 호출
-      const response = await signOut();
+      const response = await apiSignOut();
 
-      if (response.data.success) {
+      if (response.data?.success) {
         setIsAuthenticated(false);
         setUser(null);
         return true;
       }
       return false;
-    } catch (error) {
+    } catch {
       return false;
     } finally {
       setIsLoading(false);
