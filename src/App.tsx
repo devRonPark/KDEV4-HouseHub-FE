@@ -8,12 +8,12 @@ import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
 import Dashboard from './pages/dashboard/Dashboard';
 import LoadingScreen from './components/ui/LoadingScreen';
-
-import CustomersPage from "./pages/customers/customer"
-
+import CustomersPage from './pages/customers/customer';
+import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
+import InquiryTemplateCreate from './pages/inquiryTemplate/InquiryTemplateCreate';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
-export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
@@ -32,14 +32,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 // 이미 인증된 사용자를 위한 래퍼 컴포넌트 (로그인 페이지 등에서 사용)
-export const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
-
-  // 로딩 중이면 로딩 화면 표시
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
 
   // 이미 인증된 경우 대시보드로 리다이렉트
   if (isAuthenticated) {
@@ -55,15 +50,70 @@ function App() {
   return (
     <Routes>
       {/* 공개 라우트 */}
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/signin" element={<SignIn />} />
-      <Route path="/" element={<div>홈</div>} />
+      <Route
+        path="/signin"
+        element={
+          <PublicRoute>
+            <SignIn />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <PublicRoute>
+            <SignUp />
+          </PublicRoute>
+        }
+      />
 
-      {/* 보호된 라우트 */}
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
+      {/* 인증이 필요한 페이지 */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inquiry-templates"
+        element={
+          <ProtectedRoute>
+            <InquiryTemplateManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inquiry-templates/create"
+        element={
+          <ProtectedRoute>
+            <InquiryTemplateCreate />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inquiry-templates/edit/:id"
+        element={
+          <ProtectedRoute>
+            <InquiryTemplateCreate />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/customers"
+        element={
+          <ProtectedRoute>
+            <CustomersPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* 기본 리다이렉트 */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
-  )
+  );
 }
 
 export default App;

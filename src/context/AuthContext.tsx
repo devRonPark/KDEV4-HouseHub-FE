@@ -1,20 +1,21 @@
 'use client';
 
 import type React from 'react';
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { AuthState } from '../types/auth';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   signUp as apiSignUp,
   signIn as apiSignIn,
-  type SignUpRequest,
   checkSession,
+  type SignUpRequest,
 } from '../api/auth';
-import apiClient from '../api/client';
-import { AgentDetail } from '../types/agent';
 import { getMyProfile } from '../api/agent';
-import { useLocation } from 'react-router-dom';
+import type { AgentDetail } from '../types/agent';
 
-interface AuthContextType extends AuthState {
+interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: AgentDetail | null;
   signUp: (data: SignUpRequest) => Promise<boolean>;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   signOut: () => Promise<boolean>;
@@ -23,7 +24,7 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   user: null,
   signUp: async () => false,
   signIn: async () => false,
@@ -31,17 +32,7 @@ const AuthContext = createContext<AuthContextType>({
   refreshUserProfile: async () => {},
 });
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth 는 반드시 AuthProvider 내부에서 사용해야 합니다.');
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
+export const useAuth = () => useContext(AuthContext);
 
 // 인증이 필요하지 않은 경로 목록
 const publicPaths = ['/signin', '/signup', '/forgot-password'];
@@ -123,11 +114,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await apiSignUp(data);
-      setIsLoading(false);
       return response.success;
     } catch (error) {
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -157,7 +148,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = useCallback(async (): Promise<boolean> => {
     try {
       // 로그아웃 API 호출
-      const response = await apiClient.post('/auth/logout');
+      const response = await signOut();
 
       if (response.data.success) {
         setIsAuthenticated(false);
@@ -167,6 +158,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return false;
     } catch (error) {
       return false;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
