@@ -9,7 +9,7 @@ import Card from '../../components/ui/Card';
 import Modal from '../../components/ui/Modal';
 import CustomerForm from '../../components/customers/CustomerForm';
 import { formatDate, formatPhoneNumber } from '../../utils/format';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import type { Customer } from '../../types/customer';
 
 // 임시 데이터 (실제로는 API에서 가져옴)

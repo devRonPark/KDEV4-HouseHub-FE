@@ -14,8 +14,8 @@ import {
   MessageSquare,
   ChevronDown,
 } from 'react-feather';
-import { useAuth } from '../../context/AuthContext';
-import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/useAuth';
+import { useToast } from '../../context/useToast';
 import LogoWithText from '../LogoWithText';
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

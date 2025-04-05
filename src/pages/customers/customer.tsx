@@ -21,7 +21,7 @@ import CustomerForm from '../../components/customers/CustomerForm';
 import FilterPanel from '../../components/customers/FilterPanel';
 import CustomerDetailModal from '../../components/customers/CustomerDetailModal';
 import { formatPhoneNumber } from '../../utils/format';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import type { CreateCustomerReqDto, Customer } from '../../types/customer';
 
 const CustomersPage = () => {

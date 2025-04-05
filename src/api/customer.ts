@@ -10,8 +10,9 @@ export const getMyCustomers = async (): Promise<ApiResponse<CreateCustomerResDto
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse;
+      return error.response.data as ApiResponse<CreateCustomerResDto[]>;
     }
+
     return {
       success: false,
       error: `고객 정보를 불러오는 중 오류가 발생했습니다.`,
@@ -31,7 +32,7 @@ export const createMyCustomer = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse;
+      return error.response.data as ApiResponse<CreateCustomerResDto>;
     }
     return {
       success: false,
@@ -52,7 +53,7 @@ export const updateMyCustomer = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse;
+      return error.response.data as ApiResponse<CreateCustomerResDto>;
     }
     return {
       success: false,
@@ -67,7 +68,7 @@ export const deleteMyCustomer = async (id: number): Promise<ApiResponse<CreateCu
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse;
+      return error.response.data as ApiResponse<CreateCustomerResDto>;
     }
     return {
       success: false,

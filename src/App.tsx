@@ -3,7 +3,7 @@
 import type React from 'react';
 
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
 import Dashboard from './pages/dashboard/Dashboard';
