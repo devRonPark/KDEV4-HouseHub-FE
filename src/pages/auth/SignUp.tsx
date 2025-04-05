@@ -125,14 +125,33 @@ const SignUp: React.FC = () => {
       return;
     }
 
-    await sendVerification(email, VerificationType.SIGNUP);
-
-    showToast('인증 메일을 발송했습니다. 이메일을 확인해주세요.', 'success');
+    try {
+      const result = await sendVerification(email, VerificationType.SIGNUP);
+      if (result.success) {
+        showToast('인증 메일이 발송되었습니다. 이메일을 확인해주세요.', 'success');
+      } else {
+        showToast(result.message || '인증 메일 발송에 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      showToast('인증 메일 발송 중 오류가 발생했습니다.', 'error');
+    }
   };
 
   const handleVerifyCode = async () => {
     const email = getValues('email');
-    await verifyCode(email, verificationCode);
+    try {
+      const isCodeSame = await verifyCode(email, verificationCode);
+
+      if (isCodeSame) {
+        showToast('이메일 인증이 완료되었습니다.', 'success');
+      } else {
+        showToast('인증 번호가 일치하지 않습니다.', 'error');
+      }
+      // 인증 코드 입력 후 이메일 필드 비활성화
+      setValue('email', getValues('email'), { shouldValidate: true, shouldDirty: true });
+    } catch (error) {
+      showToast('인증 코드 확인 중 오류가 발생했습니다.', 'error');
+    }
   };
 
   const resetEmailVerification = () => {

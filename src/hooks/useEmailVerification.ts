@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { sendVerificationEmail, verifyEmailCode } from '../api/auth';
+import { useState, useCallback } from 'react';
+import { sendVerificationEmail, SendVerificationEmailResponse, verifyEmailCode } from '../api/auth';
 import { VerificationType } from '../types/auth';
+import { ApiResponse } from '../types/api';
 
 declare global {
   interface Window {
@@ -83,24 +84,40 @@ const useEmailVerification = ({
 
   // 인증 메일 발송
   const sendVerification = useCallback(
-    async (email: string, type: 'SIGNUP' | 'RESET_PASSWORD'): Promise<boolean> => {
+    async (
+      email: string,
+      type: VerificationType
+    ): Promise<ApiResponse<SendVerificationEmailResponse>> => {
       setIsLoading(true);
       setError(null);
 
       try {
+        // { success, message, code, data }
         const response = await sendVerificationEmail(email, type);
 
-        if (response.success) {
+        if (response.success && response.data) {
           setIsVerificationSent(true);
-          startTimer(response.data?.expiresAt ?? ''); // expiresAt은 서버에서 반환된 만료 시간
-          return true;
+          startTimer(response.data.expiresAt);
+          return {
+            success: true,
+            data: response.data,
+          };
         } else {
-          setError(response.message || '인증 메일 발송에 실패했습니다.');
-          return false;
+          const errorMessage = response.message || '인증 메일 발송에 실패했습니다.';
+          setError(errorMessage);
+          return {
+            success: false,
+            code: response.code,
+            message: errorMessage,
+          };
         }
       } catch (err) {
-        setError('인증 메일 발송 중 오류가 발생했습니다.');
-        return false;
+        const errorMessage = '인증 메일 발송 중 오류가 발생했습니다.';
+        setError(errorMessage);
+        return {
+          success: false,
+          message: errorMessage,
+        };
       } finally {
         setIsLoading(false);
       }
