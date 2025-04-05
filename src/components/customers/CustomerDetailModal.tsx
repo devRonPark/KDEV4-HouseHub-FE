@@ -8,13 +8,13 @@ import Modal from '../ui/Modal';
 import CustomerForm from './CustomerForm';
 import { formatDate, formatPhoneNumber } from '../../utils/format';
 import { useToast } from '../../context/ToastContext';
-import type { Customer } from '../../types/customer';
+import type { CreateCustomerReqDto, Customer } from '../../types/customer';
 
 interface CustomerDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   customer: Customer | null;
-  onUpdate: (customerData: Partial<Customer>) => void;
+  onUpdate: (customerData: CreateCustomerReqDto) => void;
   onDelete: (customer: Customer) => void;
 }
 
@@ -41,14 +41,20 @@ const CustomerDetailModal = ({
     setIsEditing(false);
   };
 
-  // 폼 제출 처리
   const handleSubmit = (data: Partial<Customer>) => {
     if (!customer) return;
 
-    // id 필드 제외 (백엔드 오류 방지)
-    const { id, ...updateData } = data;
+    // id 필드 제외 및 CreateCustomerReqDto로 변환
+    const requestData: CreateCustomerReqDto = {
+      name: data.name || customer.name,
+      email: data.email || customer.email,
+      contact: data.contact || customer.contact,
+      ageGroup: Number(data.ageGroup || customer.ageGroup),
+      gender: data.gender === 'M' ? 'M' : 'F', // 타입 변환
+      memo: data.memo || '',
+    };
 
-    onUpdate(updateData);
+    onUpdate(requestData); // 변환된 데이터 전달
     setIsEditing(false);
   };
 
