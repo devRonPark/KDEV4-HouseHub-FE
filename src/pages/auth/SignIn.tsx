@@ -14,13 +14,13 @@ import Button from '../../components/ui/Button';
 import Toast from '../../components/ui/Toast';
 import useToast from '../../hooks/useToast';
 import { signInSchema } from '../../utils/validation';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 
 type SignInFormData = z.infer<typeof signInSchema>;
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
-  const { signIn, error: authError } = useAuth();
+  const { signIn } = useAuth();
   const { toast, showToast, hideToast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [validFields, setValidFields] = useState<Record<string, boolean>>({});
@@ -59,7 +59,7 @@ const SignIn: React.FC = () => {
     };
 
     // 필드 변경 감지를 위한 구독 설정
-    const subscription = watch((value, { name, type }) => {
+    const subscription = watch((_, { name, type }) => {
       // 값이 변경된 경우에만 유효성 검사 실행
       if (name && type === 'change') {
         validateField(name as keyof SignInFormData);
@@ -80,10 +80,10 @@ const SignIn: React.FC = () => {
       if (success) {
         showToast('로그인 성공', 'success');
         navigate('/dashboard');
-      } else if (authError) {
-        showToast(authError, 'error');
+      } else {
+        showToast('로그인 실패: 이메일 또는 비밀번호를 확인하세요.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('로그인 중 오류가 발생했습니다.', 'error');
     }
   };

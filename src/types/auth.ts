@@ -4,7 +4,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'agent';
+  role: 'ADMIN' | 'AGENT';
   licenseNumber?: string;
   phone: string;
   agencyName?: string;
@@ -18,7 +18,6 @@ export interface User {
 export interface AuthState {
   user: AgentDetail | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
 }
 
 export interface SignUpFormData {

@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { ApiResponse } from './auth';
+import type { ApiResponse } from '../types/api';
 import type { CreateCustomerResDto, CreateCustomerReqDto } from '../types/customer';
 import axios from 'axios';
 

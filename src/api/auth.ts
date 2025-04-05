@@ -1,14 +1,7 @@
 import { VerificationType } from '../types/auth';
 import apiClient from './client';
 import axios from 'axios';
-
-// API 응답 타입 정의
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  data?: T;
-  error?: string;
-}
+import { ApiResponse } from '../types/api';
 
 // 이메일 인증 관련 타입
 export interface SendVerificationEmailRequest {
@@ -65,7 +58,7 @@ export const sendVerificationEmail = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse;
+      return error.response.data as ApiResponse<SendVerificationEmailResponse>;
     }
     return {
       success: false,
@@ -150,6 +143,7 @@ export const signIn = async (
 export const signOut = async (): Promise<ApiResponse> => {
   try {
     const response = await apiClient.post<ApiResponse>('/auth/logout');
+    alert(JSON.stringify(response));
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
