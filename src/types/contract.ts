@@ -44,17 +44,16 @@ export const ContractStatusColors: Record<ContractStatus, { bg: string; text: st
 
 // 계약 등록 요청 DTO
 export interface ContractReqDto {
-  propertyId: number; // 매물 ID
-  customerId: number; // 고객 ID
-  contractType: ContractType; // 거래 유형 (매매, 전세, 월세)
-  contractStatus: ContractStatus; // 거래 상태 (거래 가능, 계약 진행 중, 계약 완료, 계약 취소)
-  salePrice?: number; // 매매가 (매매 계약일 경우 필요)
-  jeonsePrice?: number; // 전세가 (전세 계약일 경우 필요)
-  monthlyRentFee?: number; // 월세 금액 (월세 계약일 경우 필요)
-  monthlyRentDeposit?: number; // 월세 보증금 (월세 계약일 경우 필요)
-  memo?: string; // 참고 설명 (예: 계약 기간 등)
-  startedAt?: string; // 계약 시작일 (매매일 경우 만료일과 동일)
-  expiredAt?: string; // 계약 만료일 (매매일 경우 시작일과 동일)
+  propertyId: number;
+  contractType: ContractType;
+  contractStatus: ContractStatus;
+  memo?: string;
+  startedAt?: string;
+  expiredAt?: string;
+  salePrice?: number;
+  jeonsePrice?: number;
+  monthlyRentDeposit?: number;
+  monthlyRentFee?: number;
 }
 
 // 계약 응답 DTO

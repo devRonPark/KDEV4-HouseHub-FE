@@ -3,14 +3,12 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, FileText, Calendar, User } from 'react-feather';
+import { ArrowLeft, FileText, Calendar } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
-import CustomerSearchInput from '../../components/property/CustomerSearchInput';
 import { useToast } from '../../context/ToastContext';
 import { registerContract } from '../../api/contract';
 import { getPropertyById } from '../../api/property';
@@ -21,7 +19,7 @@ import {
   ContractStatusLabels,
   type ContractReqDto,
 } from '../../types/contract';
-import type { Customer, FindPropertyDetailResDto } from '../../types/property';
+import type { FindPropertyDetailResDto } from '../../types/property';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -72,14 +70,12 @@ const ContractRegistration: React.FC = () => {
   const location = useLocation();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   // URL 파라미터에서 propertyId 추출
   const queryParams = new URLSearchParams(location.search);
   const propertyIdParam = queryParams.get('propertyId');
 
   // 폼 상태 관리
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyDetailResDto | null>(null);
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.AVAILABLE);
@@ -96,27 +92,15 @@ const ContractRegistration: React.FC = () => {
     const loadPropertyData = async () => {
       if (!propertyIdParam) return;
 
-      setIsLoading(true);
       try {
         const response = await getPropertyById(Number(propertyIdParam));
         if (response.success && response.data) {
           setSelectedProperty(response.data);
-          // 매물의 고객 정보도 설정
-          if (response.data.customer) {
-            setSelectedCustomer({
-              id: response.data.customer.id,
-              name: response.data.customer.name,
-              phone: response.data.customer.phone,
-              email: response.data.customer.email,
-            });
-          }
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
         }
-      } catch (error) {
+      } catch {
         showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -141,39 +125,11 @@ const ContractRegistration: React.FC = () => {
       return;
     }
 
-    if (!selectedCustomer) {
-      showToast('고객을 선택해주세요.', 'error');
-      return;
-    }
-
-    // 계약 유형에 따른 가격 정보 검증
-    if (contractType === ContractType.SALE && !salePrice) {
-      showToast('매매가를 입력해주세요.', 'error');
-      return;
-    }
-
-    if (contractType === ContractType.JEONSE && !jeonsePrice) {
-      showToast('전세가를 입력해주세요.', 'error');
-      return;
-    }
-
-    if (contractType === ContractType.MONTHLY_RENT && (!monthlyRentDeposit || !monthlyRentFee)) {
-      showToast('보증금과 월세를 입력해주세요.', 'error');
-      return;
-    }
-
-    // 계약 상태가 AVAILABLE이 아닌 경우 계약 기간 검증
-    if (contractStatus !== ContractStatus.AVAILABLE && (!startDate || !endDate)) {
-      showToast('계약 시작일과 만료일을 입력해주세요.', 'error');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
       const contractData: ContractReqDto = {
         propertyId: selectedProperty.id,
-        customerId: selectedCustomer.id,
         contractType,
         contractStatus,
         memo: memo || undefined,
@@ -249,50 +205,6 @@ const ContractRegistration: React.FC = () => {
                       >
                         매물 선택하기
                       </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* 고객 정보 */}
-                <div className="h-full">
-                  {selectedCustomer ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                        고객 정보 <span className="text-red-500">*</span>
-                      </label>
-                      <div className="p-3 bg-gray-50 rounded-md flex items-center justify-between h-[88px]">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                              <User className="h-4 w-4 text-blue-600" />
-                            </div>
-                          </div>
-                          <div className="text-left">
-                            <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
-                            <p className="text-sm text-gray-500">{selectedCustomer.phone}</p>
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSelectedCustomer(null)}
-                        >
-                          변경
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                        고객 정보 <span className="text-red-500">*</span>
-                      </label>
-                      <div className="h-[88px]">
-                        <CustomerSearchInput
-                          onCustomerSelect={setSelectedCustomer}
-                          selectedCustomer={selectedCustomer}
-                        />
-                      </div>
                     </div>
                   )}
                 </div>

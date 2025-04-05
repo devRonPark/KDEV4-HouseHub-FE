@@ -5,7 +5,16 @@ import type {
   PropertyListResponse,
   PropertySearchFilter,
   FindPropertyDetailResDto, // Added import
+  PropertyType,
 } from '../types/property';
+
+export interface PropertyReqDto {
+  propertyType: PropertyType;
+  roadAddress: string;
+  jibunAddress: string;
+  detailAddress: string;
+  memo?: string;
+}
 
 // 매물 등록 API
 export const registerProperty = async (
@@ -132,5 +141,20 @@ export const deleteProperty = async (id: number): Promise<ApiResponse<void>> => 
       success: false,
       error: '매물 삭제 중 오류가 발생했습니다.',
     };
+  }
+};
+
+export const updateProperty = async (
+  id: number,
+  data: PropertyReqDto
+): Promise<ApiResponse<void>> => {
+  try {
+    const response = await apiClient.put(`/properties/${id}`, data);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      return error.response.data;
+    }
+    throw error;
   }
 };

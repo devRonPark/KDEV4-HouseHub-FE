@@ -12,6 +12,7 @@ import {
 import apiClient from '../api/client';
 import { AgentDetail } from '../types/agent';
 import { getMyProfile } from '../api/agent';
+import { useLocation } from 'react-router-dom';
 
 interface AuthContextType extends AuthState {
   signUp: (data: SignUpRequest) => Promise<boolean>;
@@ -42,10 +43,19 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// 인증이 필요하지 않은 경로 목록
+const publicPaths = ['/signin', '/signup', '/forgot-password'];
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // 초기값 true로 설정
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // isAuthenticated 상태 추가
   const [user, setUser] = useState<AgentDetail | null>(null);
+  const location = useLocation();
+
+  // 현재 경로가 인증이 필요하지 않은 경로인지 확인
+  const isPublicPath = publicPaths.some(
+    (path) => location.pathname === path || location.pathname.startsWith(`${path}/`)
+  );
 
   // 사용자 프로필 정보 가져오기
   const fetchUserProfile = useCallback(async () => {
@@ -55,53 +65,58 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(response.data);
         return true;
       }
+      setUser(null);
       return false;
     } catch (error) {
-      console.error('Failed to fetch user profile:', error);
+      setUser(null);
       return false;
     }
   }, []);
 
-  // 초기 인증 상태 확인
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // 현재 경로 확인
-        const currentPath = window.location.pathname;
-        const publicPaths = ['/signin', '/signup'];
-        // 공개 라우트인 경우 인증 검증 건너뜀
-        if (publicPaths.includes(currentPath)) {
-          setIsLoading(false);
-          return;
-        }
-
-        // 세션 상태 확인 API 호출
-        const response = await checkSession();
-        if (response.success && response.data.authenticated) {
-          setIsAuthenticated(response.data.authenticated);
-          await fetchUserProfile();
-        } else {
-          setIsAuthenticated(false);
-          setUser(null);
-        }
-      } catch (error) {
-        // 인증되지 않은 상태
+  const checkAuth = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await checkSession();
+      if (response.success) {
+        setIsAuthenticated(true);
+        await fetchUserProfile();
+      } else {
         setIsAuthenticated(false);
         setUser(null);
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    checkAuth();
+    } catch (error) {
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, [fetchUserProfile]);
+
+  // 초기 인증 상태 확인
+  useEffect(() => {
+    console.log('AuthProvider 마운트, 인증 상태 확인 시작');
+
+    // 안전장치: 최대 5초 후에는 무조건 로딩 상태 해제
+    const timeoutId = setTimeout(() => {
+      console.log('타임아웃으로 인한 로딩 상태 해제');
+      setIsLoading(false);
+    }, 5000);
+
+    checkAuth().finally(() => {
+      clearTimeout(timeoutId);
+    });
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [checkAuth]);
 
   // 사용자 프로필 새로고침
   const refreshUserProfile = useCallback(async () => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !user) {
       await fetchUserProfile();
     }
-  }, [isAuthenticated, fetchUserProfile]);
+  }, [isAuthenticated, user, fetchUserProfile]);
 
   // 회원가입
   const signUp = useCallback(async (data: SignUpRequest): Promise<boolean> => {
@@ -117,26 +132,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // 로그인
-  const signIn = async (email: string, password: string, rememberMe = false): Promise<boolean> => {
-    setIsLoading(true);
-    try {
-      const response = await apiSignIn(email, password, rememberMe);
+  const signIn = useCallback(
+    async (email: string, password: string, rememberMe = false): Promise<boolean> => {
+      setIsLoading(true);
+      try {
+        const response = await apiSignIn(email, password, rememberMe);
 
-      if (response.success) {
-        setIsAuthenticated(true);
-        await fetchUserProfile();
-        return true;
+        if (response.success) {
+          setIsAuthenticated(true);
+          await fetchUserProfile();
+          return true;
+        }
+        return false;
+      } catch (error) {
+        return false;
+      } finally {
+        setIsLoading(false);
       }
-      return false;
-    } catch (error) {
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [fetchUserProfile]
+  );
 
   // 로그아웃
-  const logout = useCallback(async (): Promise<boolean> => {
+  const signOut = useCallback(async (): Promise<boolean> => {
     try {
       // 로그아웃 API 호출
       const response = await apiClient.post('/auth/logout');
@@ -160,7 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         signUp,
         signIn,
-        signOut: logout,
+        signOut,
         refreshUserProfile,
       }}
     >

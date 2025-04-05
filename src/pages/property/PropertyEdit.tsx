@@ -9,10 +9,10 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Textarea from '../../components/ui/Textarea';
 import AddressInput from '../../components/ui/AddressInput';
-import CustomerSearchInput from '../../components/property/CustomerSearchInput';
+// import CustomerSearchInput from '../../components/property/CustomerSearchInput';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
 import { useToast } from '../../context/ToastContext';
-import { getPropertyById } from '../../api/property';
+import { getPropertyById, updateProperty } from '../../api/property';
 import type { PropertyType, FindPropertyDetailResDto, Customer } from '../../types/property';
 
 const PropertyEdit: React.FC = () => {
@@ -89,32 +89,34 @@ const PropertyEdit: React.FC = () => {
     e.preventDefault();
 
     // 필수 필드 검증
-    if (!selectedCustomer) {
-      showToast('고객을 선택해주세요.', 'error');
-      return;
-    }
-
     if (!propertyType) {
       showToast('매물 유형을 선택해주세요.', 'error');
       return;
     }
 
-    if (!roadAddress) {
+    if (!roadAddress || !jibunAddress) {
       showToast('주소를 입력해주세요.', 'error');
       return;
     }
 
     setIsSubmitting(true);
 
-    // 여기에 실제 API 호출 코드를 추가해야 합니다.
-    // 현재는 예시로 성공 메시지만 표시합니다.
     try {
-      // 실제 구현 시 updateProperty API 호출 필요
-      setTimeout(() => {
+      const response = await updateProperty(Number(id), {
+        propertyType,
+        roadAddress,
+        jibunAddress,
+        detailAddress,
+        memo: memo || undefined,
+      });
+
+      if (response.success) {
         showToast('매물 정보가 성공적으로 수정되었습니다.', 'success');
         navigate(`/properties/${id}`);
-      }, 1000);
-    } catch (error) {
+      } else {
+        showToast(response.error || '매물 수정에 실패했습니다.', 'error');
+      }
+    } catch {
       showToast('매물 수정 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsSubmitting(false);
@@ -173,7 +175,7 @@ const PropertyEdit: React.FC = () => {
               {/* 고객 정보 */}
               {!isCustomerSearchActive ? (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                     의뢰인 <span className="text-red-500">*</span>
                   </label>
                   <div className="p-4 bg-gray-50 rounded-md flex items-center justify-between">
@@ -197,7 +199,7 @@ const PropertyEdit: React.FC = () => {
               ) : (
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 text-left">
                       의뢰인 검색 <span className="text-red-500">*</span>
                     </label>
                     <Button
@@ -209,13 +211,13 @@ const PropertyEdit: React.FC = () => {
                       취소
                     </Button>
                   </div>
-                  <CustomerSearchInput
+                  {/* <CustomerSearchInput
                     onCustomerSelect={(customer) => {
                       setSelectedCustomer(customer);
                       setIsCustomerSearchActive(false);
                     }}
                     selectedCustomer={null}
-                  />
+                  /> */}
                 </div>
               )}
 
@@ -224,7 +226,7 @@ const PropertyEdit: React.FC = () => {
 
               {/* 주소 입력 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                   주소 정보 <span className="text-red-500">*</span>
                 </label>
                 <div className="p-4 bg-gray-50 rounded-md mb-4">
