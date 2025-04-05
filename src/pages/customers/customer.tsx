@@ -84,7 +84,7 @@ const CustomersPage = () => {
   // 데이터 로딩
   useEffect(() => {
     loadCustomers();
-  }, [showToast]);
+  }, [showToast, loadCustomers]);
 
   // 검색 및 필터링
   useEffect(() => {
@@ -107,7 +107,7 @@ const CustomersPage = () => {
     };
 
     applySearchAndFilters();
-  }, [customers, searchTerm, activeFilters]);
+  }, [customers, searchTerm]);
 
   // 페이지네이션된 고객 목록
   const paginatedCustomers = filteredCustomers.slice(
@@ -136,7 +136,7 @@ const CustomersPage = () => {
   };
 
   // 고객 정보 수정
-  const handleUpdateCustomer = async (customerData: Omit<Customer, 'id'>) => {
+  const handleUpdateCustomer = async (customerData: CreateCustomerReqDto) => {
     if (!selectedCustomer) return;
 
     try {
@@ -335,7 +335,7 @@ const CustomersPage = () => {
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-grow">
             <Input
-              placeholder="이름, 이메일, 연락처, 주소로 검색"
+              placeholder="이름, 이메일, 연락처로 검색"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               leftIcon={<Search size={18} />}
