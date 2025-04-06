@@ -13,6 +13,7 @@ import {
   FileText,
   MessageSquare,
   ChevronDown,
+  Send,
 } from 'react-feather';
 import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
@@ -43,6 +44,17 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { name: '매물 관리', icon: <FileText size={18} />, href: '/properties' },
     { name: '계약 관리', icon: <FileText size={18} />, href: '/contracts' },
     { name: '상담/문의', icon: <MessageSquare size={18} />, href: '/consultations' },
+    {
+      name: '문자 관리',
+      icon: <Send size={18} />,
+      href: '/sms',
+      subItems: [
+        { name: '문자 목록', href: '/sms' },
+        { name: '문자 보내기', href: '/sms/send' },
+        { name: '템플릿 목록', href: '/sms/templates' },
+        { name: '템플릿 생성', href: '/sms/templates/create' },
+      ],
+    },
     {
       name: '문의 템플릿',
       icon: <FileText size={18} />,
