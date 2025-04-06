@@ -56,11 +56,11 @@ const SmsTemplateCreatePage = () => {
     setIsSubmitting(true);
     try {
       const response = await createTemplate(templateData);
-      if (response.success) {
+      if (response.success && response.data) {
         showToast('템플릿이 성공적으로 생성되었습니다.', 'success');
         navigate('/sms/templates');
       } else {
-        showToast(response.message || '템플릿 생성에 실패했습니다.', 'error');
+        showToast(response.error || '템플릿 생성에 실패했습니다.', 'error');
       }
     } catch (error) {
       console.error('템플릿 생성 오류:', error);

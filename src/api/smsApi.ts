@@ -2,12 +2,10 @@ import apiClient from './client';
 import type {
   SendSmsReqDto,
   SendSmsResDto,
-  AligoHistoryReqDto,
-  HistoryDetailDto,
   CreateUpdateTemplateReqDto,
   TemplateResDto,
-  ApiResponse,
 } from '../types/sms';
+import type { ApiResponse } from '../types/api';
 
 // 문자 발송 API
 export const sendSms = async (data: SendSmsReqDto): Promise<ApiResponse<SendSmsResDto>> => {
@@ -16,21 +14,6 @@ export const sendSms = async (data: SendSmsReqDto): Promise<ApiResponse<SendSmsR
     return response.data;
   } catch (error) {
     console.error('SMS 발송 오류:', error);
-    throw error;
-  }
-};
-
-// 문자 발송 이력 조회 API
-export const getSmsHistories = async (
-  params: AligoHistoryReqDto
-): Promise<ApiResponse<HistoryDetailDto[]>> => {
-  try {
-    const response = await apiClient.get<ApiResponse<HistoryDetailDto[]>>('/sms/history', {
-      params,
-    });
-    return response.data;
-  } catch (error) {
-    console.error('SMS 이력 조회 오류:', error);
     throw error;
   }
 };
@@ -76,10 +59,7 @@ export const updateTemplate = async (
   data: CreateUpdateTemplateReqDto
 ): Promise<ApiResponse<TemplateResDto>> => {
   try {
-    const response = await apiClient.put<ApiResponse<TemplateResDto>>(
-      `/api/sms/templates/${id}`,
-      data
-    );
+    const response = await apiClient.put<ApiResponse<TemplateResDto>>(`/sms/templates/${id}`, data);
     return response.data;
   } catch (error) {
     console.error('템플릿 수정 오류:', error);

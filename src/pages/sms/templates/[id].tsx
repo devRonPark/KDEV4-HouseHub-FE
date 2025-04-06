@@ -85,11 +85,11 @@ const SmsTemplateEditPage = () => {
     setIsSubmitting(true);
     try {
       const response = await updateTemplate(Number(id), templateData);
-      if (response.success) {
+      if (response.success && response.data) {
         showToast('템플릿이 성공적으로 수정되었습니다.', 'success');
         navigate('/sms/templates');
       } else {
-        showToast(response.message || '템플릿 수정에 실패했습니다.', 'error');
+        showToast(response.error || '템플릿 수정에 실패했습니다.', 'error');
       }
     } catch (error) {
       console.error('템플릿 수정 오류:', error);

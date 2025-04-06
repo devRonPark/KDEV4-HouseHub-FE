@@ -103,6 +103,7 @@ const SmsTemplateListPage = () => {
     try {
       return format(new Date(dateString), 'yyyy-MM-dd HH:mm');
     } catch (error) {
+      console.log(error);
       return dateString;
     }
   };

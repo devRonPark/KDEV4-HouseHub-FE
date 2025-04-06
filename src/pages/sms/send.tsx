@@ -12,14 +12,11 @@ import Textarea from '../../components/ui/Textarea';
 import Card from '../../components/ui/Card';
 import { useToast } from '../../context/useToast';
 import { sendSms, getAllTemplates } from '../../api/smsApi';
+import { getMyCustomers } from '../../api/customer';
 import type { SendSmsReqDto, TemplateResDto } from '../../types/sms';
-
-// 임시 고객 데이터
-const MOCK_CUSTOMERS = [
-  { id: 1, name: '김영희', contact: '010-1234-5678', group: '임대 희망자' },
-  { id: 2, name: '이철수', contact: '010-9876-5432', group: '매매 희망자' },
-  { id: 3, name: '박민지', contact: '010-2468-1357', group: '전세 희망자' },
-];
+import type { CreateCustomerResDto } from '../../types/customer';
+// At the top of the file, make sure useAuth is imported
+import { useAuth } from '../../context/useAuth';
 
 const SmsSendPage = () => {
   const navigate = useNavigate();
@@ -28,7 +25,10 @@ const SmsSendPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sender, setSender] = useState('');
-  const [selectedCustomers, setSelectedCustomers] = useState<typeof MOCK_CUSTOMERS>([]);
+  const [customers, setCustomers] = useState<CreateCustomerResDto[]>([]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  // Change the selectedCustomers state to store a single customer instead of an array
+  const [selectedCustomer, setSelectedCustomer] = useState<CreateCustomerResDto | null>(null);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'SMS' | 'LMS' | 'MMS'>('SMS');
   const [isReservation, setIsReservation] = useState(false);
@@ -37,8 +37,10 @@ const SmsSendPage = () => {
   const [templates, setTemplates] = useState<TemplateResDto[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredCustomers, setFilteredCustomers] = useState(MOCK_CUSTOMERS);
+  const [filteredCustomers, setFilteredCustomers] = useState<CreateCustomerResDto[]>([]);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  // Inside the SmsSendPage component, add this line near the other useState declarations
+  const { user } = useAuth();
 
   // 템플릿 목록 조회
   const fetchTemplates = async () => {
@@ -58,9 +60,36 @@ const SmsSendPage = () => {
     }
   };
 
-  // 초기 데이터 로딩
+  // 고객 목록 조회
+  const fetchCustomers = async () => {
+    setIsLoadingCustomers(true);
+    try {
+      const response = await getMyCustomers();
+      if (response.success && response.data) {
+        setCustomers(response.data);
+        setFilteredCustomers(response.data);
+      } else {
+        showToast(response.error || '고객 목록을 불러오는데 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error('고객 목록 조회 오류:', error);
+      showToast('고객 목록을 불러오는 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setIsLoadingCustomers(false);
+      console.log(isLoading);
+    }
+  };
+
+  // Replace the existing useEffect for initial data loading with this updated version
+  // that sets the sender to the user's contact number
   useEffect(() => {
     fetchTemplates();
+    fetchCustomers();
+
+    // Set sender to the current user's contact number
+    if (user && user.contact) {
+      setSender(user.contact);
+    }
 
     // URL 파라미터에서 templateId 가져오기
     const searchParams = new URLSearchParams(location.search);
@@ -68,26 +97,30 @@ const SmsSendPage = () => {
     if (templateId) {
       setSelectedTemplateId(Number(templateId));
     }
-  }, [location]);
+  }, [location, user]);
 
   // 검색어에 따른 고객 필터링
   useEffect(() => {
-    let filtered = MOCK_CUSTOMERS;
+    let filtered = customers;
 
     // 검색어 필터링
     if (searchTerm) {
       filtered = filtered.filter(
-        (customer) => customer.name.includes(searchTerm) || customer.contact.includes(searchTerm)
+        (customer) =>
+          customer.name.includes(searchTerm) ||
+          customer.contact.includes(searchTerm) ||
+          (customer.email && customer.email.includes(searchTerm))
       );
     }
 
-    // 그룹 필터링
+    // 그룹 필터링 - 연령대로 필터링하도록 수정
     if (activeFilter) {
-      filtered = filtered.filter((customer) => customer.group === activeFilter);
+      const ageGroup = Number.parseInt(activeFilter);
+      filtered = filtered.filter((customer) => customer.ageGroup === ageGroup);
     }
 
     setFilteredCustomers(filtered);
-  }, [searchTerm, activeFilter]);
+  }, [searchTerm, activeFilter, customers]);
 
   // 템플릿 선택 시 메시지 내용 업데이트
   useEffect(() => {
@@ -113,16 +146,9 @@ const SmsSendPage = () => {
     }
   }, [message, messageType]);
 
-  // 고객 선택/해제
-  const toggleCustomerSelection = (customer: (typeof MOCK_CUSTOMERS)[0]) => {
-    setSelectedCustomers((prev) => {
-      const isSelected = prev.some((c) => c.id === customer.id);
-      if (isSelected) {
-        return prev.filter((c) => c.id !== customer.id);
-      } else {
-        return [...prev, customer];
-      }
-    });
+  // Replace the toggleCustomerSelection function with a selectCustomer function
+  const selectCustomer = (customer: CreateCustomerResDto) => {
+    setSelectedCustomer(customer === selectedCustomer ? null : customer);
   };
 
   // 필터 토글
@@ -130,7 +156,7 @@ const SmsSendPage = () => {
     setActiveFilter((prev) => (prev === filter ? null : filter));
   };
 
-  // 문자 발송
+  // Update the handleSendSms function to use a single receiver
   const handleSendSms = async () => {
     // 유효성 검사
     if (!sender) {
@@ -138,7 +164,7 @@ const SmsSendPage = () => {
       return;
     }
 
-    if (selectedCustomers.length === 0) {
+    if (!selectedCustomer) {
       showToast('수신자를 선택해주세요.', 'error');
       return;
     }
@@ -149,21 +175,33 @@ const SmsSendPage = () => {
     }
 
     // 예약 발송 시간 설정
-    let reservationDateTime: string | undefined;
+    let rtime: string | undefined;
+    let rdate: string | undefined;
+
     if (isReservation) {
       if (!reservationDate || !reservationTime) {
         showToast('예약 날짜와 시간을 모두 입력해주세요.', 'error');
         return;
       }
-      reservationDateTime = `${reservationDate}T${reservationTime}:00`;
+
+      // HH:MM 형식의 예약 시간
+      rtime = reservationTime;
+
+      // YYYYMMDD 형식의 예약 날짜
+      rdate = reservationDate.replace(/-/g, '');
     }
 
     const smsData: SendSmsReqDto = {
       sender,
-      receivers: selectedCustomers.map((c) => c.contact),
-      message,
-      messageType,
-      reservationTime: reservationDateTime,
+      receiver: selectedCustomer.contact,
+      msg: message,
+      msgType: messageType,
+      title:
+        messageType === 'LMS' || messageType === 'MMS'
+          ? `${selectedCustomer.name}님 안내`
+          : undefined,
+      rtime,
+      rdate,
       templateId: selectedTemplateId || undefined,
     };
 
@@ -215,84 +253,108 @@ const SmsSendPage = () => {
                 <button
                   type="button"
                   className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    activeFilter === '임대 희망자'
+                    activeFilter === '20'
                       ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
-                  onClick={() => toggleFilter('임대 희망자')}
+                  onClick={() => toggleFilter('20')}
                 >
-                  임대 희망자
+                  20대
                 </button>
                 <button
                   type="button"
                   className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    activeFilter === '매매 희망자'
+                    activeFilter === '30'
                       ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
-                  onClick={() => toggleFilter('매매 희망자')}
+                  onClick={() => toggleFilter('30')}
                 >
-                  매매 희망자
+                  30대
                 </button>
                 <button
                   type="button"
                   className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    activeFilter === '전세 희망자'
+                    activeFilter === '40'
                       ? 'bg-blue-100 text-blue-800'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
-                  onClick={() => toggleFilter('전세 희망자')}
+                  onClick={() => toggleFilter('40')}
                 >
-                  전세 희망자
+                  40대
+                </button>
+                <button
+                  type="button"
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    activeFilter === '50'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  }`}
+                  onClick={() => toggleFilter('50')}
+                >
+                  50대 이상
                 </button>
               </div>
 
               {/* 고객 목록 */}
               <div className="mt-4">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        이름
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        연락처
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        선택
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredCustomers.map((customer) => (
-                      <tr key={customer.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {customer.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {customer.contact}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            checked={selectedCustomers.some((c) => c.id === customer.id)}
-                            onChange={() => toggleCustomerSelection(customer)}
-                          />
-                        </td>
+                {isLoadingCustomers ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : filteredCustomers.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">검색 결과가 없습니다.</div>
+                ) : (
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          이름
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          연락처
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          선택
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    {/* Update the customer selection UI in the table */}
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredCustomers.map((customer) => (
+                        <tr
+                          key={customer.id}
+                          className={`hover:bg-gray-50 cursor-pointer ${selectedCustomer?.id === customer.id ? 'bg-blue-50' : ''}`}
+                          onClick={() => selectCustomer(customer)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {customer.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {customer.contact}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <input
+                              type="radio"
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-full"
+                              checked={selectedCustomer?.id === customer.id}
+                              onChange={() => selectCustomer(customer)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           </Card>
@@ -302,7 +364,7 @@ const SmsSendPage = () => {
         <div className="lg:col-span-2">
           <Card title="메시지 작성" className="h-full">
             <div className="space-y-4">
-              {/* 발신 번호 */}
+              {/* Replace the existing sender input field with this read-only version */}
               <div>
                 <label htmlFor="sender" className="block text-sm font-medium text-gray-700">
                   발신 번호
@@ -310,9 +372,10 @@ const SmsSendPage = () => {
                 <Input
                   id="sender"
                   value={sender}
-                  onChange={(e) => setSender(e.target.value)}
                   placeholder="발신 번호 입력 (예: 010-1234-5678)"
                   required
+                  disabled={true}
+                  helperText="현재 로그인한 사용자의 전화번호로 고정됩니다."
                 />
               </div>
 
@@ -477,31 +540,22 @@ const SmsSendPage = () => {
                 )}
               </div>
 
-              {/* 선택된 수신자 */}
+              {/* Update the selected receiver display */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  선택된 수신자 ({selectedCustomers.length}명)
-                </label>
-                <div className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 max-h-32 overflow-y-auto">
-                  {selectedCustomers.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedCustomers.map((customer) => (
-                        <div
-                          key={customer.id}
-                          className="flex items-center bg-white px-2 py-1 rounded-md border border-gray-300"
-                        >
-                          <span className="text-sm">
-                            {customer.name} ({customer.contact})
-                          </span>
-                          <button
-                            type="button"
-                            className="ml-1 text-gray-400 hover:text-gray-600"
-                            onClick={() => toggleCustomerSelection(customer)}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
+                <label className="block text-sm font-medium text-gray-700">선택된 수신자</label>
+                <div className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 min-h-[60px]">
+                  {selectedCustomer ? (
+                    <div className="flex items-center bg-white px-2 py-1 rounded-md border border-gray-300 inline-block">
+                      <span className="text-sm">
+                        {selectedCustomer.name} ({selectedCustomer.contact})
+                      </span>
+                      <button
+                        type="button"
+                        className="ml-1 text-gray-400 hover:text-gray-600"
+                        onClick={() => setSelectedCustomer(null)}
+                      >
+                        ✕
+                      </button>
                     </div>
                   ) : (
                     <div className="text-sm text-gray-500 text-center py-2">
@@ -516,11 +570,12 @@ const SmsSendPage = () => {
                 <Button variant="outline" onClick={() => navigate('/sms')} className="mr-2">
                   취소
                 </Button>
+                {/* Update the send button disabled state */}
                 <Button
                   variant="primary"
                   onClick={handleSendSms}
                   isLoading={isSending}
-                  disabled={!sender || selectedCustomers.length === 0 || !message}
+                  disabled={!sender || !selectedCustomer || !message}
                 >
                   {isReservation ? '예약 발송' : '즉시 발송'}
                 </Button>

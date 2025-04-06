@@ -11,9 +11,9 @@ import LoadingScreen from './components/ui/LoadingScreen';
 import CustomersPage from './pages/customers/customer';
 import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
 import InquiryTemplateCreate from './pages/inquiryTemplate/InquiryTemplateCreate';
-import SmsListPage from './pages/sms/index';
+import SmsListPage from './pages/sms/sms';
 import SmsSendPage from './pages/sms/send';
-import SmsTemplateListPage from './pages/sms/templates/index';
+import SmsTemplateListPage from './pages/sms/templates/templates';
 import SmsTemplateCreatePage from './pages/sms/templates/create';
 import SmsTemplateEditPage from './pages/sms/templates/[id]';
 

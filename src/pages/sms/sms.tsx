@@ -76,9 +76,7 @@ const SmsListPage = () => {
       setFilteredSmsList(smsList);
     } else {
       const filtered = smsList.filter(
-        (sms) =>
-          sms.receivers.some((receiver) => receiver.includes(searchTerm)) ||
-          sms.message.includes(searchTerm)
+        (sms) => sms.receiver.includes(searchTerm) || sms.msg.includes(searchTerm)
       );
       setFilteredSmsList(filtered);
     }
@@ -92,37 +90,67 @@ const SmsListPage = () => {
     currentPage * itemsPerPage
   );
 
-  // 날짜 포맷팅
-  const formatDate = (dateString: string) => {
+  // 요청 시간 포맷팅 함수 추가
+  const formatRequestTime = (requestTime: string): string => {
     try {
-      return format(new Date(dateString), 'yyyy-MM-dd HH:mm');
+      // Date 객체로 변환 후 원하는 형식으로 포맷팅
+      return format(new Date(requestTime), 'yyyy-MM-dd HH:mm');
     } catch (error) {
-      return dateString;
+      console.error('시간 포맷팅 오류:', error);
+      return requestTime; // 오류 발생 시 원본 반환
     }
+  };
+
+  const formatReserveTime = (requestTime: string): string => {
+    try {
+      if (!requestTime || requestTime.length !== 13) return '-';
+      // 입력 문자열을 분리하여 날짜와 시간을 추출
+      const datePart = requestTime.substring(0, 8); // YYYYMMDD
+      const timePart = requestTime.substring(8); // HH:mm
+
+      // 날짜와 시간을 결합하여 원하는 형식으로 반환
+      const year = datePart.substring(0, 4);
+      const month = datePart.substring(4, 6);
+      const day = datePart.substring(6, 8);
+
+      return `${year}-${month}-${day} ${timePart}`;
+    } catch (error) {
+      console.error('시간 포맷팅 오류:', error);
+      return requestTime; // 오류 발생 시 원본 반환
+    }
+  };
+
+  const formatContact = (contact: string) => {
+    if (!contact || contact.length !== 11) return '-';
+    const head = contact.substring(0, 3);
+    const body = contact.substring(3, 7);
+    const foot = contact.substring(7, 11);
+    return `${head}-${body}-${foot}`;
   };
 
   // 테이블 컬럼 정의
   const columns = [
     {
-      key: 'receivers',
+      key: 'receiver',
       header: '수신자 전화번호',
-      render: (sms: SendSmsResDto) => (
-        <div>
-          {sms.receivers.length > 1 ? (
-            <div>
-              <div>{sms.receivers[0]}</div>
-              <div className="text-xs text-gray-500">외 {sms.receivers.length - 1}명</div>
-            </div>
-          ) : (
-            sms.receivers[0]
-          )}
-        </div>
-      ),
+      render: (sms: SendSmsResDto) => <div>{formatContact(sms.receiver)}</div>,
     },
     {
-      key: 'sentAt',
-      header: '발송 시간',
-      render: (sms: SendSmsResDto) => <div>{formatDate(sms.sentAt)}</div>,
+      key: 'rdate',
+      header: '예약 일시',
+      render: (sms: SendSmsResDto) => {
+        const reserveDateTime = sms.rdate + sms.rtime; // 예약 일자와 시간 결합
+        const formattedReserveTime = formatReserveTime(reserveDateTime); // 예약 시간 포맷팅
+        const formattedRequestTime = formatRequestTime(sms.createdAt); // 요청 시간 포맷팅
+        return (
+          <div>{formattedReserveTime === formattedRequestTime ? '-' : formattedReserveTime}</div>
+        );
+      },
+    },
+    {
+      key: 'createdAt',
+      header: '요청 일시',
+      render: (sms: SendSmsResDto) => <div>{formatRequestTime(sms.createdAt)}</div>,
     },
     {
       key: 'status',
@@ -268,17 +296,17 @@ const SmsListPage = () => {
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">수신 번호</h3>
-              <div className="mt-1 space-y-1">
-                {selectedSms.receivers.map((receiver, index) => (
-                  <p key={index} className="text-sm text-gray-900">
-                    {receiver}
-                  </p>
-                ))}
-              </div>
+              <p className="mt-1 text-sm text-gray-900">{selectedSms.receiver}</p>
             </div>
+            {selectedSms.title && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">제목</h3>
+                <p className="mt-1 text-sm text-gray-900">{selectedSms.title}</p>
+              </div>
+            )}
             <div>
               <h3 className="text-sm font-medium text-gray-500">메시지 유형</h3>
-              <p className="mt-1 text-sm text-gray-900">{selectedSms.messageType}</p>
+              <p className="mt-1 text-sm text-gray-900">{selectedSms.msgType}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-gray-500">발송 상태</h3>
@@ -288,22 +316,31 @@ const SmsListPage = () => {
                 </Badge>
               </div>
             </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">발송 시간</h3>
-              <p className="mt-1 text-sm text-gray-900">{formatDate(selectedSms.sentAt)}</p>
-            </div>
-            {selectedSms.reservationTime && (
+            {/* 예약 일시 */}
+            {(selectedSms.rdate || selectedSms.rtime) &&
+              formatReserveTime(selectedSms.rdate + selectedSms.rtime) !==
+                formatRequestTime(selectedSms.createdAt) && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">예약 일시</h3>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {formatReserveTime(selectedSms.rdate + selectedSms.rtime)}
+                  </p>
+                </div>
+              )}
+
+            {/* 요청 일시 */}
+            {selectedSms.createdAt && (
               <div>
-                <h3 className="text-sm font-medium text-gray-500">예약 시간</h3>
+                <h3 className="text-sm font-medium text-gray-500">요청 일시</h3>
                 <p className="mt-1 text-sm text-gray-900">
-                  {formatDate(selectedSms.reservationTime)}
+                  {formatRequestTime(selectedSms.createdAt)}
                 </p>
               </div>
             )}
             <div>
               <h3 className="text-sm font-medium text-gray-500">메시지 내용</h3>
               <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedSms.message}</p>
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedSms.msg}</p>
               </div>
             </div>
           </div>

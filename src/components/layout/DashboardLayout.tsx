@@ -1,4 +1,4 @@
-'use client';
+// "use client"
 
 import type React from 'react';
 import { useState } from 'react';
@@ -22,6 +22,7 @@ import LogoWithText from '../LogoWithText';
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const { signOut, user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -80,20 +81,48 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {/* 데스크톱 네비게이션 */}
                 {menuItems.map((item) => (
-                  <NavLink
+                  <div
                     key={item.name}
-                    to={item.href}
-                    className={({ isActive }) =>
-                      `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                        isActive
-                          ? 'border-blue-500 text-gray-900'
-                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                      }`
-                    }
+                    className="relative"
+                    onMouseEnter={() => setHoveredItem(item.name)}
+                    onMouseLeave={() => setHoveredItem(null)}
                   >
-                    <span className="mr-1">{item.icon}</span>
-                    {item.name}
-                  </NavLink>
+                    <NavLink
+                      to={item.href}
+                      className={({ isActive }) =>
+                        `inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                          isActive
+                            ? 'border-blue-500 text-gray-900'
+                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                        }`
+                      }
+                    >
+                      <span className="mr-1">{item.icon}</span>
+                      {item.name}
+                      {item.subItems && <ChevronDown size={14} className="ml-1" />}
+                    </NavLink>
+
+                    {/* Dropdown menu for items with subitems */}
+                    {item.subItems && hoveredItem === item.name && (
+                      <div className="absolute z-10 left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
+                        {item.subItems.map((subItem) => (
+                          <NavLink
+                            key={subItem.name}
+                            to={subItem.href}
+                            className={({ isActive }) =>
+                              `block px-4 py-2 text-sm ${
+                                isActive
+                                  ? 'bg-gray-100 text-gray-900'
+                                  : 'text-gray-700 hover:bg-gray-50'
+                              }`
+                            }
+                          >
+                            {subItem.name}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -181,22 +210,47 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <div className="sm:hidden" id="mobile-menu">
             <div className="pt-2 pb-3 space-y-1">
               {menuItems.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                      isActive
-                        ? 'bg-blue-50 border-blue-500 text-blue-700'
-                        : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
-                    }`
-                  }
-                >
-                  <div className="flex items-center">
-                    <span className="mr-2">{item.icon}</span>
-                    {item.name}
-                  </div>
-                </NavLink>
+                <div key={item.name}>
+                  <NavLink
+                    to={item.href}
+                    className={({ isActive }) =>
+                      `block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                        isActive
+                          ? 'bg-blue-50 border-blue-500 text-blue-700'
+                          : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+                      }`
+                    }
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <span className="mr-2">{item.icon}</span>
+                        {item.name}
+                      </div>
+                      {item.subItems && <ChevronDown size={16} />}
+                    </div>
+                  </NavLink>
+
+                  {/* Mobile submenu */}
+                  {item.subItems && (
+                    <div className="pl-8 py-1 bg-gray-50">
+                      {item.subItems.map((subItem) => (
+                        <NavLink
+                          key={subItem.name}
+                          to={subItem.href}
+                          className={({ isActive }) =>
+                            `block py-2 pl-3 pr-4 text-sm ${
+                              isActive
+                                ? 'text-blue-700 font-medium'
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`
+                          }
+                        >
+                          {subItem.name}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
             <div className="pt-4 pb-3 border-t border-gray-200">
