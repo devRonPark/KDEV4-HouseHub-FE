@@ -7,6 +7,7 @@ import type {
   FindPropertyDetailResDto, // Added import
   PropertyType,
 } from '../types/property';
+import { isAxiosError } from 'axios';
 
 export interface PropertyReqDto {
   propertyType: PropertyType;
@@ -24,6 +25,7 @@ export const registerProperty = async (
     const response = await apiClient.post<ApiResponse<{ id: number }>>('/properties', propertyData);
     return response.data;
   } catch (error) {
+    console.log(error);
     return {
       success: false,
       error: '매물 등록 중 오류가 발생했습니다.',
@@ -63,44 +65,46 @@ export const getProperties = async (
       url += `&customerName=${encodeURIComponent(filter.customerName)}`;
     }
 
-    const response = await apiClient.get<ApiResponse<any>>(url);
+    const response = await apiClient.get<ApiResponse<PropertyListResponse>>(url);
 
     // 응답 구조 로깅
     console.log('API Response:', response.data);
 
-    // 응답 구조가 예상과 다를 경우 안전하게 처리
-    if (response.data.success) {
-      // 응답 데이터가 직접 배열인 경우
-      if (Array.isArray(response.data.data)) {
-        return {
-          success: true,
-          data: {
-            properties: response.data.data,
-            totalPages: 1, // 기본값
-            totalElements: response.data.data.length,
-            currentPage: filter.page,
-            size: filter.size,
-          },
-        };
-      }
-      // 응답이 예상한 구조인 경우
-      else if (response.data.data && response.data.data.properties) {
-        return response.data;
-      }
-      // 다른 구조인 경우
-      else {
-        return {
-          success: true,
-          data: {
-            properties: response.data.data || [],
-            totalPages: response.data.data?.totalPages || 1,
-            totalElements: response.data.data?.totalElements || 0,
-            currentPage: filter.page,
-            size: filter.size,
-          },
-        };
-      }
-    }
+    // // 응답 구조가 예상과 다를 경우 안전하게 처리
+    // if (response.data.success) {
+    //   // 응답 데이터가 직접 배열인 경우
+    //   if (Array.isArray(response.data.data)) {
+    //     return {
+    //       success: true,
+    //       data: {
+    //         properties: response.data.data,
+    //         totalPages: 1, // 기본값
+    //         totalElements: response.data.data.length,
+    //         currentPage: filter.page,
+    //         size: filter.size,
+    //       },
+    //     };
+    //   }
+    //   // 응답이 예상한 구조인 경우
+    //   else if (response.data.data && response.data.data.properties) {
+    //     return response.data;
+    //   }
+    //   // 다른 구조인 경우
+    //   else {
+    //     return {
+    //       success: true,
+    //       data: {
+    //         properties: Array.isArray(response.data.data)
+    //           ? response.data.data
+    //           : response.data.data?.properties || [],
+    //         totalPages: response.data.data?.totalPages || 1,
+    //         totalElements: response.data.data?.totalElements || 0,
+    //         currentPage: filter.page,
+    //         size: filter.size,
+    //       },
+    //     };
+    //   }
+    // }
 
     return response.data;
   } catch (error) {
@@ -136,7 +140,7 @@ export const deleteProperty = async (id: number): Promise<ApiResponse<void>> => 
   try {
     const response = await apiClient.delete<ApiResponse<void>>(`/properties/${id}`);
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '매물 삭제 중 오류가 발생했습니다.',
@@ -152,8 +156,8 @@ export const updateProperty = async (
     const response = await apiClient.put(`/properties/${id}`, data);
     return response.data;
   } catch (error) {
-    if (error.response) {
-      return error.response.data;
+    if (isAxiosError(error)) {
+      return error.response?.data;
     }
     throw error;
   }

@@ -70,7 +70,9 @@ const PropertyList: React.FC = () => {
         // 응답 데이터가 있는지 확인
         if (response.data) {
           // properties 배열이 있는지 확인
-          const propertiesData = response.data.properties || [];
+          const propertiesData = Array.isArray(response.data)
+            ? response.data
+            : response.data.properties || [];
           setProperties(propertiesData);
 
           // 페이지네이션 정보 설정
@@ -105,7 +107,7 @@ const PropertyList: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchParams(tempSearchParams);
-    setCurrentPage(1); // 검��� 시 첫 페이지로 이동
+    setCurrentPage(1); // 검색 시 첫 페이지로 이동
   };
 
   // 필터 변경 핸들러

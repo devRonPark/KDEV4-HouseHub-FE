@@ -47,7 +47,7 @@ const PropertyEdit: React.FC = () => {
           // 폼 초기값 설정
           setPropertyType(propertyData.propertyType);
           setRoadAddress(propertyData.roadAddress);
-          setJibunAddress(propertyData.jibunAddress || '');
+          // setJibunAddress(propertyData.jibunAddress || '');
           setDetailAddress(propertyData.detailAddress);
           setMemo(propertyData.memo || '');
 
@@ -56,14 +56,19 @@ const PropertyEdit: React.FC = () => {
             setSelectedCustomer({
               id: propertyData.customer.id,
               name: propertyData.customer.name,
-              phone: propertyData.customer.phone,
+              contact: propertyData.customer.contact,
               email: propertyData.customer.email,
+              ageGroup: propertyData.customer.ageGroup,
+              gender: propertyData.customer.gender,
+              createdAt: propertyData.customer.createdAt,
+              updatedAt: propertyData.customer.updatedAt,
             });
           }
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
         }
       } catch (error) {
+        console.log(error);
         showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
       } finally {
         setIsLoading(false);
@@ -182,7 +187,7 @@ const PropertyEdit: React.FC = () => {
                   <div className="p-4 bg-gray-50 rounded-md flex items-center justify-between">
                     <div>
                       <p className="font-medium text-gray-900">{selectedCustomer?.name}</p>
-                      <p className="text-sm text-gray-500">{selectedCustomer?.phone}</p>
+                      <p className="text-sm text-gray-500">{selectedCustomer?.contact}</p>
                       {selectedCustomer?.email && (
                         <p className="text-sm text-gray-500">{selectedCustomer?.email}</p>
                       )}
@@ -237,11 +242,11 @@ const PropertyEdit: React.FC = () => {
                 </div>
                 <AddressInput
                   onAddressSelect={handleAddressSelect}
-                  initialAddress={{
-                    roadAddress: roadAddress,
-                    jibunAddress: jibunAddress,
-                    detailAddress: detailAddress,
-                  }}
+                  // initialAddress={{
+                  //   roadAddress: roadAddress,
+                  //   jibunAddress: jibunAddress,
+                  //   detailAddress: detailAddress,
+                  // }}
                 />
               </div>
 
