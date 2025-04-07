@@ -68,17 +68,17 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* 상단 헤더 */}
-      <header className="bg-white shadow">
+      <header className="bg-white shadow sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             {/* 로고 및 모바일 메뉴 버튼 */}
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
                 <LogoWithText width={160} height={40} />
               </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <div className="hidden sm:ml-6 sm:flex sm:space-x-8 sm:items-center">
                 {/* 데스크톱 네비게이션 */}
                 {menuItems.map((item) => (
                   <div
@@ -297,7 +297,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
       </header>
 
       {/* 메인 콘텐츠 */}
-      <main>
+      <main className="flex-1">
         <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">{children}</div>
       </main>
     </div>
