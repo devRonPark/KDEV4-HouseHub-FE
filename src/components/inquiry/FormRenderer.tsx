@@ -40,7 +40,7 @@ const FormRenderer: React.FC<FormRendererProps> = ({
   const sortedQuestions = [...template.questions].sort((a, b) => a.questionOrder - b.questionOrder);
 
   // 폼 제출 핸들러
-  const onSubmit = async (data: { answers: string[] }) => {
+  const onSubmit = async (data: any) => {
     console.log(data);
     if (isSubmitting) return;
 
