@@ -7,7 +7,7 @@ export interface ConsultationCustomer {
 
 // 기존 Customer 타입을 사용하는 곳을 ConsultationCustomer로 변경
 export type ConsultationType = 'PHONE' | 'VISIT';
-export type ConsultationStatus = 'RESERVED' | 'COMPLETED' | 'CANCELED';
+export type ConsultationStatus = 'RESERVED' | 'COMPLETED' | 'CANCELLED';
 
 // 백엔드 API와 일치하는 요청 DTO
 export interface CreateConsultationReqDto {
