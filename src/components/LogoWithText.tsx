@@ -17,7 +17,7 @@ const LogoWithText: React.FC<LogoWithTextProps> = ({
   color = '#3B82F6',
   secondaryColor = '#10B981',
   textColor = '#1F2937',
-  companyName = '부동산 CRM',
+  companyName = 'HouseHub',
   className = '',
 }) => {
   return (
@@ -28,7 +28,7 @@ const LogoWithText: React.FC<LogoWithTextProps> = ({
           {companyName}
         </span>
         <span className="text-xs" style={{ color: textColor }}>
-          부동산 관리 솔루션
+          부동산 CRM 솔루션
         </span>
       </div>
     </div>
