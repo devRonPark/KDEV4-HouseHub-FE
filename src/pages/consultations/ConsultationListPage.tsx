@@ -136,11 +136,11 @@ const ConsultationListPage: React.FC = () => {
   // 상담 상태에 따른 스타일 클래스 반환
   const getStatusClass = (status: ConsultationStatus) => {
     switch (status) {
-      case 'COMPLETED':
+      case 'completed':
         return 'bg-green-100 text-green-800';
-      case 'RESERVED':
+      case 'reserved':
         return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELED':
+      case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -150,11 +150,11 @@ const ConsultationListPage: React.FC = () => {
   // 상담 상태 텍스트 변환
   const getStatusText = (status: ConsultationStatus) => {
     switch (status) {
-      case 'COMPLETED':
+      case 'completed':
         return '완료';
-      case 'RESERVED':
+      case 'reserved':
         return '예약됨';
-      case 'CANCELED':
+      case 'cancelled':
         return '취소됨';
       default:
         return status;
@@ -164,9 +164,9 @@ const ConsultationListPage: React.FC = () => {
   // 상담 유형 텍스트 변환
   const getTypeText = (type: ConsultationType) => {
     switch (type) {
-      case 'PHONE':
+      case 'phone':
         return '전화상담';
-      case 'VISIT':
+      case 'visit':
         return '방문상담';
       default:
         return type;
@@ -269,7 +269,7 @@ const ConsultationListPage: React.FC = () => {
                   <option value="">전체</option>
                   <option value="RESERVED">예약됨</option>
                   <option value="COMPLETED">완료</option>
-                  <option value="CANCELED">취소됨</option>
+                  <option value="CANCELLED">취소됨</option>
                 </select>
               </div>
             </div>

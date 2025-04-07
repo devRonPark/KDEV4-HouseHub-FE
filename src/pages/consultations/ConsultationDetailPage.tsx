@@ -111,9 +111,9 @@ const ConsultationDetailPage: React.FC = () => {
   // 상담 유형 텍스트 변환
   const getTypeText = (type: string) => {
     switch (type) {
-      case 'PHONE':
+      case 'phone':
         return '전화상담';
-      case 'VISIT':
+      case 'visit':
         return '방문상담';
       default:
         return type;
@@ -123,11 +123,11 @@ const ConsultationDetailPage: React.FC = () => {
   // 상담 상태 텍스트 변환
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'COMPLETED':
+      case 'completed':
         return '완료';
-      case 'RESERVED':
+      case 'reserved':
         return '예약됨';
-      case 'CANCELED':
+      case 'cancelled':
         return '취소됨';
       default:
         return status;
@@ -227,9 +227,9 @@ const ConsultationDetailPage: React.FC = () => {
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <span
                   className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    consultation.status === 'COMPLETED'
+                    consultation.status === 'completed'
                       ? 'bg-green-100 text-green-800'
-                      : consultation.status === 'RESERVED'
+                      : consultation.status === 'reserved'
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-red-100 text-red-800'
                   }`}

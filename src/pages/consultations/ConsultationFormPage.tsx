@@ -24,10 +24,10 @@ const ConsultationFormPage: React.FC = () => {
   const [formData, setFormData] = useState<CreateConsultationReqDto>({
     agentId: user?.id ? Number(user.id) : 0,
     customerId: 0,
-    consultationType: 'PHONE',
+    consultationType: 'phone',
     content: '',
     consultationDate: new Date().toISOString(),
-    status: 'RESERVED',
+    status: 'reserved',
   });
 
   const [loading, setLoading] = useState(isEditMode);
@@ -276,7 +276,7 @@ const ConsultationFormPage: React.FC = () => {
                 >
                   <option value="RESERVED">예약됨</option>
                   <option value="COMPLETED">완료</option>
-                  <option value="CANCELED">취소됨</option>
+                  <option value="CANCELLED">취소됨</option>
                 </select>
               </div>
             </div>
