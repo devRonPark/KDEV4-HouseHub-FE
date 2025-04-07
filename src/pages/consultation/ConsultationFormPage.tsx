@@ -223,8 +223,8 @@ const ConsultationFormPage: React.FC = () => {
                   onChange={handleChange}
                   className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 >
-                  <option value="PHONE">전화상담</option>
-                  <option value="VISIT">방문상담</option>
+                  <option value="phone">전화상담</option>
+                  <option value="visit">방문상담</option>
                 </select>
               </div>
             </div>

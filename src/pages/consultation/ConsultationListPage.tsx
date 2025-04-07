@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, RefreshCw, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import type {
   ConsultationResDto,
@@ -17,6 +17,7 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 
 const ConsultationListPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
   // 권한 체크 등에 사용할 수 있도록 useAuth 유지
   //const { user: _user } = useAuth();
@@ -27,24 +28,50 @@ const ConsultationListPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<ConsultationFilter>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [noData, setNoData] = useState(false);
+  const [hasShownToast, setHasShownToast] = useState(false); // 토스트 메시지 표시 여부 추적
 
   const itemsPerPage = 10;
 
   // 상담 목록 조회
   const fetchConsultations = async () => {
     setIsLoading(true);
+    setNoData(false);
+
     try {
+      console.log('상담 목록 조회 시작');
       const response = await getConsultationList();
-      if (response.success && response.data) {
-        setConsultations(response.data);
-        setFilteredConsultations(response.data);
-        console.log('확인해보자: ', response.data);
+      console.log('상담 목록 조회 응답:', response);
+
+      // 응답이 성공이면 (API에서 항상 success: true를 반환하도록 수정함)
+      if (response.success) {
+        // 데이터가 있는 경우
+        if (response.data && response.data.length > 0) {
+          setConsultations(response.data);
+          setFilteredConsultations(response.data);
+          setNoData(false);
+          console.log('상담 목록 조회 성공:', response.data);
+        }
+        // 데이터가 없는 경우 (빈 배열)
+        else {
+          setConsultations([]);
+          setFilteredConsultations([]);
+          setNoData(true);
+          console.log('상담 내역이 없습니다.');
+        }
       } else {
-        showToast(response.error || '상담 목록을 불러오는데 실패했습니다.', 'error');
+        // API 호출은 성공했지만 백엔드에서 오류 응답을 준 경우 (이 경우는 발생하지 않아야 함)
+        console.error('API 응답 오류:', response.error);
+        setConsultations([]);
+        setFilteredConsultations([]);
+        setNoData(true);
       }
     } catch (error) {
-      console.error('상담 목록 조회 중 오류 발생:', error);
-      showToast('상담 목록을 불러오는 중 오류가 발생했습니다.', 'error');
+      // 이 부분은 실행되지 않아야 함 (API에서 항상 success: true를 반환하도록 수정함)
+      console.error('상담 목록 조회 중 예외 발생:', error);
+      setConsultations([]);
+      setFilteredConsultations([]);
+      setNoData(true);
     } finally {
       setIsLoading(false);
     }
@@ -52,10 +79,21 @@ const ConsultationListPage: React.FC = () => {
 
   useEffect(() => {
     fetchConsultations();
-  }, []);
 
+    // location.state에서 메시지 확인 (다른 페이지에서 넘어온 경우)
+    if (location.state && location.state.message && !hasShownToast) {
+      showToast(location.state.message, location.state.type || 'success');
+      setHasShownToast(true); // 토스트 메시지를 표시했음을 기록
+      // 메시지를 표시한 후 state 초기화
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.pathname]);
+
+  // 검색어나 필터가 변경될 때만 필터링 적용
   useEffect(() => {
-    applyFilters();
+    if (consultations.length > 0) {
+      applyFilters();
+    }
   }, [searchTerm, filters, consultations]);
 
   // 검색 기능 단순화 - 고객 ID와 내용으로만 검색
@@ -252,8 +290,8 @@ const ConsultationListPage: React.FC = () => {
                   onChange={(e) => handleFilterChange('type', e.target.value as ConsultationType)}
                 >
                   <option value="">전체</option>
-                  <option value="PHONE">전화상담</option>
-                  <option value="VISIT">방문상담</option>
+                  <option value="phone">전화상담</option>
+                  <option value="visit">방문상담</option>
                 </select>
               </div>
 
@@ -307,6 +345,12 @@ const ConsultationListPage: React.FC = () => {
                     <div className="flex justify-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
                     </div>
+                  </td>
+                </tr>
+              ) : noData ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                    등록된 상담 내역이 없습니다.
                   </td>
                 </tr>
               ) : currentItems.length > 0 ? (

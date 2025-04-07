@@ -23,6 +23,9 @@ const ConsultationDetailPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // fetchConsultation 함수 내부의 ID 처리 로직 수정
+  const [fetchConsultationFlag, setFetchConsultationFlag] = useState(false);
+
+  // fetchConsultation 함수 내부의 ID 처리 로직 수정
   const fetchConsultation = async () => {
     if (!id) {
       console.log('id 에러 체크', id);
@@ -83,8 +86,14 @@ const ConsultationDetailPage: React.FC = () => {
     try {
       const response = await deleteConsultation(consultationId);
       if (response.success) {
-        showToast('상담 정보가 성공적으로 삭제되었습니다.', 'success');
-        navigate('/consultations', { replace: true });
+        // 삭제 성공 시 목록 페이지로 이동하면서 성공 메시지 전달
+        navigate('/consultations', {
+          replace: true,
+          state: {
+            message: '상담 정보가 성공적으로 삭제되었습니다.',
+            type: 'success',
+          },
+        });
       } else {
         showToast(response.error || '상담 정보 삭제에 실패했습니다.', 'error');
       }
