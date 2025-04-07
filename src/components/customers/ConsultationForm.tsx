@@ -112,7 +112,7 @@ const ConsultationForm = ({
   const onFormSubmit = (data: ConsultationFormData) => {
     const consultationData: Partial<Consultation> = {
       ...data,
-      customerId,
+      customerId: customerId.toString(),
       relatedProperties: selectedProperties,
     };
 
