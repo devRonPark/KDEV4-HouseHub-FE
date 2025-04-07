@@ -23,7 +23,7 @@ const ConsultationDetailPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // fetchConsultation 함수 내부의 ID 처리 로직 수정
-  const [fetchConsultationFlag, setFetchConsultationFlag] = useState(false);
+  //const [fetchConsultationFlag, setFetchConsultationFlag] = useState(false);
 
   // fetchConsultation 함수 내부의 ID 처리 로직 수정
   const fetchConsultation = async () => {
