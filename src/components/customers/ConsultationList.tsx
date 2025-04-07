@@ -1,39 +1,39 @@
-import { formatDate } from "../../utils/format"
-import { MessageSquare, Phone, Mail, Calendar, User, Home } from "react-feather"
-import type { Consultation } from "../../types/consultation"
+import { formatDate } from '../../utils/format';
+import { MessageSquare, Phone, Mail, Calendar, User, Home } from 'react-feather';
+import type { Consultation } from '../../types/consultation';
 
 interface ConsultationListProps {
-  consultations: Consultation[]
+  consultations: Consultation[];
 }
 
 const ConsultationList = ({ consultations }: ConsultationListProps) => {
   // 상담 유형에 따른 아이콘 반환
   const getConsultationIcon = (type: string) => {
     switch (type) {
-      case "visit":
-        return <MessageSquare className="h-5 w-5 text-blue-500" />
-      case "phone":
-        return <Phone className="h-5 w-5 text-green-500" />
-      case "email":
-        return <Mail className="h-5 w-5 text-purple-500" />
+      case 'visit':
+        return <MessageSquare className="h-5 w-5 text-blue-500" />;
+      case 'phone':
+        return <Phone className="h-5 w-5 text-green-500" />;
+      case 'email':
+        return <Mail className="h-5 w-5 text-purple-500" />;
       default:
-        return <MessageSquare className="h-5 w-5 text-gray-500" />
+        return <MessageSquare className="h-5 w-5 text-gray-500" />;
     }
-  }
+  };
 
   // 상담 유형에 따른 텍스트 반환
   const getConsultationTypeText = (type: string) => {
     switch (type) {
-      case "visit":
-        return "방문 상담"
-      case "phone":
-        return "전화 상담"
-      case "email":
-        return "이메일 상담"
+      case 'visit':
+        return '방문 상담';
+      case 'phone':
+        return '전화 상담';
+      case 'email':
+        return '이메일 상담';
       default:
-        return "기타 상담"
+        return '기타 상담';
     }
-  }
+  };
 
   if (consultations.length === 0) {
     return (
@@ -42,7 +42,7 @@ const ConsultationList = ({ consultations }: ConsultationListProps) => {
         <h3 className="mt-2 text-sm font-medium text-gray-900">상담 이력 없음</h3>
         <p className="mt-1 text-sm text-gray-500">아직 기록된 상담 이력이 없습니다.</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -52,7 +52,10 @@ const ConsultationList = ({ consultations }: ConsultationListProps) => {
           <li key={consultation.id}>
             <div className="relative pb-8">
               {consultationIdx !== consultations.length - 1 ? (
-                <span className="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
+                <span
+                  className="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200"
+                  aria-hidden="true"
+                />
               ) : null}
               <div className="relative flex items-start space-x-3">
                 <div className="relative">
@@ -63,7 +66,9 @@ const ConsultationList = ({ consultations }: ConsultationListProps) => {
                 <div className="min-w-0 flex-1">
                   <div>
                     <div className="text-sm">
-                      <span className="font-medium text-gray-900">{getConsultationTypeText(consultation.type)}</span>
+                      <span className="font-medium text-gray-900">
+                        {getConsultationTypeText(consultation.type)}
+                      </span>
                     </div>
                     <div className="mt-1 flex items-center text-sm text-gray-500">
                       <Calendar className="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" />
@@ -85,9 +90,12 @@ const ConsultationList = ({ consultations }: ConsultationListProps) => {
                       <h4 className="text-xs font-medium text-gray-500">관련 매물</h4>
                       <div className="mt-1 flex flex-wrap gap-2">
                         {consultation.relatedProperties.map((property) => (
-                          <div key={property.id} className="flex items-center px-2 py-1 rounded-md bg-gray-100 text-xs">
+                          <div
+                            key={property.id}
+                            className="flex items-center px-2 py-1 rounded-md bg-gray-100 text-xs"
+                          >
                             <Home className="mr-1 h-3 w-3 text-gray-500" />
-                            <span>{property.name}</span>
+                            <span>{property.roadAddress}</span>
                           </div>
                         ))}
                       </div>
@@ -100,8 +108,7 @@ const ConsultationList = ({ consultations }: ConsultationListProps) => {
         ))}
       </ul>
     </div>
-  )
-}
+  );
+};
 
-export default ConsultationList
-
+export default ConsultationList;

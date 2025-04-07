@@ -15,6 +15,7 @@
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@hookform/resolvers": "^4.1.3",
@@ -37,13 +38,13 @@
     "react-feather": "^2.0.10",
     "react-hook-form": "^7.55.0",
     "react-router-dom": "^7.4.1",
-    "tiptap": "^1.32.2",
+    "tiptap": "^0.15.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^3.2.6",
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
-    "@chromatic-com/storybook": "^3.2.6",
     "@eslint/js": "^9.21.0",
     "@storybook/addon-essentials": "^8.6.11",
     "@storybook/addon-onboarding": "^8.6.11",

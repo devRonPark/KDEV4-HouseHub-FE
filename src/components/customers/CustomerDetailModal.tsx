@@ -6,8 +6,8 @@ import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Modal from '../ui/Modal';
 import CustomerForm from './CustomerForm';
-import { formatDate, formatPhoneNumber } from '../../utils/format';
-import { useToast } from '../../context/ToastContext';
+import { formatPhoneNumber } from '../../utils/format';
+// import { useToast } from '../../context/ToastContext';
 import type { CreateCustomerReqDto, Customer } from '../../types/customer';
 
 interface CustomerDetailModalProps {
@@ -25,7 +25,7 @@ const CustomerDetailModal = ({
   onUpdate,
   onDelete,
 }: CustomerDetailModalProps) => {
-  const { showToast } = useToast();
+  // const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
