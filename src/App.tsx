@@ -11,6 +11,11 @@ import LoadingScreen from './components/ui/LoadingScreen';
 import CustomersPage from './pages/customers/customer';
 import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
 import InquiryTemplateCreate from './pages/inquiryTemplate/InquiryTemplateCreate';
+import SmsListPage from './pages/sms/sms';
+import SmsSendPage from './pages/sms/send';
+import SmsTemplateListPage from './pages/sms/templates/templates';
+import SmsTemplateCreatePage from './pages/sms/templates/create';
+import SmsTemplateEditPage from './pages/sms/templates/[id]';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -105,6 +110,46 @@ function App() {
         element={
           <ProtectedRoute>
             <CustomersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sms"
+        element={
+          <ProtectedRoute>
+            <SmsListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sms/send"
+        element={
+          <ProtectedRoute>
+            <SmsSendPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sms/templates"
+        element={
+          <ProtectedRoute>
+            <SmsTemplateListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sms/templates/create"
+        element={
+          <ProtectedRoute>
+            <SmsTemplateCreatePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sms/templates/edit/:id"
+        element={
+          <ProtectedRoute>
+            <SmsTemplateEditPage />
           </ProtectedRoute>
         }
       />
