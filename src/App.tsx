@@ -12,6 +12,10 @@ import CustomersPage from './pages/customers/customer';
 import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
 import InquiryTemplateCreate from './pages/inquiryTemplate/InquiryTemplateCreate';
 
+import ConsultationListPage from './pages/consultations/ConsultationListPage';
+import ConsultationDetailPage from './pages/consultations/ConsultationDetailPage';
+import ConsultationFormPage from './pages/consultations/ConsultationFormPage';
+
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -108,6 +112,11 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/consultations" element={<ConsultationListPage />} />
+      <Route path="/consultations/:id" element={<ConsultationDetailPage />} />
+      <Route path="/consultations/new" element={<ConsultationFormPage />} />
+      <Route path="/consultations/:id/edit" element={<ConsultationFormPage />} />
 
       {/* 기본 리다이렉트 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
