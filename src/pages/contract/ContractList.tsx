@@ -32,16 +32,13 @@ const ContractList: React.FC = () => {
 
   // 검색 상태
   const [searchParams, setSearchParams] = useState<{
-    agentName: string;
     customerName: string;
   }>({
-    agentName: '',
     customerName: '',
   });
 
   // 임시 검색어 상태
   const [tempSearchParams, setTempSearchParams] = useState({
-    agentName: '',
     customerName: '',
   });
 
@@ -52,7 +49,6 @@ const ContractList: React.FC = () => {
     const filter: ContractSearchFilter = {
       page: currentPage - 1,
       size: 10,
-      agentName: searchParams.agentName || undefined,
       customerName: searchParams.customerName || undefined,
       contractType: selectedContractType || undefined,
       status: selectedContractStatus || undefined,
@@ -99,11 +95,9 @@ const ContractList: React.FC = () => {
   // 필터 초기화 함수
   const resetFilters = () => {
     setTempSearchParams({
-      agentName: '',
       customerName: '',
     });
     setSearchParams({
-      agentName: '',
       customerName: '',
     });
     setSelectedContractType(null);
@@ -143,15 +137,7 @@ const ContractList: React.FC = () => {
       {/* 검색 및 필터 */}
       <div className="mt-6 bg-white shadow rounded-lg p-4">
         <form onSubmit={handleSearch} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              placeholder="공인중개사 이름"
-              value={tempSearchParams.agentName}
-              onChange={(e) =>
-                setTempSearchParams({ ...tempSearchParams, agentName: e.target.value })
-              }
-              leftIcon={<Search size={18} />}
-            />
+          <div className="grid grid-cols-1 gap-4">
             <Input
               placeholder="고객 이름"
               value={tempSearchParams.customerName}
@@ -259,10 +245,7 @@ const ContractList: React.FC = () => {
             <FileText className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">계약 없음</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {searchParams.agentName ||
-              searchParams.customerName ||
-              selectedContractType ||
-              selectedContractStatus
+              {searchParams.customerName || selectedContractType || selectedContractStatus
                 ? '검색 조건에 맞는 계약이 없습니다.'
                 : '등록된 계약이 없습니다.'}
             </p>
