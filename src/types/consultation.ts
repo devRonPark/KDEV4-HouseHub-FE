@@ -1,4 +1,4 @@
-import type { Property } from './property';
+import type { FindPropertyResDto } from './property';
 
 export type ConsultationType = 'visit' | 'phone' | 'email' | 'other';
 
@@ -12,5 +12,5 @@ export interface Consultation {
     id: string;
     name: string;
   };
-  relatedProperties?: Property[];
+  relatedProperties?: FindPropertyResDto[];
 }

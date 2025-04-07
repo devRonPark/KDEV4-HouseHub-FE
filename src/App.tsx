@@ -7,6 +7,14 @@ import { useAuth } from './context/useAuth';
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
 import Dashboard from './pages/dashboard/Dashboard';
+import PropertyRegistration from './pages/property/PropertyRegistration';
+import PropertyList from './pages/property/PropertyList';
+import PropertyDetail from './pages/property/PropertyDetail';
+import PropertyEdit from './pages/property/PropertyEdit';
+import ContractList from './pages/contract/ContractList';
+import ContractRegistration from './pages/contract/ContractRegistration';
+import ContractDetail from './pages/contract/ContractDetail';
+import ContractEdit from './pages/contract/ContractEdit';
 import LoadingScreen from './components/ui/LoadingScreen';
 import CustomersPage from './pages/customers/customer';
 import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
@@ -150,6 +158,79 @@ function App() {
         element={
           <ProtectedRoute>
             <SmsTemplateEditPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/properties/register"
+        element={
+          <ProtectedRoute>
+            <PropertyRegistration />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/properties"
+        element={
+          <ProtectedRoute>
+            <PropertyList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/properties/:id"
+        element={
+          <ProtectedRoute>
+            <PropertyDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/properties/edit/:id"
+        element={
+          <ProtectedRoute>
+            <PropertyEdit />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contracts"
+        element={
+          <ProtectedRoute>
+            <ContractList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contracts/register"
+        element={
+          <ProtectedRoute>
+            <ContractRegistration />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contracts/:id"
+        element={
+          <ProtectedRoute>
+            <ContractDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contracts/edit/:id"
+        element={
+          <ProtectedRoute>
+            <ContractEdit />
           </ProtectedRoute>
         }
       />
