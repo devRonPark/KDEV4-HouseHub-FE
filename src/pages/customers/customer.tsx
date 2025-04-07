@@ -7,10 +7,12 @@ import {
   createMyCustomer,
   updateMyCustomer,
   deleteMyCustomer,
+  downloadExcelTemplate,
+  uploadCustomersExcel,
 } from '../../api/customer';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 // import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter, RefreshCw, Edit, Trash2 } from 'react-feather';
+import { Search, Plus, Filter, RefreshCw, Edit, Trash2, Download, Upload } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -46,6 +48,10 @@ const CustomersPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const itemsPerPage = 10;
 
@@ -234,6 +240,65 @@ const CustomersPage = () => {
     setIsFilterPanelOpen(false);
   };
 
+  // 엑셀 템플릿 다운로드
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await downloadExcelTemplate();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'excel_template.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showToast('엑셀 템플릿 다운로드 완료', 'success');
+    } catch (error) {
+      console.error('엑셀 템플릿 다운로드 오류:', error);
+      showToast('엑셀 템플릿 다운로드 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
+  // 파일 선택 핸들러
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setUploadFile(e.target.files[0]);
+    }
+  };
+
+  // 엑셀 파일 업로드
+  const handleUploadExcel = async () => {
+    if (!uploadFile) {
+      showToast('업로드할 파일을 선택해주세요.', 'error');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await uploadCustomersExcel(uploadFile);
+      if (response.success && response.data) {
+        showToast(
+          `${response.data.length}명의 고객 정보가 성공적으로 업로드되었습니다.`,
+          'success'
+        );
+        setIsUploadModalOpen(false);
+        setUploadFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        // 고객 목록 새로고침
+        loadCustomers();
+      } else {
+        showToast(response.error || '고객 정보 업로드에 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error('고객 정보 업로드 오류:', error);
+      showToast('고객 정보 업로드 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // 테이블 컬럼 정의
   const columns = [
     {
@@ -320,6 +385,20 @@ const CustomersPage = () => {
             }}
           >
             새로고침
+          </Button>
+          <Button
+            variant="outline"
+            leftIcon={<Download size={16} />}
+            onClick={handleDownloadTemplate}
+          >
+            엑셀 양식 다운로드
+          </Button>
+          <Button
+            variant="outline"
+            leftIcon={<Upload size={16} />}
+            onClick={() => setIsUploadModalOpen(true)}
+          >
+            엑셀 업로드
           </Button>
           <Button
             variant="primary"
@@ -496,6 +575,72 @@ const CustomersPage = () => {
         onUpdate={handleUpdateCustomer}
         onDelete={handleDeleteCustomerClick}
       />
+
+      {/* 엑셀 업로드 모달 */}
+      <Modal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        title="고객 정보 엑셀 업로드"
+        size="md"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-700">
+            엑셀 파일을 통해 다수의 고객 정보를 한 번에 등록할 수 있습니다. 올바른 형식의 파일을
+            업로드해주세요.
+          </p>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">엑셀 파일 선택</label>
+            <div className="flex items-center">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".xlsx, .xls"
+                onChange={handleFileChange}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+            </div>
+            {uploadFile && (
+              <p className="mt-2 text-sm text-gray-600">선택된 파일: {uploadFile.name}</p>
+            )}
+          </div>
+
+          <div className="mt-2 text-sm text-gray-500">
+            <p>* 엑셀 파일은 .xlsx 또는 .xls 형식만 지원합니다.</p>
+            <p>* 올바른 형식의 파일을 업로드하려면 먼저 엑셀 양식을 다운로드하여 사용하세요.</p>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4 border-t mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsUploadModalOpen(false);
+                setUploadFile(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+            >
+              취소
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleUploadExcel}
+              isLoading={isUploading}
+              disabled={!uploadFile || isUploading}
+            >
+              업로드
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 };
