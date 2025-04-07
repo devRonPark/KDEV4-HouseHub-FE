@@ -2,25 +2,23 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, FileText, Calendar } from 'react-feather';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, FileText, Calendar, Home, User } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Textarea from '../../components/ui/Textarea';
-import CustomerDropdown from '../../components/property/CustomerDropdown';
 import { useToast } from '../../context/useToast';
-import { registerContract } from '../../api/contract';
-import { getPropertyById } from '../../api/property';
+import { getContractById, updateContract } from '../../api/contract';
 import {
   ContractType,
   ContractTypeLabels,
   ContractStatus,
   ContractStatusLabels,
   type ContractReqDto,
+  type ContractResDto,
 } from '../../types/contract';
-import type { FindPropertyDetailResDto } from '../../types/property';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -66,19 +64,15 @@ const ContractStatusButton: React.FC<{
   </button>
 );
 
-const ContractRegistration: React.FC = () => {
+const ContractEdit: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { id } = useParams<{ id: string }>();
   const { showToast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
-
-  // URL 파라미터에서 propertyId 추출
-  const queryParams = new URLSearchParams(location.search);
-  const propertyIdParam = queryParams.get('propertyId');
+  const [contract, setContract] = useState<ContractResDto | null>(null);
 
   // 폼 상태 관리
-  const [selectedProperty, setSelectedProperty] = useState<FindPropertyDetailResDto | null>(null);
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.AVAILABLE);
   const [salePrice, setSalePrice] = useState<string>('');
@@ -88,26 +82,44 @@ const ContractRegistration: React.FC = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
+  const [propertyId, setPropertyId] = useState<number>(0);
+  const [customerId, setCustomerId] = useState<number>(0);
 
-  // propertyId가 URL 파라미터로 제공된 경우 해당 매물 정보 로드
+  // 계약 상세 정보 조회
   useEffect(() => {
-    const loadPropertyData = async () => {
-      if (!propertyIdParam) return;
+    const fetchContract = async () => {
+      if (!id) return;
 
       try {
-        const response = await getPropertyById(Number(propertyIdParam));
+        const response = await getContractById(Number(id));
         if (response.success && response.data) {
-          setSelectedProperty(response.data);
+          const contract = response.data;
+          setContractType(contract.contractType);
+          setContractStatus(contract.status);
+          setSalePrice(contract.salePrice?.toString() || '');
+          setJeonsePrice(contract.jeonsePrice?.toString() || '');
+          setMonthlyRentDeposit(contract.monthlyRentDeposit?.toString() || '');
+          setMonthlyRentFee(contract.monthlyRentFee?.toString() || '');
+          setStartDate(contract.startedAt || '');
+          setEndDate(contract.expiredAt || '');
+          setMemo(contract.memo || '');
+          setPropertyId(contract.property.id);
+          setCustomerId(contract.customer.id);
+          setContract(contract);
         } else {
-          showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
+          showToast(response.error || '계약 정보를 불러오는데 실패했습니다.', 'error');
+          navigate('/contracts');
         }
       } catch {
-        showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
+        showToast('계약 정보를 불러오는데 실패했습니다.', 'error');
+        navigate('/contracts');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    loadPropertyData();
-  }, [propertyIdParam, showToast]);
+    fetchContract();
+  }, [id, navigate, showToast]);
 
   // 계약 유형에 따라 필요한 필드 표시 여부 결정
   const showSalePrice = contractType === ContractType.SALE;
@@ -120,67 +132,98 @@ const ContractRegistration: React.FC = () => {
   // 폼 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 필수 필드 검증
-    if (!selectedProperty) {
-      showToast('매물을 선택해주세요.', 'error');
-      return;
-    }
-
-    if (!selectedCustomerId) {
-      showToast('고객을 선택해주세요.', 'error');
-      return;
-    }
+    if (!id) return;
 
     setIsSubmitting(true);
 
     try {
+      // 기본 계약 데이터
       const contractData: ContractReqDto = {
-        propertyId: selectedProperty.id,
-        customerId: selectedCustomerId,
+        propertyId,
+        customerId,
         contractType,
-        contractStatus,
+        contractStatus: contractStatus,
         memo: memo || undefined,
-        startedAt: showContractPeriod ? startDate : undefined,
-        expiredAt: showContractPeriod ? endDate : undefined,
       };
 
-      // 계약 유형에 따라 가격 정보 추가
-      if (showSalePrice) {
-        contractData.salePrice = Number(salePrice);
-      } else if (showJeonsePrice) {
-        contractData.jeonsePrice = Number(jeonsePrice);
-      } else if (showMonthlyRent) {
-        contractData.monthlyRentDeposit = Number(monthlyRentDeposit);
-        contractData.monthlyRentFee = Number(monthlyRentFee);
+      // 계약 상태가 AVAILABLE이 아닌 경우에만 계약 기간 추가
+      if (contractStatus !== ContractStatus.AVAILABLE) {
+        contractData.startedAt = startDate;
+        contractData.expiredAt = endDate;
       }
 
-      const response = await registerContract(contractData);
+      // 계약 유형에 따라 가격 정보 추가
+      switch (contractType) {
+        case ContractType.SALE:
+          if (!salePrice) {
+            showToast('매매가를 입력해주세요.', 'error');
+            return;
+          }
+          contractData.salePrice = Number(salePrice);
+          break;
+        case ContractType.JEONSE:
+          if (!jeonsePrice) {
+            showToast('전세가를 입력해주세요.', 'error');
+            return;
+          }
+          contractData.jeonsePrice = Number(jeonsePrice);
+          break;
+        case ContractType.MONTHLY_RENT:
+          if (!monthlyRentDeposit || !monthlyRentFee) {
+            showToast('보증금과 월세를 모두 입력해주세요.', 'error');
+            return;
+          }
+          contractData.monthlyRentDeposit = Number(monthlyRentDeposit);
+          contractData.monthlyRentFee = Number(monthlyRentFee);
+          break;
+      }
+
+      console.log('Sending contract update request:', {
+        id: Number(id),
+        data: contractData,
+      });
+
+      const response = await updateContract(Number(id), contractData);
+
+      console.log('Update response:', response);
 
       if (response.success) {
-        showToast('계약이 성공적으로 등록되었습니다.', 'success');
-        navigate('/contracts');
+        showToast('계약 정보가 성공적으로 수정되었습니다.', 'success');
+        setTimeout(() => {
+          navigate(`/contracts/${id}`);
+        }, 500);
       } else {
-        showToast(response.error || '계약 등록에 실패했습니다.', 'error');
+        showToast(response.error || '계약 수정에 실패했습니다.', 'error');
       }
     } catch (error) {
-      showToast('계약 등록 중 오류가 발생했습니다.', 'error');
+      console.error('Error updating contract:', error);
+      showToast('계약 수정 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 text-left">계약 등록</h1>
+        <h1 className="text-2xl font-bold text-gray-900">계약 수정</h1>
         <div className="mt-3 sm:mt-0 sm:ml-4">
           <Button
             variant="outline"
-            onClick={() => navigate('/contracts')}
+            onClick={() => navigate(`/contracts/${id}`)}
             leftIcon={<ArrowLeft size={16} />}
           >
-            목록으로 돌아가기
+            돌아가기
           </Button>
         </div>
       </div>
@@ -189,43 +232,39 @@ const ContractRegistration: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <Card className="mb-6">
             <div className="space-y-6">
-              {/* 매물 정보와 고객 정보를 같은 행에 배치 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 매물 정보 */}
-                <div className="h-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                    매물 정보 <span className="text-red-500">*</span>
-                  </label>
-                  {selectedProperty ? (
-                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex flex-col justify-center">
-                      <p className="font-medium text-gray-900">{selectedProperty.roadAddress}</p>
-                      <p className="text-sm text-gray-500">{selectedProperty.detailAddress}</p>
-                    </div>
-                  ) : (
-                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex flex-col justify-center">
-                      <p className="text-gray-500">매물을 먼저 선택해주세요.</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="mt-2 w-fit"
-                        onClick={() => navigate('/properties')}
-                      >
-                        매물 선택하기
-                      </Button>
+              {/* 매물 정보 */}
+              <div>
+                <h2 className="text-lg font-medium text-gray-900 mb-4">매물 정보</h2>
+                <div className="p-4 bg-gray-50 rounded-md">
+                  <div className="flex items-center mb-2">
+                    <Home className="h-5 w-5 text-gray-400 mr-2" />
+                    <span className="text-gray-700">{contract?.property.roadAddress}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Home className="h-5 w-5 text-gray-400 mr-2" />
+                    <span className="text-gray-700">{contract?.property.detailAddress}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 고객 정보 */}
+              <div>
+                <h2 className="text-lg font-medium text-gray-900 mb-4">고객 정보</h2>
+                <div className="p-4 bg-gray-50 rounded-md">
+                  <div className="flex items-center mb-2">
+                    <User className="h-5 w-5 text-gray-400 mr-2" />
+                    <span className="text-gray-700">이름: {contract?.customer.name}</span>
+                  </div>
+                  <div className="flex items-center mb-2">
+                    <User className="h-5 w-5 text-gray-400 mr-2" />
+                    <span className="text-gray-700">연락처: {contract?.customer.contact}</span>
+                  </div>
+                  {contract?.customer.email && (
+                    <div className="flex items-center">
+                      <User className="h-5 w-5 text-gray-400 mr-2" />
+                      <span className="text-gray-700">이메일: {contract?.customer.email}</span>
                     </div>
                   )}
-                </div>
-
-                {/* 고객 정보 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                    고객 선택 <span className="text-red-500">*</span>
-                  </label>
-                  <CustomerDropdown
-                    onCustomerSelect={setSelectedCustomerId}
-                    selectedCustomerId={selectedCustomerId}
-                  />
                 </div>
               </div>
 
@@ -364,7 +403,7 @@ const ContractRegistration: React.FC = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/contracts')}
+              onClick={() => navigate(`/contracts/${id}`)}
               disabled={isSubmitting}
             >
               취소
@@ -375,7 +414,7 @@ const ContractRegistration: React.FC = () => {
               isLoading={isSubmitting}
               leftIcon={<FileText size={16} />}
             >
-              계약 등록
+              수정 완료
             </Button>
           </div>
         </form>
@@ -384,4 +423,4 @@ const ContractRegistration: React.FC = () => {
   );
 };
 
-export default ContractRegistration;
+export default ContractEdit;

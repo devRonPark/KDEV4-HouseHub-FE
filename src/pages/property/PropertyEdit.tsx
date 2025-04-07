@@ -11,9 +11,10 @@ import Textarea from '../../components/ui/Textarea';
 import AddressInput from '../../components/ui/AddressInput';
 // import CustomerSearchInput from '../../components/property/CustomerSearchInput';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { getPropertyById, updateProperty } from '../../api/property';
-import type { PropertyType, FindPropertyDetailResDto, Customer } from '../../types/property';
+import type { PropertyType, FindPropertyDetailResDto } from '../../types/property';
+import type { Customer } from '../../types/customer';
 
 const PropertyEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();

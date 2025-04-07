@@ -11,7 +11,7 @@ import Textarea from '../../components/ui/Textarea';
 import AddressInput from '../../components/ui/AddressInput';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
 import CustomerDropdown from '../../components/property/CustomerDropdown';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { registerProperty } from '../../api/property';
 import type { PropertyType } from '../../types/property';
 
@@ -19,7 +19,7 @@ const PropertyRegistration: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCustomerEmail, setSelectedCustomerEmail] = useState<string | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
   const [roadAddress, setRoadAddress] = useState('');
   const [jibunAddress, setJibunAddress] = useState('');
@@ -43,10 +43,10 @@ const PropertyRegistration: React.FC = () => {
     e.preventDefault();
 
     // 필수 필드 검증
-    // if (!selectedCustomerId) {
-    //   showToast('고객을 선택해주세요.', 'error');
-    //   return;
-    // }
+    if (!selectedCustomerId) {
+      showToast('고객을 선택해주세요.', 'error');
+      return;
+    }
 
     if (!propertyType) {
       showToast('매물 유형을 선택해주세요.', 'error');
@@ -62,7 +62,7 @@ const PropertyRegistration: React.FC = () => {
 
     try {
       const propertyData = {
-        customerEmail: selectedCustomerEmail,
+        customerId: selectedCustomerId,
         propertyType,
         roadAddress,
         jibunAddress,
@@ -78,7 +78,7 @@ const PropertyRegistration: React.FC = () => {
       } else {
         showToast(response.error || '매물 등록에 실패했습니다.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('매물 등록 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsSubmitting(false);
@@ -107,8 +107,8 @@ const PropertyRegistration: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">고객 선택</label>
                 <CustomerDropdown
-                  onCustomerSelect={setSelectedCustomerEmail}
-                  selectedCustomerEmail={selectedCustomerEmail}
+                  onCustomerSelect={setSelectedCustomerId}
+                  selectedCustomerId={selectedCustomerId}
                 />
               </div>
 

@@ -10,7 +10,7 @@ import Input from '../../components/ui/Input';
 import Pagination from '../../components/ui/Pagination';
 import PropertyListItem from '../../components/property/PropertyListItem';
 import PropertyTypeFilter from '../../components/property/PropertyTypeFilter';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { getProperties } from '../../api/property';
 import type { PropertyType, FindPropertyResDto, PropertySearchFilter } from '../../types/property';
 

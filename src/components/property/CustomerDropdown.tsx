@@ -6,7 +6,7 @@ import { User } from 'react-feather';
 import Select from '../../components/ui/Select';
 import { getMyCustomers } from '../../api/customer';
 import type { Customer } from '../../types/customer';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 
 interface CustomerDropdownProps {
   onCustomerSelect: (customerId: number | null) => void;
@@ -38,7 +38,7 @@ const CustomerDropdown: React.FC<CustomerDropdownProps> = ({
           setError(response.error || '고객 목록을 불러오는데 실패했습니다.');
           showToast(response.error || '고객 목록을 불러오는데 실패했습니다.', 'error');
         }
-      } catch (err) {
+      } catch {
         const errorMessage = '고객 목록을 불러오는 중 오류가 발생했습니다.';
         setError(errorMessage);
         showToast(errorMessage, 'error');
@@ -72,7 +72,7 @@ const CustomerDropdown: React.FC<CustomerDropdownProps> = ({
   };
 
   // 선택된 고객 정보
-  const selectedCustomer = customers.find((customer) => customer?.id === selectedCustomerId);
+  const selectedCustomer = customers.find((customer) => customer.id === selectedCustomerId);
 
   return (
     <div className="w-full">
@@ -83,7 +83,6 @@ const CustomerDropdown: React.FC<CustomerDropdownProps> = ({
         disabled={isLoading}
       />
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-
       {selectedCustomer && (
         <div className="mt-2 p-3 bg-gray-50 rounded-md">
           <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
@@ -91,14 +90,6 @@ const CustomerDropdown: React.FC<CustomerDropdownProps> = ({
           {selectedCustomer.email && (
             <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
           )}
-        </div>
-      )}
-
-      {isLoading && <div className="mt-2 text-sm text-gray-500">고객 목록을 불러오는 중...</div>}
-
-      {!isLoading && (!customers || customers.length === 0) && (
-        <div className="mt-2 text-sm text-red-500">
-          등록된 고객이 없습니다. 고객을 먼저 등록해주세요.
         </div>
       )}
     </div>

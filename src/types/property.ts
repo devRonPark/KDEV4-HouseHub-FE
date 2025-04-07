@@ -1,4 +1,5 @@
 import type { CreateCustomerResDto } from './customer';
+import type { ContractResDto } from './contract';
 
 // 매물 유형 enum
 export enum PropertyType {
@@ -40,14 +41,6 @@ export interface PropertyRegistrationDTO {
   detailAddress: string;
 }
 
-// // 고객 정보 타입
-// export interface Customer {
-//   id: number;
-//   name: string;
-//   phone: string;
-//   email?: string;
-// }
-
 // 매물 목록 응답 DTO
 export interface FindPropertyResDto {
   id: number;
@@ -77,28 +70,6 @@ export interface PropertySearchFilter {
   size: number;
 }
 
-// 고객 응답 DTO
-// export interface CreateCustomerResDto {
-//   id: number;
-//   name: string;
-//   phone: string;
-//   email?: string;
-//   memo?: string;
-// }
-
-// 계약 응답 DTO
-export interface FindContractResDto {
-  id: number;
-  contractType: string;
-  contractStatus: string;
-  contractDate: string;
-  deposit?: number;
-  monthlyRent?: number;
-  salePrice?: number;
-  startDate?: string;
-  endDate?: string;
-}
-
 // 매물 상세 정보 응답 DTO
 export interface FindPropertyDetailResDto {
   id: number;
@@ -114,5 +85,5 @@ export interface FindPropertyDetailResDto {
   updatedAt: string;
   latitude?: number;
   longitude?: number;
-  contractList: FindContractResDto[];
+  contractList: ContractResDto[];
 }

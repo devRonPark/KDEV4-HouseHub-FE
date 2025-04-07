@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+
+declare global {
+  interface Window {
+    daum: any;
+  }
+}
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import useToast from '../../hooks/useToast';
@@ -22,7 +28,7 @@ const AddressInput: React.FC<AddressProps> = ({ onAddressSelect }) => {
   const handleAddressSearch = () => {
     try {
       new window.daum.Postcode({
-        oncomplete: (data) => {
+        oncomplete: (data: { jibunAddress: string; roadAddress: string; zonecode: string }) => {
           const jibunAddr = data.jibunAddress;
           const roadAddr = data.roadAddress;
           const zip = data.zonecode;

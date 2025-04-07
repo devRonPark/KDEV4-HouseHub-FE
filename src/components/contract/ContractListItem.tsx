@@ -3,7 +3,7 @@ import { FileText, User } from 'react-feather';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
-  type ContractResDto,
+  ContractResDto,
   ContractTypeLabels,
   ContractStatusLabels,
   ContractTypeColors,
@@ -46,7 +46,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
   return (
     <Link
       to={`/contracts/${contract.id}`}
-      className="block border rounded-lg hover:shadow-md transition-shadow duration-200 bg-white overflow-hidden"
+      className="block border rounded-lg hover:shadow-md transition-shadow duration-200 bg-white overflow-hidden mb-4"
     >
       <div className="p-4">
         <div className="flex items-start justify-between">
@@ -57,7 +57,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
             <div className="ml-3">
               <div className="flex items-center">
                 <span className="text-lg font-medium text-gray-900 mr-2">
-                  {contract.propertyAddress}
+                  {contract.property.roadAddress}
                 </span>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -68,17 +68,17 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
                 </span>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    ContractStatusColors[contract.contractStatus].bg
-                  } ${ContractStatusColors[contract.contractStatus].text}`}
+                    ContractStatusColors[contract.status].bg
+                  } ${ContractStatusColors[contract.status].text}`}
                 >
-                  {ContractStatusLabels[contract.contractStatus]}
+                  {ContractStatusLabels[contract.status]}
                 </span>
               </div>
               <p className="text-sm text-gray-500 mt-1">{getPriceDisplay()}</p>
               <div className="flex items-center mt-2">
                 <div className="flex items-center text-sm text-gray-500 mr-4">
                   <User className="h-4 w-4 mr-1" />
-                  {contract.customerName}
+                  {contract.customer.name}
                 </div>
                 {contract.startedAt && contract.expiredAt && (
                   <div className="flex items-center text-sm text-gray-500">

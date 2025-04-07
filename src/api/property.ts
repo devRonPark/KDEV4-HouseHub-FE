@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { ApiResponse } from './auth';
+import type { ApiResponse } from '../types/api';
 import type {
   PropertyRegistrationDTO,
   PropertyListResponse,
@@ -31,7 +31,7 @@ export const registerProperty = async (
   }
 };
 
-// 매물 목록 조회 API 수정
+// 매물 목록 조회 API
 export const getProperties = async (
   filter: PropertySearchFilter
 ): Promise<ApiResponse<PropertyListResponse>> => {

@@ -1,5 +1,6 @@
-import type { Customer } from './property';
-
+import type { CreateCustomerResDto } from './customer';
+import type { FindPropertyResDto } from './property';
+import type { Agent } from './agent';
 // 계약 유형 enum
 export enum ContractType {
   SALE = 'SALE', // 매매
@@ -45,6 +46,7 @@ export const ContractStatusColors: Record<ContractStatus, { bg: string; text: st
 // 계약 등록 요청 DTO
 export interface ContractReqDto {
   propertyId: number;
+  customerId: number;
   contractType: ContractType;
   contractStatus: ContractStatus;
   memo?: string;
@@ -59,12 +61,11 @@ export interface ContractReqDto {
 // 계약 응답 DTO
 export interface ContractResDto {
   id: number;
-  propertyId: number;
-  propertyAddress: string;
-  customerId: number;
-  customerName: string;
+  agent: Agent;
+  property: FindPropertyResDto;
+  customer: CreateCustomerResDto;
   contractType: ContractType;
-  contractStatus: ContractStatus;
+  status: ContractStatus;
   salePrice?: number;
   jeonsePrice?: number;
   monthlyRentFee?: number;
@@ -77,15 +78,15 @@ export interface ContractResDto {
 }
 
 // 계약 상세 응답 DTO
-export interface ContractDetailResDto extends ContractResDto {
-  property: {
-    id: number;
-    address: string;
-    detailAddress: string;
-    propertyType: string;
-  };
-  customer: Customer;
-}
+// export interface ContractDetailResDto extends ContractResDto {
+//   property: {
+//     id: number;
+//     address: string;
+//     detailAddress: string;
+//     propertyType: string;
+//   };
+//   customer: Customer;
+// }
 
 // 계약 목록 페이지네이션 응답
 export interface ContractListResponse {

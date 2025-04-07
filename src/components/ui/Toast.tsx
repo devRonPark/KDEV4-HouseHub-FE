@@ -26,6 +26,11 @@ const Toast: React.FC<ToastProps> = ({
   useEffect(() => {
     if (isVisible) {
       setIsShowing(true);
+      // Auto-close the toast after the specified duration
+      const autoCloseTimer = setTimeout(() => {
+        if (onClose) onClose();
+      }, duration);
+      return () => clearTimeout(autoCloseTimer);
     } else {
       // 애니메이션을 위한 지연
       const timer = setTimeout(() => {
@@ -33,7 +38,7 @@ const Toast: React.FC<ToastProps> = ({
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isVisible]);
+  }, [isVisible, duration, onClose]);
 
   if (!isShowing && !isVisible) return null;
 
@@ -69,7 +74,7 @@ const Toast: React.FC<ToastProps> = ({
 
   return (
     <div
-      className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 transform transition-all duration-300 ease-in-out ${
+      className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out ${
         isVisible ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
       }`}
     >

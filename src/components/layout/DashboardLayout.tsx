@@ -14,8 +14,8 @@ import {
   MessageSquare,
   ChevronDown,
 } from 'react-feather';
-import { useAuth } from '../../context/AuthContext';
-import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/useAuth';
+import { useToast } from '../../context/useToast';
 import LogoWithText from '../LogoWithText';
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -26,7 +26,9 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
+    alert('로그아웃 버튼 클릭');
     const success = await signOut();
+    console.log(success);
     if (success) {
       showToast('로그아웃 되었습니다.', 'success');
       navigate('/signin');
@@ -41,6 +43,15 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { name: '매물 관리', icon: <FileText size={18} />, href: '/properties' },
     { name: '계약 관리', icon: <FileText size={18} />, href: '/contracts' },
     { name: '상담/문의', icon: <MessageSquare size={18} />, href: '/consultations' },
+    {
+      name: '문의 템플릿',
+      icon: <FileText size={18} />,
+      href: '/inquiry-templates',
+      subItems: [
+        { name: '템플릿 목록', href: '/inquiry-templates' },
+        { name: '템플릿 생성', href: '/inquiry-templates/create' },
+      ],
+    },
   ];
 
   return (

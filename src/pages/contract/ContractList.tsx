@@ -2,14 +2,14 @@
 
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Search, Plus, RefreshCw, FileText } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Pagination from '../../components/ui/Pagination';
 import ContractListItem from '../../components/contract/ContractListItem';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import { getContracts } from '../../api/contract';
 import {
   ContractType,
@@ -59,23 +59,57 @@ const ContractList: React.FC = () => {
     };
 
     try {
+      console.log('Fetching contracts with filter:', filter);
       const response = await getContracts(filter);
+      console.log('Contracts API response:', response);
+
       if (response.success && response.data) {
+        console.log('response.data:', response.data);
+        console.log('Setting contracts:', response.data.contracts);
         setContracts(response.data.contracts || []);
         setTotalPages(response.data.totalPages || 1);
       } else {
+        console.error('Failed to fetch contracts:', response.error);
         showToast(response.error || '계약 목록을 불러오는데 실패했습니다.', 'error');
         setContracts([]);
         setTotalPages(1);
       }
     } catch (error) {
+      console.error('Error fetching contracts:', error);
       showToast('계약 목록을 불러오는데 실패했습니다.', 'error');
       setContracts([]);
       setTotalPages(1);
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchParams, selectedContractType, selectedContractStatus]);
+  }, [currentPage, searchParams, selectedContractType, selectedContractStatus, showToast]);
+
+  // 계약 유형 선택 핸들러
+  const handleContractTypeSelect = (type: ContractType) => {
+    setSelectedContractType(type === selectedContractType ? null : type);
+    setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
+  };
+
+  // 계약 상태 선택 핸들러
+  const handleContractStatusSelect = (status: ContractStatus) => {
+    setSelectedContractStatus(status === selectedContractStatus ? null : status);
+    setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
+  };
+
+  // 필터 초기화 함수
+  const resetFilters = () => {
+    setTempSearchParams({
+      agentName: '',
+      customerName: '',
+    });
+    setSearchParams({
+      agentName: '',
+      customerName: '',
+    });
+    setSelectedContractType(null);
+    setSelectedContractStatus(null);
+    setCurrentPage(1);
+  };
 
   // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {
@@ -95,21 +129,6 @@ const ContractList: React.FC = () => {
     }, 0);
   };
 
-  // 필터 초기화 함수
-  const resetFilters = () => {
-    setTempSearchParams({
-      agentName: '',
-      customerName: '',
-    });
-    setSearchParams({
-      agentName: '',
-      customerName: '',
-    });
-    setSelectedContractType(null);
-    setSelectedContractStatus(null);
-    setCurrentPage(1);
-  };
-
   // 초기 데이터 로딩 및 필터/페이지 변경 시 데이터 다시 로딩
   useEffect(() => {
     fetchContracts();
@@ -119,15 +138,6 @@ const ContractList: React.FC = () => {
     <DashboardLayout>
       <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">계약 관리</h1>
-        <div className="mt-3 sm:mt-0 sm:ml-4">
-          <Button
-            variant="primary"
-            onClick={() => navigate('/contracts/register')}
-            leftIcon={<Plus size={16} />}
-          >
-            계약 등록
-          </Button>
-        </div>
       </div>
 
       {/* 검색 및 필터 */}
@@ -163,7 +173,7 @@ const ContractList: React.FC = () => {
                     <button
                       key={type}
                       type="button"
-                      onClick={() => setSelectedContractType(type)}
+                      onClick={() => handleContractTypeSelect(type)}
                       className={`px-4 py-2 rounded-md text-sm font-medium ${
                         selectedContractType === type
                           ? 'bg-blue-600 text-white'
@@ -183,7 +193,7 @@ const ContractList: React.FC = () => {
                     <button
                       key={status}
                       type="button"
-                      onClick={() => setSelectedContractStatus(status)}
+                      onClick={() => handleContractStatusSelect(status)}
                       className={`px-4 py-2 rounded-md text-sm font-medium ${
                         selectedContractStatus === status
                           ? 'bg-blue-600 text-white'
@@ -237,9 +247,11 @@ const ContractList: React.FC = () => {
             ))}
           </div>
         ) : contracts && contracts.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {contracts.map((contract) => (
-              <ContractListItem key={contract.id} contract={contract} />
+              <Link key={contract.id} to={`/contracts/${contract.id}`}>
+                <ContractListItem contract={contract} />
+              </Link>
             ))}
           </div>
         ) : (

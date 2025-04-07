@@ -1,14 +1,14 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Users, Home, MessageSquare, HelpCircle, Bell, RefreshCw } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import StatCard from '../../components/dashboard/StatCard';
 import ActivityItem from '../../components/dashboard/ActivityItem';
 import NotificationItem from '../../components/dashboard/NotificationItem';
 import ChartContainer from '../../components/dashboard/ChartContainer';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/useToast';
 import {
   getDashboardStats,
   getRecentActivities,
@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
       } else {
         showToast(response.error || '알림 읽음 처리에 실패했습니다.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('알림 읽음 처리 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -233,7 +233,7 @@ const Dashboard: React.FC = () => {
               ) : activities.length > 0 ? (
                 <div className="flow-root">
                   <ul className="-mb-8">
-                    {activities.map((activity, activityIdx) => (
+                    {activities.map((activity) => (
                       <li key={activity.id}>
                         <ActivityItem activity={activity} />
                       </li>

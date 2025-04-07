@@ -1,29 +1,30 @@
 'use client';
 
 import type React from 'react';
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { AuthState } from '../types/auth';
+import { createContext, useState, useCallback, useEffect } from 'react';
 import {
   signUp as apiSignUp,
   signIn as apiSignIn,
-  type SignUpRequest,
+  signOut as apiSignOut,
   checkSession,
+  type SignUpRequest,
 } from '../api/auth';
-import apiClient from '../api/client';
-import { AgentDetail } from '../types/agent';
 import { getMyProfile } from '../api/agent';
-import { useLocation } from 'react-router-dom';
+import type { AgentDetail } from '../types/agent';
 
-interface AuthContextType extends AuthState {
+interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: AgentDetail | null;
   signUp: (data: SignUpRequest) => Promise<boolean>;
   signIn: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   signOut: () => Promise<boolean>;
   refreshUserProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   user: null,
   signUp: async () => false,
   signIn: async () => false,
@@ -31,31 +32,14 @@ const AuthContext = createContext<AuthContextType>({
   refreshUserProfile: async () => {},
 });
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth 는 반드시 AuthProvider 내부에서 사용해야 합니다.');
-  }
-  return context;
-};
-
 interface AuthProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
-
-// 인증이 필요하지 않은 경로 목록
-const publicPaths = ['/signin', '/signup', '/forgot-password'];
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true); // 초기값 true로 설정
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // isAuthenticated 상태 추가
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<AgentDetail | null>(null);
-  const location = useLocation();
-
-  // 현재 경로가 인증이 필요하지 않은 경로인지 확인
-  const isPublicPath = publicPaths.some(
-    (path) => location.pathname === path || location.pathname.startsWith(`${path}/`)
-  );
 
   // 사용자 프로필 정보 가져오기
   const fetchUserProfile = useCallback(async () => {
@@ -67,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       setUser(null);
       return false;
-    } catch (error) {
+    } catch {
       setUser(null);
       return false;
     }
@@ -84,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(false);
         setUser(null);
       }
-    } catch (error) {
+    } catch {
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -123,11 +107,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const response = await apiSignUp(data);
-      setIsLoading(false);
       return response.success;
-    } catch (error) {
-      setIsLoading(false);
+    } catch {
       return false;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -144,7 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return true;
         }
         return false;
-      } catch (error) {
+      } catch {
         return false;
       } finally {
         setIsLoading(false);
@@ -157,16 +141,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = useCallback(async (): Promise<boolean> => {
     try {
       // 로그아웃 API 호출
-      const response = await apiClient.post('/auth/logout');
+      const response = await apiSignOut();
 
-      if (response.data.success) {
+      if (response.data?.success) {
         setIsAuthenticated(false);
         setUser(null);
         return true;
       }
       return false;
-    } catch (error) {
+    } catch {
       return false;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
