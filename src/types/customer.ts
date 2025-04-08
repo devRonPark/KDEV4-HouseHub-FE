@@ -1,3 +1,5 @@
+import type { PaginationDto } from './pagination';
+
 export interface Customer {
   id: number; // Java Long -> TS number
   name: string;
@@ -32,4 +34,9 @@ export interface CreateCustomerResDto {
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
+}
+
+export interface CustomerListResDto {
+  content: CreateCustomerResDto[];
+  pagination: PaginationDto;
 }

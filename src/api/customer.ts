@@ -1,16 +1,25 @@
 import apiClient from './client';
 import type { ApiResponse } from '../types/api';
-import type { CreateCustomerResDto, CreateCustomerReqDto } from '../types/customer';
+import type {
+  CreateCustomerResDto,
+  CreateCustomerReqDto,
+  CustomerListResDto,
+} from '../types/customer';
 import axios from 'axios';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회
-export const getMyCustomers = async (): Promise<ApiResponse<CreateCustomerResDto[]>> => {
+export const getMyCustomers = async (
+  page: number,
+  size: number
+): Promise<ApiResponse<CustomerListResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<CreateCustomerResDto[]>>('/customers');
+    const response = await apiClient.get<ApiResponse<CustomerListResDto>>(
+      `/customers?page=${page}&size=${size}`
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<CreateCustomerResDto[]>;
+      return error.response.data as ApiResponse<CustomerListResDto>;
     }
 
     return {

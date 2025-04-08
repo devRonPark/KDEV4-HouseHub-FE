@@ -35,6 +35,7 @@ const CustomersPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState<{
@@ -58,9 +59,13 @@ const CustomersPage = () => {
   const loadCustomers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getMyCustomers();
+      // If there's a search term, we need to handle it differently
+      // For now, we'll load all data and filter client-side
+      // In a real app, you might want to send the search term to the API
+      const response = await getMyCustomers(currentPage - 1, itemsPerPage);
+
       if (response.data) {
-        const mappedCustomers = response.data.map((dto) => ({
+        const mappedCustomers = response.data.content.map((dto) => ({
           id: dto.id,
           name: dto.name,
           email: dto.email,
@@ -74,8 +79,23 @@ const CustomersPage = () => {
         }));
 
         setCustomers(mappedCustomers);
-        setFilteredCustomers(mappedCustomers);
-        setTotalPages(Math.ceil(mappedCustomers.length / itemsPerPage));
+
+        // Apply search filtering if needed
+        if (searchTerm) {
+          const lowerSearchTerm = searchTerm.toLowerCase();
+          const filtered = mappedCustomers.filter(
+            (customer) =>
+              customer.name.toLowerCase().includes(lowerSearchTerm) ||
+              customer.email.toLowerCase().includes(lowerSearchTerm) ||
+              customer.contact.includes(searchTerm)
+          );
+          setFilteredCustomers(filtered);
+        } else {
+          setFilteredCustomers(mappedCustomers);
+        }
+
+        setTotalPages(response.data.pagination.totalPages || 1);
+        setTotalElements(response.data.pagination.totalElements || 0);
       } else {
         showToast('API 응답에 데이터가 없습니다.', 'error');
       }
@@ -85,41 +105,30 @@ const CustomersPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [showToast, itemsPerPage]);
+  }, [showToast, itemsPerPage, currentPage, searchTerm]);
 
   // 데이터 로딩
   useEffect(() => {
     loadCustomers();
-  }, [showToast, loadCustomers]);
+  }, [loadCustomers, currentPage, searchTerm]);
 
   // 검색 및 필터링
   useEffect(() => {
-    const applySearchAndFilters = () => {
-      let result = [...customers];
-
-      // 검색어 적용
-      if (searchTerm) {
-        const lowerSearchTerm = searchTerm.toLowerCase();
-        result = result.filter(
-          (customer) =>
-            customer.name.toLowerCase().includes(lowerSearchTerm) ||
-            customer.email.toLowerCase().includes(lowerSearchTerm) ||
-            customer.contact.includes(searchTerm)
-        );
-      }
-      setFilteredCustomers(result);
-      setTotalPages(Math.ceil(result.length / itemsPerPage));
-      setCurrentPage(1); // 검색 결과가 변경되면 첫 페이지로 이동
-    };
-
-    applySearchAndFilters();
-  }, [customers, searchTerm]);
+    // When search term changes, reset to page 1 and reload data
+    if (searchTerm) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm]);
 
   // 페이지네이션된 고객 목록
-  const paginatedCustomers = filteredCustomers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedCustomers = filteredCustomers;
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    // When page changes, we need to reload data from the server
+    // This will trigger the loadCustomers effect
+  };
 
   // 고객 상세 정보 모달 열기
   const handleViewCustomer = (customer: Customer) => {
@@ -363,6 +372,10 @@ const CustomersPage = () => {
     },
   ];
 
+  // Calculate the range of customers being displayed
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalElements);
+
   return (
     <DashboardLayout>
       <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
@@ -458,18 +471,15 @@ const CustomersPage = () => {
             <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="hidden sm:block">
                 <p className="text-sm text-gray-700">
-                  총 <span className="font-medium">{filteredCustomers.length}</span>명의 고객 중{' '}
-                  <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>-
-                  <span className="font-medium">
-                    {Math.min(currentPage * itemsPerPage, filteredCustomers.length)}
-                  </span>
-                  명 표시
+                  총 <span className="font-medium">{totalElements}</span>명의 고객 중{' '}
+                  <span className="font-medium">{startIndex}</span>-
+                  <span className="font-medium">{endIndex}</span>명 표시
                 </p>
               </div>
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
               />
             </div>
           )}
