@@ -2,7 +2,7 @@ import apiClient from './client';
 import type { ApiResponse } from '../types/api';
 import type {
   PropertyRegistrationDTO,
-  PropertyListResponse,
+  PropertyListResDto,
   PropertySearchFilter,
   FindPropertyDetailResDto, // Added import
   PropertyType,
@@ -36,7 +36,7 @@ export const registerProperty = async (
 // 매물 목록 조회 API
 export const getProperties = async (
   filter: PropertySearchFilter
-): Promise<ApiResponse<PropertyListResponse>> => {
+): Promise<ApiResponse<PropertyListResDto>> => {
   try {
     let url = `/properties?page=${filter.page}&size=${filter.size}`;
 
@@ -65,7 +65,7 @@ export const getProperties = async (
       url += `&customerName=${encodeURIComponent(filter.customerName)}`;
     }
 
-    const response = await apiClient.get<ApiResponse<PropertyListResponse>>(url);
+    const response = await apiClient.get<ApiResponse<PropertyListResDto>>(url);
 
     // 응답 구조 로깅
     console.log('API Response:', response.data);

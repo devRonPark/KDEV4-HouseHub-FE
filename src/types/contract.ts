@@ -1,6 +1,8 @@
 import type { CreateCustomerResDto } from './customer';
 import type { FindPropertyResDto } from './property';
 import type { Agent } from './agent';
+import type { PaginationDto } from './pagination';
+
 // 계약 유형 enum
 export enum ContractType {
   SALE = 'SALE', // 매매
@@ -95,6 +97,12 @@ export interface ContractListResponse {
   totalElements: number;
   currentPage: number;
   size: number;
+}
+
+// 계약 목록 응답 DTO
+export interface ContractListResDto {
+  content: ContractResDto[];
+  pagination: PaginationDto;
 }
 
 // 계약 검색 필터

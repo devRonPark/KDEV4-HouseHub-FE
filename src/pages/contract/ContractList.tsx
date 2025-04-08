@@ -61,9 +61,9 @@ const ContractList: React.FC = () => {
 
       if (response.success && response.data) {
         console.log('response.data:', response.data);
-        console.log('Setting contracts:', response.data.contracts);
-        setContracts(response.data.contracts || []);
-        setTotalPages(response.data.totalPages || 1);
+        console.log('Setting contracts:', response.data.content);
+        setContracts(response.data.content || []);
+        setTotalPages(response.data.pagination.totalPages || 1);
       } else {
         console.error('Failed to fetch contracts:', response.error);
         showToast(response.error || '계약 목록을 불러오는데 실패했습니다.', 'error');
