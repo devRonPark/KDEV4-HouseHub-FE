@@ -26,6 +26,7 @@ import SmsSendPage from './pages/sms/send';
 import SmsTemplateListPage from './pages/sms/templates/templates';
 import SmsTemplateCreatePage from './pages/sms/templates/create';
 import SmsTemplateEditPage from './pages/sms/templates/[id]';
+import InquiryManagement from './pages/inquiryManagement/InquiryManagement';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -233,6 +234,14 @@ function App() {
         element={
           <ProtectedRoute>
             <ContractEdit />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inquiries"
+        element={
+          <ProtectedRoute>
+            <InquiryManagement />
           </ProtectedRoute>
         }
       />
