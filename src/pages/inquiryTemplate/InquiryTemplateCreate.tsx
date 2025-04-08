@@ -200,7 +200,7 @@ const InquiryTemplateCreate: React.FC = () => {
         name,
         description,
         isActive,
-        questions: questions.map(({ ...rest }) => rest), // id 제외
+        questions: questions.map(({ id: _id, ...rest }) => rest), // id 제외
       };
 
       let response;

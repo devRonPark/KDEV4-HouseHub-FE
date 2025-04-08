@@ -1,5 +1,6 @@
 import type { CreateCustomerResDto } from './customer';
 import type { ContractResDto } from './contract';
+import type { PaginationDto } from './pagination';
 
 // 매물 유형 enum
 export enum PropertyType {
@@ -49,14 +50,20 @@ export interface FindPropertyResDto {
   roadAddress: string;
 }
 
-// 매물 목록 페이지네이션 응답
-export interface PropertyListResponse {
-  properties: FindPropertyResDto[];
-  totalPages: number;
-  totalElements: number;
-  currentPage: number;
-  size: number;
+// 매물 목록 응답 DTO
+export interface PropertyListResDto {
+  content: FindPropertyResDto[];
+  pagination: PaginationDto;
 }
+
+// 매물 목록 페이지네이션 응답
+// export interface PropertyListResponse {
+//   properties: FindPropertyResDto[];
+//   totalPages: number;
+//   totalElements: number;
+//   currentPage: number;
+//   size: number;
+// }
 
 // 매물 검색 필터 인터페이스를 백엔드 PropertySearchDto와 일치하도록 수정
 export interface PropertySearchFilter {

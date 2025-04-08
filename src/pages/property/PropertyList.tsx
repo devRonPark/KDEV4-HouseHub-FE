@@ -69,14 +69,12 @@ const PropertyList: React.FC = () => {
       if (response.success) {
         // 응답 데이터가 있는지 확인
         if (response.data) {
-          // properties 배열이 있는지 확인
-          const propertiesData = Array.isArray(response.data)
-            ? response.data
-            : response.data.properties || [];
+          // content 배열이 있는지 확인
+          const propertiesData = response.data.content || [];
           setProperties(propertiesData);
 
           // 페이지네이션 정보 설정
-          setTotalPages(response.data.totalPages || 1);
+          setTotalPages(response.data.pagination.totalPages || 1);
         } else {
           // 데이터가 없는 경우 빈 배열로 설정
           setProperties([]);
@@ -139,7 +137,7 @@ const PropertyList: React.FC = () => {
   // 초기 데이터 로딩 및 필터/페이지 변경 시 데이터 다시 로딩
   useEffect(() => {
     fetchProperties();
-  }, [fetchProperties]);
+  }, [currentPage, searchParams, selectedPropertyType]);
 
   return (
     <DashboardLayout>
