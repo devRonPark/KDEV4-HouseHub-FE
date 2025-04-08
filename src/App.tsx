@@ -19,6 +19,8 @@ import LoadingScreen from './components/ui/LoadingScreen';
 import CustomersPage from './pages/customers/customer';
 import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
 import InquiryTemplateCreate from './pages/inquiryTemplate/InquiryTemplateCreate';
+import InquiryFormPage from './pages/inquiryForm/InquiryFormPage';
+import InquiryCompletePage from './pages/inquiryForm/InquiryCompletePage';
 import SmsListPage from './pages/sms/sms';
 import SmsSendPage from './pages/sms/send';
 import SmsTemplateListPage from './pages/sms/templates/templates';
@@ -241,6 +243,10 @@ function App() {
       <Route path="/consultations/:id" element={<ConsultationDetailPage />} />
       <Route path="/consultations/new" element={<ConsultationFormPage />} />
       <Route path="/consultations/:id/edit" element={<ConsultationFormPage />} />
+
+      {/* 공개 문의 페이지 (인증 불필요) */}
+      <Route path="/inquiry/share/:shareToken" element={<InquiryFormPage />} />
+      <Route path="/inquiry/complete" element={<InquiryCompletePage />} />
 
       {/* 기본 리다이렉트 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
