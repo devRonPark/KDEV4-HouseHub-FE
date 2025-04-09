@@ -1,5 +1,7 @@
 'use client';
 
+import type React from 'react';
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -8,9 +10,11 @@ import DashboardLayout from '../../../components/layout/DashboardLayout';
 import Button from '../../../components/ui/Button';
 import Table from '../../../components/ui/Table';
 import Modal from '../../../components/ui/Modal';
+import Pagination from '../../../components/ui/Pagination';
 import { useToast } from '../../../context/useToast';
 import { getAllTemplates, getTemplateById, deleteTemplate } from '../../../api/smsApi';
 import type { TemplateResDto } from '../../../types/sms';
+import Input from '../../../components/ui/Input';
 
 const SmsTemplateListPage = () => {
   const navigate = useNavigate();
@@ -21,17 +25,36 @@ const SmsTemplateListPage = () => {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredTemplates, setFilteredTemplates] = useState<TemplateResDto[]>([]);
+  const [searchBtnClicked, setSearchBtnClicked] = useState(false);
+  // 페이지네이션 상태 관리
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    totalElements: 0,
+    size: 10,
+  });
+
+  // 검색 필터 상태
+  const [filter, setFilter] = useState({
+    keyword: '',
+    page: 1,
+    size: 10,
+  });
 
   // 템플릿 목록 조회
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
-      const response = await getAllTemplates();
+      // API 호출 시 페이지네이션 및 검색 파라미터 전달
+      const response = await getAllTemplates({
+        page: filter.page,
+        size: filter.size,
+        keyword: filter.keyword,
+      });
+
       if (response.success && response.data) {
-        setTemplates(response.data);
-        setFilteredTemplates(response.data);
+        setTemplates(response.data.content || []);
+        setPagination(response.data.pagination);
       } else {
         showToast(response.message || '템플릿 목록을 불러오는데 실패했습니다.', 'error');
       }
@@ -86,17 +109,38 @@ const SmsTemplateListPage = () => {
     fetchTemplates();
   }, []);
 
-  // 검색어에 따른 필터링
+  // 필터 변경 시 데이터 다시 로딩
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredTemplates(templates);
-    } else {
-      const filtered = templates.filter(
-        (template) => template.title.includes(searchTerm) || template.content.includes(searchTerm)
-      );
-      setFilteredTemplates(filtered);
+    if (searchBtnClicked) {
+      fetchTemplates();
+      setSearchBtnClicked(false);
     }
-  }, [searchTerm, templates]);
+  }, [filter, searchBtnClicked]);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setFilter((prev) => ({
+      ...prev,
+      page: page,
+    }));
+    setSearchBtnClicked(true);
+  };
+
+  // 검색 실행 함수
+  const handleSearch = () => {
+    setFilter((prev) => ({
+      ...prev,
+      page: 1, // 검색 시 1페이지로 리셋
+    }));
+    setSearchBtnClicked(true);
+  };
+
+  // 검색어 입력 시 Enter 키 처리
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
@@ -197,19 +241,22 @@ const SmsTemplateListPage = () => {
       </div>
 
       {/* 검색 */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-grow">
-          <input
-            type="text"
-            placeholder="템플릿 제목 또는 내용 검색"
-            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+      <div className="flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex-grow">
+          <Input
+            label="템플릿 검색"
+            id="template-search"
+            placeholder="제목 또는 내용으로 검색"
+            value={filter.keyword}
+            onChange={(e) => setFilter((prev) => ({ ...prev, keyword: e.target.value }))}
+            onKeyDown={handleKeyPress}
+            leftIcon={<Search size={16} />}
           />
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={18}
-          />
+        </div>
+        <div>
+          <Button variant="primary" onClick={handleSearch} leftIcon={<Search size={16} />}>
+            검색
+          </Button>
         </div>
       </div>
 
@@ -217,13 +264,36 @@ const SmsTemplateListPage = () => {
       <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
         <Table
           columns={columns}
-          data={filteredTemplates}
+          data={templates}
           keyExtractor={(item) => item.id.toString()}
           isLoading={isLoading}
           emptyMessage="등록된 템플릿이 없습니다."
           onRowClick={(template) => fetchTemplateDetail(template.id)}
         />
       </div>
+
+      {pagination.totalElements > 0 && (
+        <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div className="hidden sm:block">
+            <p className="text-sm text-gray-700">
+              총 <span className="font-medium">{pagination.totalElements}</span>개 중{' '}
+              <span className="font-medium">
+                {(pagination.currentPage - 1) * pagination.size + 1}
+              </span>
+              -
+              <span className="font-medium">
+                {Math.min(pagination.currentPage * pagination.size, pagination.totalElements)}
+              </span>
+              개 표시
+            </p>
+          </div>
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
 
       {/* 템플릿 미리보기 모달 */}
       <Modal
