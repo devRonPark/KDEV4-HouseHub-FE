@@ -45,30 +45,24 @@ const useEmailVerification = ({
   const [isExpired, setIsExpired] = useState(false);
   const [timerId, setTimerId] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  // 타이머 시작 함수
+  // 타이머 시작 함수 (expiresIn 기반)
   const startTimer = useCallback(
-    (expiresAt: string) => {
+    (expiresIn: number) => {
       // 기존 타이머가 있다면 제거
       if (timerId) {
         clearInterval(timerId);
       }
 
-      // 만료 시간 계산
-      const expirationDate = new Date(expiresAt);
-      const now = new Date();
-      const remainingSeconds = Math.floor((expirationDate.getTime() - now.getTime()) / 1000);
-
-      // 이미 만료된 경우
-      if (remainingSeconds <= 0) {
+      if (expiresIn <= 0) {
         setTimeRemaining(0);
         setIsExpired(true);
         return;
       }
 
-      setTimeRemaining(remainingSeconds);
+      // 타이머 설정
+      setTimeRemaining(expiresIn);
       setIsExpired(false);
 
-      // 타이머 시작
       const id = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -97,10 +91,9 @@ const useEmailVerification = ({
       try {
         // { success, message, code, data }
         const response = await sendVerificationEmail(email, type);
-
         if (response.success && response.data) {
           setIsVerificationSent(true);
-          startTimer(response.data.expiresAt);
+          startTimer(response.data.expiresIn);
           return {
             success: true,
             data: response.data,
@@ -156,10 +149,15 @@ const useEmailVerification = ({
             setTimerId(null);
           }
           return true;
-        } else {
-          setError(response.error || '인증 코드가 일치하지 않습니다.');
+        } else if (response.code === 'AUTH_CODE_MISMATCH') {
+          setError(response.message || '인증 코드가 일치하지 않습니다.');
+          return false;
+        } else if (response.code === 'AUTH_CODE_EXPIRED') {
+          setError(response.message || '인증번호가 만료되었습니다. 다시 요청해주세요.');
+          setIsExpired(true);
           return false;
         }
+        return false;
       } catch {
         setError('인증 코드 확인 중 오류가 발생했습니다.');
         return false;

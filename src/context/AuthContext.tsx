@@ -78,11 +78,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // 초기 인증 상태 확인
   useEffect(() => {
-    console.log('AuthProvider 마운트, 인증 상태 확인 시작');
-
     // 안전장치: 최대 5초 후에는 무조건 로딩 상태 해제
     const timeoutId = setTimeout(() => {
-      console.log('타임아웃으로 인한 로딩 상태 해제');
       setIsLoading(false);
     }, 5000);
 
@@ -143,7 +140,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 로그아웃 API 호출
       const response = await apiSignOut();
 
-      if (response.data?.success) {
+      if (response.success) {
         setIsAuthenticated(false);
         setUser(null);
         return true;

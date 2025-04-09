@@ -136,18 +136,18 @@ const SignUp: React.FC = () => {
 
   const handleVerifyCode = async () => {
     const email = getValues('email');
-    try {
-      const isCodeSame = await verifyCode(email, verificationCode);
+    const result = await verifyCode(email, verificationCode);
 
-      if (isCodeSame) {
-        showToast('이메일 인증이 완료되었습니다.', 'success');
-      } else {
-        showToast('인증 번호가 일치하지 않습니다.', 'error');
-      }
+    if (result) {
+      showToast('이메일 인증이 완료되었습니다.', 'success');
       // 인증 코드 입력 후 이메일 필드 비활성화
       setValue('email', getValues('email'), { shouldValidate: true, shouldDirty: true });
-    } catch {
-      showToast('인증 코드 확인 중 오류가 발생했습니다.', 'error');
+    } else {
+      if (isExpired) {
+        showToast('인증번호가 만료되었습니다. 다시 요청해주세요.', 'error');
+      } else {
+        showToast('인증번호가 일치하지 않습니다. 다시 입력해주세요.', 'error');
+      }
     }
   };
 
@@ -242,8 +242,10 @@ const SignUp: React.FC = () => {
   };
 
   const formatTimeRemaining = (seconds: number) => {
+    console.log(`남은 시간: ${seconds}초`);
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
+    console.log(`남은 시간: ${minutes}분 ${remainingSeconds}초`);
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
@@ -294,6 +296,7 @@ const SignUp: React.FC = () => {
                         resetEmailVerification();
                       }
                     }}
+                    autoComplete="off"
                   />
                   {!isVerified && (
                     <Button
@@ -330,6 +333,9 @@ const SignUp: React.FC = () => {
                   error={verificationError || undefined}
                   required
                   isValid={verificationCode.length === 6}
+                  disabled={isVerified || isExpired}
+                  maxLength={6}
+                  autoComplete="off"
                 />
                 {!isExpired ? (
                   <div className="absolute right-2 top-8 text-sm text-blue-600">
@@ -395,6 +401,7 @@ const SignUp: React.FC = () => {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 }
+                autoComplete="off"
               />
             )}
           />
@@ -421,6 +428,7 @@ const SignUp: React.FC = () => {
                     {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 }
+                autoComplete="off"
               />
             )}
           />
@@ -438,6 +446,7 @@ const SignUp: React.FC = () => {
                 leftIcon={<User size={18} />}
                 required
                 isValid={validFields.name}
+                autoComplete="off"
               />
             )}
           />
@@ -453,6 +462,7 @@ const SignUp: React.FC = () => {
                 placeholder="자격증 번호 입력 (선택)"
                 error={errors.licenseNumber?.message}
                 leftIcon={<Briefcase size={18} />}
+                autoComplete="off"
               />
             )}
           />
@@ -470,6 +480,7 @@ const SignUp: React.FC = () => {
                 leftIcon={<Phone size={18} />}
                 required
                 isValid={validFields.phone}
+                autoComplete="off"
               />
             )}
           />
@@ -501,6 +512,7 @@ const SignUp: React.FC = () => {
                     placeholder="부동산 이름 입력"
                     error={errors.agencyName?.message}
                     leftIcon={<Briefcase size={18} />}
+                    autoComplete="off"
                   />
                 )}
               />
@@ -515,6 +527,7 @@ const SignUp: React.FC = () => {
                     label="사업자 등록번호"
                     placeholder="000-00-00000"
                     error={errors.agencyBusinessNumber?.message}
+                    autoComplete="off"
                   />
                 )}
               />
