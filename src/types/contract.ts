@@ -58,6 +58,7 @@ export interface ContractReqDto {
   jeonsePrice?: number;
   monthlyRentDeposit?: number;
   monthlyRentFee?: number;
+  completedAt?: string; // 계약 완료일
 }
 
 // 계약 응답 DTO
@@ -78,15 +79,6 @@ export interface ContractResDto {
   createdAt: string;
   updatedAt: string;
 }
-
-// 계약 목록 페이지네이션 응답
-// export interface ContractListResponse {
-//   contracts: ContractResDto[];
-//   totalPages: number;
-//   totalElements: number;
-//   currentPage: number;
-//   size: number;
-// }
 
 // 계약 목록 응답 DTO
 export interface ContractListResDto {
