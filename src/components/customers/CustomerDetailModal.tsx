@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit, Trash2 } from 'react-feather';
+import { Edit } from 'react-feather';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Modal from '../ui/Modal';
@@ -15,19 +15,11 @@ interface CustomerDetailModalProps {
   onClose: () => void;
   customer: Customer | null;
   onUpdate: (customerData: CreateCustomerReqDto) => void;
-  onDelete: (customer: Customer) => void;
 }
 
-const CustomerDetailModal = ({
-  isOpen,
-  onClose,
-  customer,
-  onUpdate,
-  onDelete,
-}: CustomerDetailModalProps) => {
+const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDetailModalProps) => {
   // const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -74,14 +66,7 @@ const CustomerDetailModal = ({
             leftIcon={<Edit size={16} />}
             onClick={() => setIsEditing(true)}
           >
-            편집
-          </Button>
-          <Button
-            variant="danger"
-            leftIcon={<Trash2 size={16} />}
-            onClick={() => setIsDeleteModalOpen(true)}
-          >
-            삭제
+            수정
           </Button>
         </div>
       )}
@@ -128,37 +113,6 @@ const CustomerDetailModal = ({
           </div>
         </Card>
       )}
-
-      {/* 고객 삭제 확인 모달 */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="고객 삭제"
-        size="sm"
-      >
-        <div className="space-y-4">
-          <p className="text-gray-700">
-            정말로 <span className="font-semibold">{customer.name}</span> 고객을 삭제하시겠습니까?
-            이 작업은 되돌릴 수 없습니다.
-          </p>
-          <div className="flex justify-end space-x-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
-              취소
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              onClick={() => {
-                onDelete(customer);
-                setIsDeleteModalOpen(false);
-                onClose();
-              }}
-            >
-              삭제
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </Modal>
   );
 };

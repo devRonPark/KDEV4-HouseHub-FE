@@ -4,18 +4,20 @@ import type {
   CreateCustomerResDto,
   CreateCustomerReqDto,
   CustomerListResDto,
+  CustomerSearchFilter,
 } from '../types/customer';
 import axios from 'axios';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회
 export const getMyCustomers = async (
-  page: number,
-  size: number
+  filter: CustomerSearchFilter
 ): Promise<ApiResponse<CustomerListResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<CustomerListResDto>>(
-      `/customers?page=${page}&size=${size}`
-    );
+    let url = `/customers?page=${filter.page}&size=${filter.size}`;
+    if (filter.keyword) {
+      url += `&keyword=${encodeURIComponent(filter.keyword)}`;
+    }
+    const response = await apiClient.get<ApiResponse<CustomerListResDto>>(url);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

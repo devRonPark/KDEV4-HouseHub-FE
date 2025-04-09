@@ -24,19 +24,20 @@ const customerSchema = z.object({
   contact: z
     .string()
     .regex(/^\d{2,3}-\d{3,4}-\d{4}$/, '유효한 전화번호 형식을 입력해주세요. (예: 010-1234-5678)'),
-  memo: z.string().optional(),
-  ageGroup: z.coerce
-    .number()
-    .min(10, '연령대는 10대 이상이어야 합니다.')
-    .max(100, '연령대는 100대 이하여야 합니다.'),
-  gender: z.enum(['M', 'F']),
+  memo: z.preprocess((val) => (val === '' ? null : val), z.string().nullable()).optional(),
+  ageGroup: z.preprocess((val) => {
+    if (val === '') return undefined;
+    const num = Number(val);
+    return isNaN(num) ? undefined : num;
+  }, z.number().min(10).max(100).optional()),
+  gender: z.preprocess((val) => (val === '' ? undefined : val), z.enum(['M', 'F']).optional()),
 });
 
 type CustomerFormData = z.infer<typeof customerSchema>;
 
 interface CustomerFormProps {
   initialData?: Partial<Customer>;
-  onSubmit: (data: Partial<Customer>) => void;
+  onSubmit: (data: CreateCustomerReqDto) => void;
   onCancel: () => void;
 }
 
@@ -47,26 +48,40 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
     formState: { errors, isSubmitting },
   } = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
+    // 수정 후 (ageGroup, gender 초기화)
     defaultValues: {
       name: initialData?.name || '',
       email: initialData?.email || '',
       contact: initialData?.contact || '',
-      memo: initialData?.memo || '',
-      ageGroup: initialData?.ageGroup || 30,
-      gender: initialData?.gender || 'M',
+      memo: initialData?.memo,
+      // 초기값이 없으면 undefined로 설정 (중요: null이 아님)
+      ageGroup: initialData?.ageGroup,
+      gender: initialData?.gender,
     },
   });
 
   // 폼 제출 처리
   const onFormSubmit = (data: CustomerFormData) => {
+    // 먼저 기본 데이터로 객체 생성
     const customerData: CreateCustomerReqDto = {
       name: data.name,
       email: data.email,
-      contact: data.contact, // 하이픈 유지
-      ageGroup: Number(data.ageGroup), // 문자열 → 숫자 변환
-      gender: data.gender as 'M' | 'F', // 타입 단언
-      memo: data.memo,
+      contact: data.contact,
     };
+
+    // 선택적 필드는 값이 있을 때만 추가
+    if (data.ageGroup !== undefined) {
+      customerData.ageGroup = Number(data.ageGroup);
+    }
+
+    if (data.gender !== undefined) {
+      customerData.gender = data.gender as 'M' | 'F';
+    }
+
+    if (data.memo) {
+      customerData.memo = data.memo;
+    }
+
     onSubmit(customerData);
   };
 
@@ -132,12 +147,14 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
                 <Select
                   {...field}
                   label="연령대"
-                  options={ageOptions.map((age) => ({
-                    value: age.toString(), // 문자열로 변환
-                    label: `${age}`,
-                  }))}
+                  options={[
+                    { value: '', label: '선택 안 함' },
+                    ...ageOptions.map((age) => ({
+                      value: age.toString(), // 문자열로 변환
+                      label: `${age}`,
+                    })),
+                  ]}
                   error={errors.ageGroup?.message}
-                  required
                 />
               )}
             />
@@ -149,11 +166,11 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
                   {...field}
                   label="성별"
                   options={[
+                    { value: '', label: '선택 안 함' },
                     { value: 'M', label: '남성' },
                     { value: 'F', label: '여성' },
                   ]}
                   error={errors.gender?.message}
-                  required
                 />
               )}
             />
@@ -165,6 +182,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
             render={({ field }) => (
               <Textarea
                 {...field}
+                value={field.value || ''}
                 label="메모"
                 placeholder="고객에 대한 추가 정보를 입력하세요"
                 error={errors.memo?.message}
