@@ -11,8 +11,7 @@ import {
   uploadCustomersExcel,
 } from '../../api/customer';
 import { useState, useEffect, useCallback, useRef } from 'react';
-// import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter, RefreshCw, Edit, Trash2, Download, Upload } from 'react-feather';
+import { Search, Plus, RefreshCw, Edit, Trash2, Download, Upload } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -20,29 +19,31 @@ import Input from '../../components/ui/Input';
 import Pagination from '../../components/ui/Pagination';
 import Modal from '../../components/ui/Modal';
 import CustomerForm from '../../components/customers/CustomerForm';
-import FilterPanel from '../../components/customers/FilterPanel';
 import CustomerDetailModal from '../../components/customers/CustomerDetailModal';
 import { formatPhoneNumber } from '../../utils/format';
 import { useToast } from '../../context/useToast';
 import type { CreateCustomerReqDto, Customer } from '../../types/customer';
 
 const CustomersPage = () => {
-  // const navigate = useNavigate();
   const { showToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    totalElements: 0,
+    size: 10,
+  });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<{
-    status?: string;
-    propertyTypes?: string[];
-    locations?: string[];
-    tags?: string[];
-  }>({});
+
+  // 검색 필드 상태 분리
+  // 검색어는 하나로만 해요. > 백엔드에서 검색 대상: 이름, 이메일, 연락처 하면 됨.
+  const [filter, setFilter] = useState({
+    keyword: '',
+    page: 1,
+    size: 10,
+  });
+  const [searchBtnClicked, setSearchBtnClicked] = useState(false);
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -55,27 +56,20 @@ const CustomersPage = () => {
 
   const itemsPerPage = 10;
 
+  // 고객 데이터 로드 함수
   const loadCustomers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await getMyCustomers();
-      if (response.data) {
-        const mappedCustomers = response.data.map((dto) => ({
-          id: dto.id,
-          name: dto.name,
-          email: dto.email,
-          contact: dto.contact,
-          ageGroup: dto.ageGroup,
-          gender: dto.gender,
-          memo: dto.memo || '',
-          createdAt: dto.createdAt,
-          updatedAt: dto.updatedAt,
-          deletedAt: dto.deletedAt,
-        }));
+      // API 호출
+      const response = await getMyCustomers({
+        keyword: filter.keyword,
+        page: filter.page,
+        size: filter.size,
+      });
 
-        setCustomers(mappedCustomers);
-        setFilteredCustomers(mappedCustomers);
-        setTotalPages(Math.ceil(mappedCustomers.length / itemsPerPage));
+      if (response.success && response.data) {
+        setCustomers(response.data.content);
+        setPagination(response.data.pagination);
       } else {
         showToast('API 응답에 데이터가 없습니다.', 'error');
       }
@@ -85,41 +79,45 @@ const CustomersPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [showToast, itemsPerPage]);
+  }, [showToast, filter]);
 
   // 데이터 로딩
   useEffect(() => {
     loadCustomers();
-  }, [showToast, loadCustomers]);
+  }, []);
 
-  // 검색 및 필터링
   useEffect(() => {
-    const applySearchAndFilters = () => {
-      let result = [...customers];
+    if (searchBtnClicked) {
+      loadCustomers();
+      setSearchBtnClicked(false);
+    }
+  }, [filter, searchBtnClicked]);
 
-      // 검색어 적용
-      if (searchTerm) {
-        const lowerSearchTerm = searchTerm.toLowerCase();
-        result = result.filter(
-          (customer) =>
-            customer.name.toLowerCase().includes(lowerSearchTerm) ||
-            customer.email.toLowerCase().includes(lowerSearchTerm) ||
-            customer.contact.includes(searchTerm)
-        );
-      }
-      setFilteredCustomers(result);
-      setTotalPages(Math.ceil(result.length / itemsPerPage));
-      setCurrentPage(1); // 검색 결과가 변경되면 첫 페이지로 이동
-    };
+  // 검색 실행 함수
+  const handleSearch = () => {
+    setFilter((prev) => ({
+      ...prev,
+      keyword: filter.keyword,
+      page: 1,
+    }));
+    setSearchBtnClicked(true);
+  };
 
-    applySearchAndFilters();
-  }, [customers, searchTerm]);
+  // 검색어 입력 시 Enter 키 처리
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
-  // 페이지네이션된 고객 목록
-  const paginatedCustomers = filteredCustomers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage: number) => {
+    setFilter((prev) => ({
+      ...prev,
+      page: newPage,
+    }));
+    setSearchBtnClicked(true);
+  };
 
   // 고객 상세 정보 모달 열기
   const handleViewCustomer = (customer: Customer) => {
@@ -141,6 +139,12 @@ const CustomersPage = () => {
     setIsDeleteModalOpen(true);
   };
 
+  useEffect(() => {
+    if (!isDeleteModalOpen) {
+      setSelectedCustomer(null); // 선택된 고객 초기화
+    }
+  }, [isDeleteModalOpen]);
+
   // 고객 정보 수정
   const handleUpdateCustomer = async (customerData: CreateCustomerReqDto) => {
     if (!selectedCustomer) return;
@@ -161,6 +165,9 @@ const CustomersPage = () => {
         setSelectedCustomer(updatedCustomer);
 
         showToast('고객 정보가 성공적으로 수정되었습니다.', 'success');
+
+        // 목록 새로고침
+        loadCustomers();
       } else {
         // 실패 시 에러 메시지 표시
         showToast(response.error || '고객 정보 수정에 실패했습니다.', 'error');
@@ -182,15 +189,10 @@ const CustomersPage = () => {
       const response = await deleteMyCustomer(selectedCustomer.id);
 
       if (response.success && response.data) {
-        setCustomers((prev) =>
-          prev.map((customer) =>
-            customer.id === selectedCustomer.id
-              ? { ...customer, deletedAt: response.data?.deletedAt }
-              : customer
-          )
-        );
-
         showToast('고객 정보가 성공적으로 삭제되었습니다.', 'success');
+
+        // 목록 새로고침
+        loadCustomers();
       } else {
         showToast(response.error || '고객 정보 삭제에 실패했습니다.', 'error');
       }
@@ -202,15 +204,16 @@ const CustomersPage = () => {
     }
   };
 
+  //고객 등록
   const handleAddCustomer = async (customerData: CreateCustomerReqDto) => {
     try {
       const response = await createMyCustomer(customerData);
 
       if (response.success && response.data) {
-        // data를 별도 변수로 추출하여 타입 안정성 확보
-        const data = response.data;
-        setCustomers((prev) => [...prev, data]);
         showToast('고객 등록 성공', 'success');
+
+        // 목록 새로고침
+        loadCustomers();
       } else {
         showToast(response.error || '등록 실패', 'error');
       }
@@ -220,24 +223,6 @@ const CustomersPage = () => {
     } finally {
       setIsAddModalOpen(false);
     }
-  };
-
-  // 필터 적용
-  const handleApplyFilters = (filters: {
-    status?: string;
-    propertyTypes?: string[];
-    locations?: string[];
-    tags?: string[];
-  }) => {
-    setActiveFilters(filters);
-    setIsFilterPanelOpen(false);
-  };
-
-  // 필터 초기화
-  const handleResetFilters = () => {
-    setActiveFilters({});
-    setSearchTerm('');
-    setIsFilterPanelOpen(false);
   };
 
   // 엑셀 템플릿 다운로드
@@ -363,6 +348,10 @@ const CustomersPage = () => {
     },
   ];
 
+  // Calculate the range of customers being displayed
+  const startIndex = (pagination.currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(pagination.currentPage * itemsPerPage, pagination.totalElements);
+
   return (
     <DashboardLayout>
       <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
@@ -411,65 +400,59 @@ const CustomersPage = () => {
       </div>
 
       <div className="mt-6">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-grow">
-            <Input
-              placeholder="이름, 이메일, 연락처로 검색"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              leftIcon={<Search size={18} />}
-              className="pr-10"
-            />
-            {searchTerm && (
-              <button
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                onClick={() => setSearchTerm('')}
-              >
-                ✕
-              </button>
-            )}
+        {/* 검색 폼 */}
+        <div className="bg-white p-4 rounded-lg shadow mb-6">
+          <div className="space-y-4">
+            {/* 기본 검색 필드 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label
+                  htmlFor="keyword-search"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  키워드
+                </label>
+                <Input
+                  id="keyword-search"
+                  placeholder="키워드로 검색"
+                  value={filter.keyword}
+                  onChange={(e) => setFilter((prev) => ({ ...prev, keyword: e.target.value }))}
+                  onKeyDown={handleKeyPress}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <Button variant="primary" onClick={handleSearch} leftIcon={<Search size={16} />}>
+                검색
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            leftIcon={<Filter size={16} />}
-            onClick={() => setIsFilterPanelOpen(true)}
-            className="sm:w-auto w-full"
-          >
-            필터
-            {Object.values(activeFilters).flat().length > 0 && (
-              <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                {Object.values(activeFilters).flat().length}
-              </span>
-            )}
-          </Button>
         </div>
 
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
           <Table
             columns={columns}
-            data={paginatedCustomers}
+            data={customers}
             keyExtractor={(item) => item.id.toString()}
             isLoading={isLoading}
             emptyMessage="검색 결과가 없습니다."
             onRowClick={handleViewCustomer}
           />
 
-          {filteredCustomers.length > 0 && (
+          {customers.length > 0 && (
             <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="hidden sm:block">
                 <p className="text-sm text-gray-700">
-                  총 <span className="font-medium">{filteredCustomers.length}</span>명의 고객 중{' '}
-                  <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>-
-                  <span className="font-medium">
-                    {Math.min(currentPage * itemsPerPage, filteredCustomers.length)}
-                  </span>
-                  명 표시
+                  총 <span className="font-medium">{pagination.totalElements}</span>명의 고객 중{' '}
+                  <span className="font-medium">{startIndex}</span>-
+                  <span className="font-medium">{endIndex}</span>명 표시
                 </p>
               </div>
               <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
               />
             </div>
           )}
@@ -490,29 +473,14 @@ const CustomersPage = () => {
               name: data.name || '',
               email: data.email || '',
               contact: data.contact || '',
-              ageGroup: Number(data.ageGroup) || 0,
-              gender: data.gender || 'M',
-              memo: data.memo || '',
+              ageGroup: Number(data.ageGroup),
+              gender: data.gender,
+              memo: data.memo,
             };
 
             handleAddCustomer(requestData); // 변환된 데이터를 전달
           }}
           onCancel={() => setIsAddModalOpen(false)}
-        />
-      </Modal>
-
-      {/* 필터 패널 모달 */}
-      <Modal
-        isOpen={isFilterPanelOpen}
-        onClose={() => setIsFilterPanelOpen(false)}
-        title="고객 필터링"
-        size="md"
-      >
-        <FilterPanel
-          initialFilters={activeFilters}
-          onApply={handleApplyFilters}
-          onReset={handleResetFilters}
-          onCancel={() => setIsFilterPanelOpen(false)}
         />
       </Modal>
 
@@ -573,7 +541,6 @@ const CustomersPage = () => {
         onClose={() => setIsDetailModalOpen(false)}
         customer={selectedCustomer}
         onUpdate={handleUpdateCustomer}
-        onDelete={handleDeleteCustomerClick}
       />
 
       {/* 엑셀 업로드 모달 */}
