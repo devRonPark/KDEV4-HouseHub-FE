@@ -3,6 +3,7 @@
 import type React from 'react';
 import { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels'; // ✅ 플러그인 import
 import type { ChartData } from '../../types/dashboard';
 
 interface ChartContainerProps {
@@ -28,7 +29,11 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
         chartInstance.current.destroy();
       }
 
-      // 새 차트 생성
+      // ✅ Chart.js에 플러그인 등록
+      Chart.register(ChartDataLabels);
+
+      const isCartesianChart = type === 'bar' || type === 'line';
+      console.log(isCartesianChart);
       const ctx = chartRef.current.getContext('2d');
       if (ctx) {
         chartInstance.current = new Chart(ctx, {
@@ -37,13 +42,37 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            plugins: {
+              datalabels: {
+                display: true,
+                color: '#666',
+                font: {
+                  weight: 'bold' as const,
+                },
+                formatter: (value: number) => {
+                  return value == 0 ? '0' : value;
+                },
+              },
+            },
+            ...(isCartesianChart && {
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 50, // Y축 최대값 고정
+                  ticks: {
+                    stepSize: 5, // 10 간격으로 눈금 설정
+                    maxTicksLimit: 11, // 0부터 100까지 총 11개 눈금
+                  },
+                },
+              },
+            }),
             ...options,
           },
+          plugins: [ChartDataLabels], // ✅ 플러그인 사용 등록
         });
       }
     }
 
-    // 컴포넌트 언마운트 시 차트 인스턴스 정리
     return () => {
       if (chartInstance.current) {
         chartInstance.current.destroy();

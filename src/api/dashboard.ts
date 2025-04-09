@@ -1,6 +1,12 @@
 import apiClient from './client';
 import type { ApiResponse } from '../types/api';
-import type { DashboardStats, Activity, Notification, ChartData } from '../types/dashboard';
+import type {
+  DashboardStats,
+  Activity,
+  Notification,
+  ChartData,
+  RecentProperty,
+} from '../types/dashboard';
 
 // 대시보드 주요 지표 조회
 export const getDashboardStats = async (): Promise<ApiResponse<DashboardStats>> => {
@@ -75,15 +81,27 @@ export const markAllNotificationsAsRead = async (): Promise<ApiResponse<void>> =
   }
 };
 
-// 차트 데이터 조회
+// 최근 등록 매물 조회 API
+export const getRecentProperties = async (limit = 5): Promise<ApiResponse<RecentProperty[]>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<RecentProperty[]>>(
+      `/dashboard/properties/recent?limit=${limit}`
+    );
+    return response.data;
+  } catch {
+    return {
+      success: false,
+      error: '최근 매물 정보를 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 차트 데이터 조회 API
 export const getChartData = async (
-  chartType: string,
-  period = 'month'
+  chartType: 'properties' | 'contracts'
 ): Promise<ApiResponse<ChartData>> => {
   try {
-    const response = await apiClient.get<ApiResponse<ChartData>>(
-      `/dashboard/charts/${chartType}?period=${period}`
-    );
+    const response = await apiClient.get<ApiResponse<ChartData>>(`/dashboard/charts/${chartType}`);
     return response.data;
   } catch {
     return {

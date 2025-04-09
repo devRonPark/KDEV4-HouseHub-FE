@@ -1,25 +1,11 @@
+import { PropertyType } from './property';
+
 // 대시보드 주요 지표 타입
 export interface DashboardStats {
-  customers: {
-    total: number;
-    newThisMonth: number;
-    percentChange: number;
-  };
-  properties: {
-    total: number;
-    newThisMonth: number;
-    percentChange: number;
-  };
-  consultations: {
-    total: number;
-    newThisMonth: number;
-    percentChange: number;
-  };
-  inquiries: {
-    total: number;
-    newThisMonth: number;
-    percentChange: number;
-  };
+  totalProperties: number;
+  activeContracts: number;
+  newCustomers: number;
+  completedContracts: number;
 }
 
 // 최근 활동 내역 타입
@@ -61,4 +47,11 @@ export interface ChartData {
     borderColor?: string | string[];
     borderWidth?: number;
   }[];
+}
+
+export interface RecentProperty {
+  id: string;
+  propertyType: PropertyType;
+  location: string;
+  createdAt: string;
 }
