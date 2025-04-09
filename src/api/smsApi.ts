@@ -4,6 +4,10 @@ import type {
   SendSmsResDto,
   CreateUpdateTemplateReqDto,
   TemplateResDto,
+  SmsSearchFilter,
+  SmsListResDto,
+  SmsTemplateListResDto,
+  SmsTemplateSearchFilter,
 } from '../types/sms';
 import type { ApiResponse } from '../types/api';
 
@@ -30,9 +34,13 @@ export const getSmsById = async (id: number): Promise<ApiResponse<SendSmsResDto>
 };
 
 // 문자 전체 조회 API
-export const getAllSms = async (): Promise<ApiResponse<SendSmsResDto[]>> => {
+export const getAllSms = async (filter: SmsSearchFilter): Promise<ApiResponse<SmsListResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<SendSmsResDto[]>>('/sms/');
+    let url = `/sms?page=${filter.page}&size=${filter.size}`;
+    if (filter.keyword) {
+      url += `&keyword=${encodeURIComponent(filter.keyword)}`;
+    }
+    const response = await apiClient.get<ApiResponse<SmsListResDto>>(url);
     return response.data;
   } catch (error) {
     console.error('SMS 전체 조회 오류:', error);
@@ -90,9 +98,15 @@ export const getTemplateById = async (id: number): Promise<ApiResponse<TemplateR
 };
 
 // 템플릿 목록 조회 API
-export const getAllTemplates = async (): Promise<ApiResponse<TemplateResDto[]>> => {
+export const getAllTemplates = async (
+  filter: SmsTemplateSearchFilter
+): Promise<ApiResponse<SmsTemplateListResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<TemplateResDto[]>>('/sms/templates');
+    let url = `/sms/templates?page=${filter.page}&size=${filter.size}`;
+    if (filter.keyword) {
+      url += `&keyword=${encodeURIComponent(filter.keyword)}`;
+    }
+    const response = await apiClient.get<ApiResponse<SmsTemplateListResDto>>(url);
     return response.data;
   } catch (error) {
     console.error('템플릿 목록 조회 오류:', error);

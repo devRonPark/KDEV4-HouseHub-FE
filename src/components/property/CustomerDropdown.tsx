@@ -2,7 +2,6 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
-// import { User } from 'react-feather';
 import Select from '../../components/ui/Select';
 import { getMyCustomers } from '../../api/customer';
 import type { Customer } from '../../types/customer';
