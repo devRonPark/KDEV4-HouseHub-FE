@@ -80,7 +80,7 @@ const ContractRegistration: React.FC = () => {
   // 폼 상태 관리
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyDetailResDto | null>(null);
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
-  const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.AVAILABLE);
+  const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
   const [jeonsePrice, setJeonsePrice] = useState<string>('');
   const [monthlyRentDeposit, setMonthlyRentDeposit] = useState<string>('');
@@ -114,9 +114,6 @@ const ContractRegistration: React.FC = () => {
   const showJeonsePrice = contractType === ContractType.JEONSE;
   const showMonthlyRent = contractType === ContractType.MONTHLY_RENT;
 
-  // 계약 상태가 AVAILABLE이 아닌 경우에만 계약 기간 표시
-  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE;
-
   // 폼 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,8 +138,8 @@ const ContractRegistration: React.FC = () => {
         contractType,
         contractStatus,
         memo: memo || undefined,
-        startedAt: showContractPeriod ? startDate : undefined,
-        expiredAt: showContractPeriod ? endDate : undefined,
+        startedAt: startDate || undefined,
+        expiredAt: endDate || undefined,
       };
 
       // 계약 유형에 따라 가격 정보 추가
@@ -321,7 +318,7 @@ const ContractRegistration: React.FC = () => {
                 </div>
               )}
 
-              {showContractPeriod && (
+              {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                     계약 기간 <span className="text-red-500">*</span>
@@ -343,7 +340,7 @@ const ContractRegistration: React.FC = () => {
                     />
                   </div>
                 </div>
-              )}
+              }
 
               {/* 메모 필드 */}
               <div>

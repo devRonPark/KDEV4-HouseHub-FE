@@ -9,7 +9,7 @@ import type { Customer } from '../../types/customer';
 import { useToast } from '../../context/useToast';
 
 interface CustomerDropdownProps {
-  onCustomerSelect: (customerId: number | null) => void;
+  onCustomerSelect: (customerId: number | null, customer?: Customer | null) => void;
   selectedCustomerId?: number | null;
 }
 
@@ -66,7 +66,7 @@ const CustomerDropdown: React.FC<CustomerDropdownProps> = ({
     } else {
       const selectedCustomer = customers.find((customer) => customer.id.toString() === value);
       if (selectedCustomer) {
-        onCustomerSelect(selectedCustomer.id);
+        onCustomerSelect(selectedCustomer.id, selectedCustomer);
       }
     }
   };

@@ -12,9 +12,9 @@ export enum ContractType {
 
 // 계약 상태 enum
 export enum ContractStatus {
-  AVAILABLE = 'AVAILABLE', // 거래 가능
   IN_PROGRESS = 'IN_PROGRESS', // 계약 진행 중
   COMPLETED = 'COMPLETED', // 계약 완료
+  CANCELED = 'CANCELED', // 계약 취소
 }
 
 // 계약 유형 표시 텍스트
@@ -26,9 +26,9 @@ export const ContractTypeLabels: Record<ContractType, string> = {
 
 // 계약 상태 표시 텍스트
 export const ContractStatusLabels: Record<ContractStatus, string> = {
-  [ContractStatus.AVAILABLE]: '거래 가능',
   [ContractStatus.IN_PROGRESS]: '계약 진행 중',
   [ContractStatus.COMPLETED]: '계약 완료',
+  [ContractStatus.CANCELED]: '계약 취소',
 };
 
 // 계약 유형별 배경색 및 텍스트 색상
@@ -40,9 +40,9 @@ export const ContractTypeColors: Record<ContractType, { bg: string; text: string
 
 // 계약 상태별 배경색 및 텍스트 색상
 export const ContractStatusColors: Record<ContractStatus, { bg: string; text: string }> = {
-  [ContractStatus.AVAILABLE]: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
   [ContractStatus.IN_PROGRESS]: { bg: 'bg-blue-100', text: 'text-blue-800' },
   [ContractStatus.COMPLETED]: { bg: 'bg-green-100', text: 'text-green-800' },
+  [ContractStatus.CANCELED]: { bg: 'bg-red-100', text: 'text-red-800' },
 };
 
 // 계약 등록 요청 DTO
@@ -79,25 +79,14 @@ export interface ContractResDto {
   updatedAt: string;
 }
 
-// 계약 상세 응답 DTO
-// export interface ContractDetailResDto extends ContractResDto {
-//   property: {
-//     id: number;
-//     address: string;
-//     detailAddress: string;
-//     propertyType: string;
-//   };
-//   customer: Customer;
-// }
-
 // 계약 목록 페이지네이션 응답
-export interface ContractListResponse {
-  contracts: ContractResDto[];
-  totalPages: number;
-  totalElements: number;
-  currentPage: number;
-  size: number;
-}
+// export interface ContractListResponse {
+//   contracts: ContractResDto[];
+//   totalPages: number;
+//   totalElements: number;
+//   currentPage: number;
+//   size: number;
+// }
 
 // 계약 목록 응답 DTO
 export interface ContractListResDto {
@@ -109,8 +98,8 @@ export interface ContractListResDto {
 export interface ContractSearchFilter {
   agentName?: string;
   customerName?: string;
-  contractType?: ContractType;
-  status?: ContractStatus;
+  contractType?: ContractType | null;
+  status?: ContractStatus | null;
   page: number;
   size: number;
 }
