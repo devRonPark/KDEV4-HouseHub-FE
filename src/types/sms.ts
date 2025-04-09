@@ -1,3 +1,5 @@
+import type { PaginationDto } from './pagination';
+
 // SMS 관련 타입 정의
 export interface Sms {
   id: number;
@@ -64,4 +66,26 @@ export interface TemplateResDto {
   content: string; // 템플릿 내용
   createdAt: string; // 생성 시간
   updatedAt: string; // 수정 시간
+}
+
+export interface SmsListResDto {
+  content: SendSmsResDto[];
+  pagination: PaginationDto;
+}
+
+export interface SmsSearchFilter {
+  keyword?: string;
+  page: number;
+  size: number;
+}
+
+export interface SmsTemplateListResDto {
+  content: TemplateResDto[];
+  pagination: PaginationDto;
+}
+
+export interface SmsTemplateSearchFilter {
+  keyword?: string;
+  page: number;
+  size: number;
 }

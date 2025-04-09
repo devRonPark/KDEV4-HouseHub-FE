@@ -214,14 +214,13 @@ const CustomersPage = () => {
 
         // 목록 새로고침
         loadCustomers();
+        setIsAddModalOpen(false);
       } else {
-        showToast(response.error || '등록 실패', 'error');
+        showToast(response.message || '등록 실패', 'error');
       }
     } catch (error) {
       console.error('API Error:', error);
       showToast('서버 연결 실패', 'error');
-    } finally {
-      setIsAddModalOpen(false);
     }
   };
 
@@ -404,28 +403,23 @@ const CustomersPage = () => {
         <div className="bg-white p-4 rounded-lg shadow mb-6">
           <div className="space-y-4">
             {/* 기본 검색 필드 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label
-                  htmlFor="keyword-search"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  키워드
-                </label>
+            <div className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="flex-grow">
                 <Input
+                  label="키워드 검색"
                   id="keyword-search"
-                  placeholder="키워드로 검색"
+                  placeholder="이름, 이메일, 연락처로 검색"
                   value={filter.keyword}
                   onChange={(e) => setFilter((prev) => ({ ...prev, keyword: e.target.value }))}
                   onKeyDown={handleKeyPress}
+                  leftIcon={<Search size={16} />}
                 />
               </div>
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <Button variant="primary" onClick={handleSearch} leftIcon={<Search size={16} />}>
-                검색
-              </Button>
+              <div>
+                <Button variant="primary" onClick={handleSearch} leftIcon={<Search size={16} />}>
+                  검색
+                </Button>
+              </div>
             </div>
           </div>
         </div>
