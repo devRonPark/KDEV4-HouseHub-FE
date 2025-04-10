@@ -19,17 +19,19 @@ interface PropertySelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectProperty: (property: FindPropertyResDto) => void;
+  selectedPropertyId?: number | null;
 }
 
 const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
   isOpen,
   onClose,
   onSelectProperty,
+  selectedPropertyId = null,
 }) => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [properties, setProperties] = useState<PropertyListResDto | null>(null);
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // 검색 필터 상태
   const [filter, setFilter] = useState<PropertySearchFilter>({
@@ -50,9 +52,9 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
   // 모달이 열릴 때 selectedPropertyId 초기화
   useEffect(() => {
     if (isOpen) {
-      setSelectedPropertyId(null);
+      setSelectedId(selectedPropertyId);
     }
-  }, [isOpen]);
+  }, [isOpen, selectedPropertyId]);
 
   // 매물 목록 로드
   const loadProperties = async () => {
@@ -131,15 +133,13 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
 
   // 매물 선택 핸들러
   const handleSelectProperty = (propertyId: number) => {
-    setSelectedPropertyId(propertyId);
+    setSelectedId(propertyId);
   };
 
   // 선택 확인 핸들러
   const handleConfirmSelection = () => {
-    if (selectedPropertyId && properties) {
-      const selectedProperty = properties.content.find(
-        (property) => property.id === selectedPropertyId
-      );
+    if (selectedId && properties) {
+      const selectedProperty = properties.content.find((property) => property.id === selectedId);
       if (selectedProperty) {
         onSelectProperty(selectedProperty);
         onClose();
@@ -266,7 +266,7 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                     key={property.id}
                     className={`border rounded-lg p-3 transition-colors cursor-pointer
                     ${
-                      selectedPropertyId === property.id
+                      selectedId === property.id
                         ? 'bg-blue-50 border-blue-500'
                         : 'hover:bg-gray-50 border-gray-200'
                     }`}
@@ -287,7 +287,7 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                       </div>
                       <div className="flex items-center">
                         <Button
-                          variant={selectedPropertyId === property.id ? 'primary' : 'outline'}
+                          variant={selectedId === property.id ? 'primary' : 'outline'}
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation(); // 이벤트 전파 중단
@@ -295,7 +295,7 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                           }}
                           className="transition-colors"
                         >
-                          {selectedPropertyId === property.id ? '선택됨' : '선택'}
+                          {selectedId === property.id ? '선택됨' : '선택'}
                         </Button>
                       </div>
                     </div>
@@ -406,7 +406,7 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                 e.stopPropagation(); // 이벤트 전파 중단
                 handleConfirmSelection();
               }}
-              disabled={!selectedPropertyId}
+              disabled={!selectedId}
             >
               선택 완료
             </Button>
