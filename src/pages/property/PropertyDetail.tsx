@@ -21,11 +21,12 @@ const PropertyDetail: React.FC = () => {
   const [property, setProperty] = useState<FindPropertyDetailResDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchPropertyDetail = async () => {
-      if (!id) return;
-
+      // if (!id) return;
+      if (!id || isDeleting) return; // isDeleting이 true면 API 호출 방지
       setIsLoading(true);
       try {
         const response = await getPropertyById(Number(id));
@@ -42,24 +43,30 @@ const PropertyDetail: React.FC = () => {
     };
 
     fetchPropertyDetail();
-  }, [id, showToast]);
+  }, [id, isDeleting, showToast]);
 
   const handleDelete = async () => {
     if (!id) return;
+    setIsDeleting(true);
 
     try {
       const response = await deleteProperty(Number(id));
       if (response.success) {
+        setIsDeleteModalOpen(false); // 모달 먼저 닫기
         showToast('매물이 성공적으로 삭제되었습니다.', 'success');
-        navigate('/properties');
+        // 즉시 리다이렉트하여 추가 API 호출 방지
+        navigate('/properties', { replace: true }); // replace: true 옵션 추가
       } else {
         showToast(response.error || '매물 삭제에 실패했습니다.', 'error');
+        setIsDeleting(false);
       }
     } catch (error) {
       showToast('매물 삭제 중 오류가 발생했습니다.', 'error');
-    } finally {
-      setIsDeleteModalOpen(false);
+      setIsDeleting(false);
     }
+    // } finally {
+    //   setIsDeleteModalOpen(false);
+    // }
   };
 
   const formatDate = (dateString: string) => {

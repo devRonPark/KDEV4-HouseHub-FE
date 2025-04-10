@@ -48,6 +48,7 @@ export interface FindPropertyResDto {
   propertyType: PropertyType;
   detailAddress: string;
   roadAddress: string;
+  jibunAddress: string;
   active: boolean;
 }
 
@@ -81,6 +82,7 @@ export interface FindPropertyDetailResDto {
   dong: string;
   detailAddress: string;
   roadAddress: string;
+  jibunAddress: string;
   createdAt: string;
   updatedAt: string;
   latitude?: number;

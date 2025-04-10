@@ -33,10 +33,12 @@ const PropertyEdit: React.FC = () => {
   const [detailAddress, setDetailAddress] = useState('');
   const [memo, setMemo] = useState('');
   const [isCustomerSearchActive, setIsCustomerSearchActive] = useState(false);
+  // 상태 추가
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     const fetchPropertyDetail = async () => {
-      if (!id) return;
+      if (!id || isRedirecting) return;
 
       setIsLoading(true);
       try {
@@ -48,7 +50,7 @@ const PropertyEdit: React.FC = () => {
           // 폼 초기값 설정
           setPropertyType(propertyData.propertyType);
           setRoadAddress(propertyData.roadAddress);
-          // setJibunAddress(propertyData.jibunAddress || '');
+          setJibunAddress(propertyData.jibunAddress || '');
           setDetailAddress(propertyData.detailAddress);
           setMemo(propertyData.memo || '');
 
@@ -78,7 +80,7 @@ const PropertyEdit: React.FC = () => {
     };
 
     fetchPropertyDetail();
-  }, [id, showToast]);
+  }, [id, isRedirecting, showToast]);
 
   // 고객 선택 핸들러
   const handleCustomerSelect = (customerId: number | null, customer?: Customer | null) => {
@@ -114,6 +116,8 @@ const PropertyEdit: React.FC = () => {
       showToast('매물 유형을 선택해주세요.', 'error');
       return;
     }
+    console.log('roadAddress', roadAddress);
+    console.log('jibunAddress', jibunAddress);
 
     if (!roadAddress || !jibunAddress) {
       showToast('주소를 입력해주세요.', 'error');
@@ -133,8 +137,9 @@ const PropertyEdit: React.FC = () => {
       });
 
       if (response.success) {
+        setIsRedirecting(true);
         showToast('매물 정보가 성공적으로 수정되었습니다.', 'success');
-        navigate(`/properties/${id}`);
+        navigate(`/properties/${id}`, { replace: true });
       } else {
         showToast(response.error || '매물 수정에 실패했습니다.', 'error');
       }

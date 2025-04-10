@@ -132,7 +132,7 @@ const ConsultationDetailPage: React.FC = () => {
         return '완료';
       case 'reserved':
         return '예약됨';
-      case 'cancelled':
+      case 'canceled':
         return '취소됨';
       default:
         return status;

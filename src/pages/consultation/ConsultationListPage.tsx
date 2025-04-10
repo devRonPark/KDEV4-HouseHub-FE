@@ -172,7 +172,7 @@ const ConsultationListPage: React.FC = () => {
         return 'bg-green-100 text-green-800';
       case 'reserved':
         return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
+      case 'canceled':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -186,7 +186,7 @@ const ConsultationListPage: React.FC = () => {
         return '완료';
       case 'reserved':
         return '예약됨';
-      case 'cancelled':
+      case 'canceled':
         return '취소됨';
       default:
         return status;
@@ -301,7 +301,7 @@ const ConsultationListPage: React.FC = () => {
                   <option value="">전체</option>
                   <option value="reserved">예약됨</option>
                   <option value="completed">완료</option>
-                  <option value="cancelled">취소됨</option>
+                  <option value="canceled">취소됨</option>
                 </select>
               </div>
             </div>

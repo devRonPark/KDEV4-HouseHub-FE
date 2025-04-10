@@ -14,13 +14,13 @@ export const toApiConsultationType = (type: ConsultationType): 'PHONE' | 'VISIT'
   return type.toUpperCase() as 'PHONE' | 'VISIT';
 };
 
-export type ConsultationStatus = 'reserved' | 'completed' | 'cancelled';
+export type ConsultationStatus = 'reserved' | 'completed' | 'canceled';
 
-export const toApiStatus = (status: ConsultationStatus): 'RESERVED' | 'COMPLETED' | 'CANCELLED' => {
+export const toApiStatus = (status: ConsultationStatus): 'RESERVED' | 'COMPLETED' | 'CANCELED' => {
   const map = {
     reserved: 'RESERVED',
     completed: 'COMPLETED',
-    cancelled: 'CANCELLED',
+    canceled: 'CANCELED',
   } as const;
 
   return map[status];
@@ -108,7 +108,7 @@ export const fromApiStatus = (status: string): ConsultationStatus => {
   const map: Record<string, ConsultationStatus> = {
     RESERVED: 'reserved',
     COMPLETED: 'completed',
-    CANCELLED: 'cancelled',
+    CANCELED: 'canceled',
   };
 
   return map[status] || 'reserved';
