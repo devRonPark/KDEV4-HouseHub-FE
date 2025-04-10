@@ -3,8 +3,9 @@
 import type React from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Edit, Eye, Trash } from 'react-feather';
+import { Copy, Edit, Eye, Trash } from 'react-feather';
 import type { InquiryTemplate } from '../../types/inquiryTemplate';
+import { ToastVariant } from '../../hooks/useToast';
 
 interface InquiryTemplateListProps {
   inquiryTemplates: InquiryTemplate[];
@@ -12,6 +13,7 @@ interface InquiryTemplateListProps {
   onPreview: (inquiryTemplate: InquiryTemplate) => void;
   onDelete: (inquiryTemplate: InquiryTemplate) => void;
   isLoading: boolean;
+  showToast: (message: string, variant: ToastVariant, duration: number) => void;
 }
 
 const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
@@ -20,6 +22,7 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
   onPreview,
   onDelete,
   isLoading,
+  showToast,
 }) => {
   const formatDate = (dateString: string) => {
     try {
@@ -33,6 +36,16 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
   const truncateDescription = (text: string, maxLength = 50) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
+  };
+
+  const handleCopyLink = (shareToken: string) => {
+    const link = `${window.location.origin}/inquiry/share/${shareToken}`;
+    navigator.clipboard
+      .writeText(link)
+      .then(() =>
+        showToast('고객이 접근 가능한 문의 폼 링크가 클립보드에 복사되었습니다.', 'success', 3000)
+      )
+      .catch(() => showToast('복사에 실패했습니다.', 'error', 3000));
   };
 
   if (isLoading) {
@@ -123,24 +136,31 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
                 <div className="relative flex justify-end items-center space-x-2">
                   <button
                     onClick={() => onPreview(inquiryTemplate)}
-                    className="text-blue-600 hover:text-blue-900"
+                    className="text-blue-600 hover:text-blue-900 cursor-pointer"
                     title="미리보기"
                   >
                     <Eye size={18} />
                   </button>
                   <button
                     onClick={() => onEdit(inquiryTemplate)}
-                    className="text-indigo-600 hover:text-indigo-900"
+                    className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
                     title="수정"
                   >
                     <Edit size={18} />
                   </button>
                   <button
                     onClick={() => onDelete(inquiryTemplate)}
-                    className="text-red-600 hover:text-red-900"
+                    className="text-red-600 hover:text-red-900 cursor-pointer"
                     title="삭제"
                   >
                     <Trash size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleCopyLink(inquiryTemplate.shareToken)}
+                    className="text-gray-600 hover:text-gray-900 cursor-pointer"
+                    title="링크 복사"
+                  >
+                    <Copy size={18} />
                   </button>
                 </div>
               </td>

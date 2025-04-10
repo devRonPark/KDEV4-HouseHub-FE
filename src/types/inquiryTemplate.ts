@@ -4,6 +4,7 @@ export interface InquiryTemplate {
   name: string;
   description: string;
   isActive: boolean;
+  shareToken: string;
   questions: Question[];
   createdAt: string;
   updatedAt: string;
