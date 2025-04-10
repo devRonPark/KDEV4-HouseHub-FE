@@ -11,6 +11,7 @@ import { getDashboardStats, getRecentProperties, getChartData } from '../../api/
 import { Link } from 'react-router-dom';
 import { formatDate } from '../../utils/format';
 import { ChartData, RecentProperty } from '../../types/dashboard';
+import { PropertyTypeLabels } from '../../types/property';
 
 const Dashboard: React.FC = () => {
   const { showToast } = useToast();
@@ -197,7 +198,9 @@ const Dashboard: React.FC = () => {
                       recentProperties.map((property) => (
                         <tr key={property.id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-500">{property.propertyType}</div>
+                            <div className="text-sm text-gray-500">
+                              {PropertyTypeLabels[property.propertyType]}
+                            </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-900">{property.location}</div>

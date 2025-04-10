@@ -47,8 +47,7 @@ export const getContracts = async (
 
     const response = await apiClient.get<ApiResponse<ContractListResDto>>(url);
     return response.data;
-  } catch (error) {
-    console.error('Contract API error:', error);
+  } catch {
     return {
       success: false,
       error: '계약 목록을 불러오는 중 오류가 발생했습니다.',

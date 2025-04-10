@@ -133,6 +133,15 @@ const ContractList: React.FC = () => {
     <DashboardLayout>
       <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">계약 관리</h1>
+        <div className="mt-3 sm:mt-0">
+          <Button
+            variant="primary"
+            onClick={() => navigate('/contracts/register')}
+            leftIcon={<Plus size={16} />}
+          >
+            계약 등록
+          </Button>
+        </div>
       </div>
 
       {/* 검색 및 필터 */}

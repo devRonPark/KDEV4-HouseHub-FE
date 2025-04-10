@@ -90,15 +90,10 @@ export const deleteMyCustomer = async (id: number): Promise<ApiResponse<CreateCu
 
 // 엑셀 템플릿 다운로드
 export const downloadExcelTemplate = async (): Promise<Blob> => {
-  try {
-    const response = await apiClient.get('/customers/download', {
-      responseType: 'blob',
-    });
-    return response.data;
-  } catch (error) {
-    console.error('엑셀 템플릿 다운로드 오류:', error);
-    throw error;
-  }
+  const response = await apiClient.get('/customers/download', {
+    responseType: 'blob',
+  });
+  return response.data;
 };
 
 // 엑셀 파일로 고객 정보 업로드

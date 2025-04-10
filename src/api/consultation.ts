@@ -17,11 +17,8 @@ export const createConsultation = async (
   data: CreateConsultationReqDto
 ): Promise<ApiResponse<CreateConsultationResDto>> => {
   try {
-    console.log('API 요청 데이터:', data); // 디버깅용 로그 추가
-
     // 프론트엔드 형식(소문자)에서 백엔드 형식(대문자)으로 변환
     const apiData = toApiConsultationDto(data);
-    console.log('변환된 API 요청 데이터:', apiData);
 
     const response = await apiClient.post<ApiResponse<any>>('/consultations', apiData);
 
@@ -32,7 +29,6 @@ export const createConsultation = async (
 
     return response.data as ApiResponse<CreateConsultationResDto>;
   } catch (error) {
-    console.error('상담 생성 API 오류:', error); // 디버깅용 로그 추가
     if (axios.isAxiosError(error) && error.response) {
       return error.response.data as ApiResponse<CreateConsultationResDto>;
     }
@@ -49,9 +45,7 @@ export const createConsultation = async (
  */
 export const getConsultationList = async (): Promise<ApiResponse<ConsultationResDto[]>> => {
   try {
-    console.log('상담 목록 조회 API 호출');
     const response = await apiClient.get<ApiResponse<any[]>>('/consultations');
-    console.log('상담 목록 API 응답:', response.data);
 
     // 백엔드 응답이 성공이면, 데이터가 비어있더라도 성공으로 처리
     if (response.data.success) {
@@ -70,7 +64,6 @@ export const getConsultationList = async (): Promise<ApiResponse<ConsultationRes
       };
     } else {
       // 백엔드에서 명시적으로 실패를 반환한 경우
-      console.log('백엔드에서 실패 응답:', response.data.error);
       return {
         success: true, // 여기를 true로 변경하여 에러 메시지가 표시되지 않도록 함
         error: '데이터가 없습니다.',
@@ -78,7 +71,6 @@ export const getConsultationList = async (): Promise<ApiResponse<ConsultationRes
       };
     }
   } catch (error) {
-    console.error('상담 목록 조회 API 오류:', error);
     // 네트워크 오류 등 실제 API 호출 실패 시에만 에러 반환
     return {
       success: true, // 여기를 true로 변경하여 에러 메시지가 표시되지 않도록 함
@@ -95,9 +87,7 @@ export const getConsultationList = async (): Promise<ApiResponse<ConsultationRes
  */
 export const getConsultationById = async (id: number): Promise<ApiResponse<ConsultationResDto>> => {
   try {
-    console.log(`상담 상세 조회 API 호출: /consultations/${id}`); // 디버깅용 로그 추가
-    const response = await apiClient.get<ApiResponse<any>>(`/consultations/${id}`);
-    console.log('API 응답:', response.data); // 디버깅용 로그 추가
+    const response = await apiClient.get<ApiResponse<ConsultationResDto>>(`/consultations/${id}`);
 
     // 백엔드 응답(대문자)을 프론트엔드 형식(소문자)으로 변환
     if (response.data.success && response.data.data) {
@@ -106,7 +96,6 @@ export const getConsultationById = async (id: number): Promise<ApiResponse<Consu
 
     return response.data as ApiResponse<ConsultationResDto>;
   } catch (error) {
-    console.error('상담 상세 조회 API 오류:', error); // 디버깅용 로그 추가
     if (axios.isAxiosError(error) && error.response) {
       return error.response.data as ApiResponse<ConsultationResDto>;
     }
@@ -128,11 +117,8 @@ export const updateConsultation = async (
   data: CreateConsultationReqDto
 ): Promise<ApiResponse<ConsultationResDto>> => {
   try {
-    console.log('API 수정 요청 데이터:', data); // 디버깅용 로그 추가
-
     // 프론트엔드 형식(소문자)에서 백엔드 형식(대문자)으로 변환
     const apiData = toApiConsultationDto(data);
-    console.log('변환된 API 수정 요청 데이터:', apiData);
 
     const response = await apiClient.put<ApiResponse<any>>(`/consultations/${id}`, apiData);
 
@@ -143,7 +129,6 @@ export const updateConsultation = async (
 
     return response.data as ApiResponse<ConsultationResDto>;
   } catch (error) {
-    console.error('상담 수정 API 오류:', error); // 디버깅용 로그 추가
     if (axios.isAxiosError(error) && error.response) {
       return error.response.data as ApiResponse<ConsultationResDto>;
     }
