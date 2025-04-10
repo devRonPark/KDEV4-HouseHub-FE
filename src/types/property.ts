@@ -48,9 +48,10 @@ export interface FindPropertyResDto {
   propertyType: PropertyType;
   detailAddress: string;
   roadAddress: string;
+  active: boolean;
 }
 
-// 매물 목록 응답 DTO
+// 매물 목록 응답 LIST DTO
 export interface PropertyListResDto {
   content: FindPropertyResDto[];
   pagination: PaginationDto;
@@ -84,4 +85,5 @@ export interface FindPropertyDetailResDto {
   latitude?: number;
   longitude?: number;
   contractList: ContractResDto[];
+  active: boolean;
 }
