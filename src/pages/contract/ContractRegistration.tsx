@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, FileText, Calendar, CheckCircle } from 'react-feather';
+import { ArrowLeft, FileText, Calendar, CheckCircle, Edit } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -20,7 +20,8 @@ import {
   ContractStatusLabels,
   type ContractReqDto,
 } from '../../types/contract';
-import type { FindPropertyDetailResDto } from '../../types/property';
+import type { FindPropertyDetailResDto, FindPropertyResDto } from '../../types/property';
+import PropertySelectionModal from '../../components/property/PropertySelectionModal';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -72,13 +73,14 @@ const ContractRegistration: React.FC = () => {
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
 
   // URL 파라미터에서 propertyId 추출
   const queryParams = new URLSearchParams(location.search);
   const propertyIdParam = queryParams.get('propertyId');
 
   // 폼 상태 관리
-  const [selectedProperty, setSelectedProperty] = useState<FindPropertyDetailResDto | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
@@ -109,6 +111,22 @@ const ContractRegistration: React.FC = () => {
 
     loadPropertyData();
   }, [propertyIdParam, showToast]);
+
+  const handlePropertySelect = async (property: FindPropertyResDto) => {
+    // 선택된 매물 정보를 바로 사용
+    setSelectedProperty({
+      id: property.id,
+      roadAddress: property.roadAddress,
+      detailAddress: property.detailAddress,
+      propertyType: property.propertyType,
+    } as FindPropertyResDto);
+    showToast('매물이 성공적으로 선택되었습니다.', 'success');
+  };
+
+  // 매물 변경 버튼 클릭 핸들러
+  const handleChangeProperty = () => {
+    setIsPropertyModalOpen(true);
+  };
 
   // 계약 유형에 따라 필요한 필드 표시 여부 결정
   const showSalePrice = contractType === ContractType.SALE;
@@ -200,7 +218,7 @@ const ContractRegistration: React.FC = () => {
       } else {
         showToast(response.error || '계약 등록에 실패했습니다.', 'error');
       }
-    } catch (error) {
+    } catch {
       showToast('계약 등록 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsSubmitting(false);
@@ -230,9 +248,23 @@ const ContractRegistration: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* 매물 정보 */}
                 <div className="h-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                    매물 정보 <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                      매물 정보 <span className="text-red-500">*</span>
+                    </label>
+                    {selectedProperty && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleChangeProperty}
+                        leftIcon={<Edit size={14} />}
+                      >
+                        매물 변경
+                      </Button>
+                    )}
+                  </div>
+
                   {selectedProperty ? (
                     <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex flex-col justify-center">
                       <p className="font-medium text-gray-900">{selectedProperty.roadAddress}</p>
@@ -246,7 +278,7 @@ const ContractRegistration: React.FC = () => {
                         variant="outline"
                         size="sm"
                         className="mt-2 w-fit"
-                        onClick={() => navigate('/properties')}
+                        onClick={() => setIsPropertyModalOpen(true)}
                       >
                         매물 선택하기
                       </Button>
@@ -436,6 +468,12 @@ const ContractRegistration: React.FC = () => {
           </div>
         </form>
       </div>
+      {/* 매물 선택 모달 */}
+      <PropertySelectionModal
+        isOpen={isPropertyModalOpen}
+        onClose={() => setIsPropertyModalOpen(false)}
+        onSelectProperty={handlePropertySelect}
+      />
     </DashboardLayout>
   );
 };
