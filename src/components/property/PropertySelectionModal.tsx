@@ -168,7 +168,7 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
       aria-modal="true"
     >
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-gray-50"
+        className="fixed inset-0 z-50 flex items-center justify-center"
         onClick={onClose} // 모달 외부 클릭 시 닫기
       >
         <div

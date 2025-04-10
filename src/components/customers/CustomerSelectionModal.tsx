@@ -141,7 +141,7 @@ const CustomerSelectionModal: React.FC<CustomerSelectionModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      className="fixed inset-0 z-50 flex items-center justify-center "
       onClick={onClose} // 모달 외부 클릭 시 닫기
     >
       <div

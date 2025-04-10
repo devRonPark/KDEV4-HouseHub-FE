@@ -2,8 +2,10 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Calendar, ArrowLeft, FileText, User, Edit } from 'react-feather';
 import type { CreateConsultationReqDto } from '../../types/consultation';
+import type { CreateCustomerResDto } from '../../types/customer';
 import {
   getConsultationById,
   createConsultation,
@@ -13,6 +15,10 @@ import { useToast } from '../../context/useToast';
 import { useAuth } from '../../context/useAuth';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
+import Textarea from '../../components/ui/Textarea';
+import Card from '../../components/ui/Card';
+import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 
 const ConsultationFormPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -33,6 +39,8 @@ const ConsultationFormPage: React.FC = () => {
   const [loading, setLoading] = useState(isEditMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<CreateCustomerResDto | null>(null);
 
   useEffect(() => {
     // 에이전트 ID 설정
@@ -58,6 +66,11 @@ const ConsultationFormPage: React.FC = () => {
               consultationDate: consultation.consultationDate || new Date().toISOString(),
               status: consultation.status,
             });
+
+            // 고객 정보가 있으면 설정
+            // if (consultation.customerId) {
+            //   setSelectedCustomer(consultation.customer);
+            // }
           } else {
             showToast(response.error || '상담 정보를 불러오는데 실패했습니다.', 'error');
             navigate('/consultations', { replace: true });
@@ -91,11 +104,36 @@ const ConsultationFormPage: React.FC = () => {
     }
   };
 
+  // 고객 선택 모달에서 고객 선택 시 호출되는 함수
+  const handleCustomerSelect = (customer: CreateCustomerResDto) => {
+    setSelectedCustomer(customer);
+    setFormData((prev) => ({
+      ...prev,
+      customerId: customer.id,
+    }));
+
+    // 고객 ID 관련 오류 메시지 제거
+    if (errors.customerId) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.customerId;
+        return newErrors;
+      });
+    }
+
+    showToast('고객이 성공적으로 선택되었습니다.', 'success');
+  };
+
+  // 고객 변경 버튼 클릭 핸들러
+  const handleChangeCustomer = () => {
+    setIsCustomerModalOpen(true);
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.customerId) {
-      newErrors.customerId = '고객 ID를 입력해주세요.';
+      newErrors.customerId = '고객을 선택해주세요.';
     }
 
     if (!formData.consultationDate) {
@@ -117,7 +155,6 @@ const ConsultationFormPage: React.FC = () => {
     try {
       let response;
 
-      // 전송할 데이터에서 selectedCustomer 필드는 API에서 자동으로 제거됨
       if (isEditMode && id) {
         // 수정 로직
         response = await updateConsultation(Number(id), formData);
@@ -161,82 +198,124 @@ const ConsultationFormPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="pb-5 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-900">
+      <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold text-gray-900 text-left">
           {isEditMode ? '상담 정보 수정' : '상담 등록'}
         </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {isEditMode ? '상담 정보를 수정해주세요.' : '새로운 상담 내용을 등록해주세요.'}
-        </p>
+        <div className="mt-3 sm:mt-0">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/consultations')}
+            leftIcon={<ArrowLeft size={16} />}
+          >
+            목록으로 돌아가기
+          </Button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-            <div className="sm:col-span-3">
-              <label htmlFor="customerId" className="block text-sm font-medium text-gray-700">
-                고객 ID
-              </label>
-              <div className="mt-1">
-                <input
-                  type="number"
-                  id="customerId"
-                  name="customerId"
-                  value={formData.customerId || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFormData((prev) => ({
-                      ...prev,
-                      customerId: value ? Number.parseInt(value) : 0,
-                    }));
+      <div className="mt-6">
+        <form onSubmit={handleSubmit}>
+          <Card className="mb-6">
+            <div className="space-y-6">
+              {/* 고객 정보 */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-sm font-medium text-gray-700 text-left">
+                    고객 정보 <span className="text-red-500">*</span>
+                  </label>
+                  {selectedCustomer && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleChangeCustomer}
+                      leftIcon={<Edit size={14} />}
+                      disabled={isEditMode} // 수정 모드에서는 고객 변경 불가
+                    >
+                      고객 변경
+                    </Button>
+                  )}
+                </div>
 
-                    // 입력 필드 변경 시 해당 필드의 오류 메시지 제거
-                    if (errors.customerId) {
-                      setErrors((prev) => {
-                        const newErrors = { ...prev };
-                        delete newErrors.customerId;
-                        return newErrors;
-                      });
-                    }
-                  }}
-                  className={`shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md ${
-                    errors.customerId ? 'border-red-500' : ''
-                  }`}
-                  placeholder="고객 ID를 입력하세요"
-                  disabled={isEditMode}
-                />
+                {selectedCustomer ? (
+                  <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                      <User size={20} className="text-gray-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
+                      <p className="text-sm text-gray-500">{selectedCustomer.contact}</p>
+                      <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-md text-left flex flex-col justify-center items-start">
+                    <div className="flex flex-col items-start justify-start">
+                      <User className="h-8 w-8 text-gray-400 mb-2" />
+                      <p className="text-gray-500">고객을 선택해주세요.</p>
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        className="mt-2"
+                        onClick={handleChangeCustomer}
+                        disabled={isEditMode} // 수정 모드에서는 고객 변경 불가
+                      >
+                        고객 선택하기
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 {errors.customerId && (
-                  <p className="mt-2 text-sm text-red-600">{errors.customerId}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors.customerId}</p>
                 )}
               </div>
-            </div>
 
-            <div className="sm:col-span-3">
-              <label htmlFor="consultationType" className="block text-sm font-medium text-gray-700">
-                상담 유형
-              </label>
-              <div className="mt-1">
-                <select
-                  id="consultationType"
-                  name="consultationType"
-                  value={formData.consultationType}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                >
-                  <option value="phone">전화상담</option>
-                  <option value="visit">방문상담</option>
-                </select>
+              {/* 상담 유형과 상담 상태를 같은 행에 배치 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 상담 유형 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                    상담 유형 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="consultationType"
+                    name="consultationType"
+                    value={formData.consultationType}
+                    onChange={handleChange}
+                    className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="phone">전화상담</option>
+                    <option value="visit">방문상담</option>
+                  </select>
+                </div>
+
+                {/* 상담 상태 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                    상담 상태 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="reserved">예약됨</option>
+                    <option value="completed">완료</option>
+                    <option value="cancelled">취소됨</option>
+                  </select>
+                </div>
               </div>
-            </div>
 
-            <div className="sm:col-span-3">
-              <label htmlFor="consultationDate" className="block text-sm font-medium text-gray-700">
-                상담 일자
-              </label>
-              <div className="mt-1 relative">
-                <input
+              {/* 상담 일자 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                  상담 일자 <span className="text-red-500">*</span>
+                </label>
+                <Input
                   type="datetime-local"
-                  id="consultationDate"
                   name="consultationDate"
                   value={
                     formData.consultationDate
@@ -252,65 +331,56 @@ const ConsultationFormPage: React.FC = () => {
                       }));
                     }
                   }}
-                  className={`shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md ${
-                    errors.consultationDate ? 'border-red-500' : ''
-                  }`}
+                  error={errors.consultationDate}
+                  leftIcon={<Calendar size={18} />}
+                  required
                 />
-                {errors.consultationDate && (
-                  <p className="mt-2 text-sm text-red-600">{errors.consultationDate}</p>
-                )}
               </div>
-            </div>
 
-            <div className="sm:col-span-3">
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                상담 상태
-              </label>
-              <div className="mt-1">
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                >
-                  <option value="reserved">예약됨</option>
-                  <option value="completed">완료</option>
-                  <option value="cancelled">취소됨</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="sm:col-span-6">
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700">
-                상담 내용
-              </label>
-              <div className="mt-1">
-                <textarea
-                  id="content"
+              {/* 상담 내용 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                  상담 내용
+                </label>
+                <Textarea
                   name="content"
-                  rows={5}
                   value={formData.content || ''}
                   onChange={handleChange}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                   placeholder="상담 내용을 입력하세요"
-                ></textarea>
+                  className="min-h-[100px]"
+                />
               </div>
             </div>
+          </Card>
+
+          <div className="flex justify-end space-x-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate('/consultations')}
+              disabled={isSubmitting}
+            >
+              취소
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={isSubmitting}
+              leftIcon={<FileText size={16} />}
+            >
+              {isEditMode ? '수정하기' : '등록하기'}
+            </Button>
           </div>
-        </div>
-        <div className="px-4 py-3 bg-gray-50 text-right sm:px-6">
-          <Link
-            to="/consultations"
-            className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-3"
-          >
-            취소
-          </Link>
-          <Button type="submit" variant="primary" isLoading={isSubmitting}>
-            {isEditMode ? '수정하기' : '등록하기'}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </div>
+
+      {/* 고객 선택 모달 */}
+      <CustomerSelectionModal
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        onSelectCustomer={handleCustomerSelect}
+        selectedCustomerId={selectedCustomer?.id || null}
+      />
     </DashboardLayout>
   );
 };
