@@ -71,7 +71,7 @@ const CustomersPage = () => {
         setCustomers(response.data.content);
         setPagination(response.data.pagination);
       } else {
-        showToast('API 응답에 데이터가 없습니다.', 'error');
+        showToast(response.message || 'API 응답에 데이터가 없습니다.', 'error');
       }
     } catch (error) {
       console.error('Failed to load customers:', error);
@@ -170,7 +170,7 @@ const CustomersPage = () => {
         loadCustomers();
       } else {
         // 실패 시 에러 메시지 표시
-        showToast(response.error || '고객 정보 수정에 실패했습니다.', 'error');
+        showToast(response.message || '고객 정보 수정에 실패했습니다.', 'error');
       }
     } catch (error) {
       console.error('고객 정보 수정 중 오류 발생:', error);
@@ -194,7 +194,7 @@ const CustomersPage = () => {
         // 목록 새로고침
         loadCustomers();
       } else {
-        showToast(response.error || '고객 정보 삭제에 실패했습니다.', 'error');
+        showToast(response.message || '고객 정보 삭제에 실패했습니다.', 'error');
       }
     } catch (error) {
       console.error('고객 정보 삭제 중 오류 발생:', error);
@@ -236,7 +236,6 @@ const CustomersPage = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      showToast('엑셀 템플릿 다운로드 완료', 'success');
     } catch (error) {
       console.error('엑셀 템플릿 다운로드 오류:', error);
       showToast('엑셀 템플릿 다운로드 중 오류가 발생했습니다.', 'error');
@@ -273,7 +272,7 @@ const CustomersPage = () => {
         // 고객 목록 새로고침
         loadCustomers();
       } else {
-        showToast(response.error || '고객 정보 업로드에 실패했습니다.', 'error');
+        showToast(response.message || '고객 정보 업로드에 실패했습니다.', 'error');
       }
     } catch (error) {
       console.error('고객 정보 업로드 오류:', error);
@@ -307,8 +306,10 @@ const CustomersPage = () => {
       header: '연령대',
       render: (customer: Customer) => (
         <div>
-          <div>{customer.ageGroup}대</div>
-          <div className="text-gray-500 text-xs">{customer.gender === 'M' ? '남성' : '여성'}</div>
+          <div>{customer.ageGroup ? `${customer.ageGroup}대` : '선택 안 함'}</div>
+          <div className="text-gray-500 text-xs">
+            {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '선택 안 함'}
+          </div>
         </div>
       ),
     },
@@ -494,9 +495,9 @@ const CustomersPage = () => {
                 name: data.name || selectedCustomer.name,
                 email: data.email || selectedCustomer.email,
                 contact: data.contact || selectedCustomer.contact,
-                ageGroup: Number(data.ageGroup || selectedCustomer.ageGroup),
-                gender: data.gender === 'M' ? 'M' : 'F', // 타입 변환
-                memo: data.memo || '',
+                ageGroup: data.ageGroup !== undefined ? Number(data.ageGroup) : undefined,
+                gender: data.gender !== undefined ? data.gender : undefined,
+                memo: data.memo !== undefined && data.memo !== '' ? data.memo : undefined,
               };
 
               handleUpdateCustomer(requestData);
