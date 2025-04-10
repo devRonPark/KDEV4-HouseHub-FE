@@ -148,6 +148,12 @@ const ContractRegistration: React.FC = () => {
       return;
     }
 
+    // 계약 기간 검증
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      showToast('계약 기간이 올바르지 않습니다.', 'error');
+      return;
+    }
+
     // 계약 유형에 따른 가격 필드 검증
     if (showSalePrice && !salePrice) {
       showToast('매매 계약의 경우 매매가는 필수입니다.', 'error');
@@ -175,6 +181,7 @@ const ContractRegistration: React.FC = () => {
         memo: memo || undefined,
         startedAt: startDate || undefined,
         expiredAt: endDate || undefined,
+        completedAt: completedDate || undefined,
       };
 
       // 계약 유형에 따라 가격 정보 추가
@@ -196,7 +203,10 @@ const ContractRegistration: React.FC = () => {
 
       if (response.success) {
         showToast('계약이 성공적으로 등록되었습니다.', 'success');
-        navigate('/contracts');
+        // navigate('/contracts');
+        setTimeout(() => {
+          navigate('/contracts');
+        }, 500); // 1.5초 후 이동
       } else {
         showToast(response.error || '계약 등록에 실패했습니다.', 'error');
       }

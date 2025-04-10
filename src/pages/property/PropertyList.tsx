@@ -173,19 +173,20 @@ const PropertyList: React.FC = () => {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+          <div className="grid grid-cols-1 gap-4">
             <Input
               placeholder="고객 이름"
               value={filter.customerName}
               onChange={(e) => setFilter({ ...filter, customerName: e.target.value })}
               leftIcon={<Search size={18} />}
             />
-            <Input
+            {/* <Input
               placeholder="공인중개사 이름"
               value={filter.agentName}
               onChange={(e) => setFilter({ ...filter, agentName: e.target.value })}
               leftIcon={<Search size={18} />}
-            />
+            /> */}
           </div>
 
           <div className="flex justify-between">

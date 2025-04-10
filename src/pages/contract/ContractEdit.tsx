@@ -150,6 +150,28 @@ const ContractEdit: React.FC = () => {
       return;
     }
 
+    // 계약 기간 검증
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      showToast('계약 기간이 올바르지 않습니다.', 'error');
+      return;
+    }
+
+    // 계약 유형에 따른 가격 필드 검증
+    if (showSalePrice && !salePrice) {
+      showToast('매매 계약의 경우 매매가는 필수입니다.', 'error');
+      return;
+    }
+
+    if (showJeonsePrice && !jeonsePrice) {
+      showToast('전세 계약의 경우 전세가는 필수입니다.', 'error');
+      return;
+    }
+
+    if (showMonthlyRent && (!monthlyRentDeposit || !monthlyRentFee)) {
+      showToast('월세 계약의 경우 보증금과 월세는 필수입니다.', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -160,6 +182,9 @@ const ContractEdit: React.FC = () => {
         contractType,
         contractStatus: contractStatus,
         memo: memo || undefined,
+        startedAt: startDate || undefined,
+        expiredAt: endDate || undefined,
+        completedAt: completedDate || undefined,
       };
 
       // 계약 유형에 따라 가격 정보 추가
