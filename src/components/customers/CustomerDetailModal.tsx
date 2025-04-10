@@ -98,9 +98,10 @@ const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDe
             </div>
 
             <div>
-              <h4 className="text-sm font-medium text-gray-500">연령대</h4>
+              <h4 className="text-sm font-medium text-gray-500">연령대 / 성별</h4>
               <p className="mt-1">
-                {customer.ageGroup}대 / {customer.gender === 'M' ? '남성' : '여성'}
+                {customer.ageGroup ? `${customer.ageGroup}대` : '선택 안 함'} /{' '}
+                {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '선택 안 함'}
               </p>
             </div>
 

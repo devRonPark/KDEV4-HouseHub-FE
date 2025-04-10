@@ -307,8 +307,10 @@ const CustomersPage = () => {
       header: '연령대',
       render: (customer: Customer) => (
         <div>
-          <div>{customer.ageGroup}대</div>
-          <div className="text-gray-500 text-xs">{customer.gender === 'M' ? '남성' : '여성'}</div>
+          <div>{customer.ageGroup ? `${customer.ageGroup}대` : '선택 안 함'}</div>
+          <div className="text-gray-500 text-xs">
+            {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '선택 안 함'}
+          </div>
         </div>
       ),
     },
@@ -494,9 +496,9 @@ const CustomersPage = () => {
                 name: data.name || selectedCustomer.name,
                 email: data.email || selectedCustomer.email,
                 contact: data.contact || selectedCustomer.contact,
-                ageGroup: Number(data.ageGroup || selectedCustomer.ageGroup),
-                gender: data.gender === 'M' ? 'M' : 'F', // 타입 변환
-                memo: data.memo || '',
+                ageGroup: data.ageGroup !== undefined ? Number(data.ageGroup) : undefined,
+                gender: data.gender !== undefined ? data.gender : undefined,
+                memo: data.memo !== undefined && data.memo !== '' ? data.memo : undefined,
               };
 
               handleUpdateCustomer(requestData);
