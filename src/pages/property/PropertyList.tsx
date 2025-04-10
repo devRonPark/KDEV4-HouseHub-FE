@@ -14,6 +14,7 @@ import { useToast } from '../../context/useToast';
 import { getProperties } from '../../api/property';
 import type { PropertyType, FindPropertyResDto, PropertySearchFilter } from '../../types/property';
 import { PaginationDto } from '../../types/pagination';
+import ActiveStatusFilter from '../../components/property/ActiveStatusFilter';
 
 const PropertyList: React.FC = () => {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ const PropertyList: React.FC = () => {
     customerName: '',
     agentName: '',
     propertyType: null,
+    active: undefined,
     page: 1,
     size: 10,
   });
@@ -98,6 +100,7 @@ const PropertyList: React.FC = () => {
       dong: filter.dong,
       customerName: filter.customerName,
       agentName: filter.agentName,
+      active: filter.active,
       page: 1,
     }));
     setSearchBtnClicked(true);
@@ -106,6 +109,11 @@ const PropertyList: React.FC = () => {
   // 필터 변경 핸들러
   const handlePropertyTypeChange = (type: PropertyType | null) => {
     setFilter((prev) => ({ ...prev, propertyType: type, page: 1 }));
+    setSearchBtnClicked(true);
+  };
+
+  const handleActiveStatusChange = (status: boolean | undefined) => {
+    setFilter((prev) => ({ ...prev, active: status, page: 1 }));
     setSearchBtnClicked(true);
   };
 
@@ -209,10 +217,18 @@ const PropertyList: React.FC = () => {
           </div>
         </form>
 
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap gap-4 justify-between items-center">
           <PropertyTypeFilter
             selectedType={filter.propertyType}
             onChange={handlePropertyTypeChange}
+          />
+          <ActiveStatusFilter
+            selected={filter.active}
+            onChange={handleActiveStatusChange}
+            // onChange={(status) => {
+            //   setFilter((prev) => ({ ...prev, active: status }));
+            //   setSearchBtnClicked(true);
+            // }}
           />
         </div>
       </div>

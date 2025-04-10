@@ -65,6 +65,7 @@ export interface PropertySearchFilter {
   propertyType: PropertyType | null; // 매물 유형 (아파트, 오피스텔 등)
   agentName?: string; // 공인중개사 이름
   customerName?: string; // 고객 이름
+  active?: boolean; // 계약 가능 여부
   page: number;
   size: number;
 }

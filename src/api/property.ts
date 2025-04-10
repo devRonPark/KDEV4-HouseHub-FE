@@ -56,6 +56,10 @@ export const getProperties = async (
       url += `&customerName=${encodeURIComponent(filter.customerName)}`;
     }
 
+    if (filter.active !== undefined) {
+      url += `&active=${filter.active}`;
+    }
+
     const response = await apiClient.get<ApiResponse<PropertyListResDto>>(url);
 
     // 응답 구조 로깅
