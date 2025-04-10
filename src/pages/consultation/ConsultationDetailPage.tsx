@@ -36,9 +36,6 @@ const ConsultationDetailPage: React.FC = () => {
 
     setLoading(true);
     try {
-      // 디버깅을 위한 로그 추가
-      console.log('조회할 상담 ID:', id);
-
       const consultationId = Number.parseInt(id);
       if (isNaN(consultationId)) {
         showToast('유효하지 않은 상담 ID 형식입니다.', 'error');
@@ -47,7 +44,6 @@ const ConsultationDetailPage: React.FC = () => {
       }
 
       const response = await getConsultationById(consultationId);
-      console.log('상담 상세 조회 응답:', response); // 디버깅용 로그 추가
 
       if (response.success && response.data) {
         setConsultation(response.data);
@@ -214,9 +210,21 @@ const ConsultationDetailPage: React.FC = () => {
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200">
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">고객 ID</dt>
+              <dt className="text-sm font-medium text-gray-500">고객 이름</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {consultation.customerId}
+                {consultation.customer.name}
+              </dd>
+            </div>
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">고객 전화번호</dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {consultation.customer.contact}
+              </dd>
+            </div>
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">고객 이메일</dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {consultation.customer.email}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">

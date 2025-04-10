@@ -4,7 +4,10 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, ArrowLeft, FileText, User, Edit } from 'react-feather';
-import type { CreateConsultationReqDto } from '../../types/consultation';
+import type {
+  ConsultationCustomerResDto,
+  CreateConsultationReqDto,
+} from '../../types/consultation';
 import type { CreateCustomerResDto } from '../../types/customer';
 import {
   getConsultationById,
@@ -40,7 +43,7 @@ const ConsultationFormPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<CreateCustomerResDto | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<ConsultationCustomerResDto | null>(null);
 
   useEffect(() => {
     // 에이전트 ID 설정
@@ -60,7 +63,7 @@ const ConsultationFormPage: React.FC = () => {
             const consultation = response.data;
             setFormData({
               agentId: consultation.agentId,
-              customerId: consultation.customerId,
+              customerId: consultation.customer.id,
               consultationType: consultation.consultationType,
               content: consultation.content || '',
               consultationDate: consultation.consultationDate || new Date().toISOString(),
@@ -68,9 +71,9 @@ const ConsultationFormPage: React.FC = () => {
             });
 
             // 고객 정보가 있으면 설정
-            // if (consultation.customerId) {
-            //   setSelectedCustomer(consultation.customer);
-            // }
+            if (consultation.customer) {
+              setSelectedCustomer(consultation.customer);
+            }
           } else {
             showToast(response.error || '상담 정보를 불러오는데 실패했습니다.', 'error');
             navigate('/consultations', { replace: true });

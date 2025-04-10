@@ -16,11 +16,11 @@ export const toApiConsultationType = (type: ConsultationType): 'PHONE' | 'VISIT'
 
 export type ConsultationStatus = 'reserved' | 'completed' | 'cancelled';
 
-export const toApiStatus = (status: ConsultationStatus): 'RESERVED' | 'COMPLETED' | 'CANCELED' => {
+export const toApiStatus = (status: ConsultationStatus): 'RESERVED' | 'COMPLETED' | 'CANCELLED' => {
   const map = {
     reserved: 'RESERVED',
     completed: 'COMPLETED',
-    cancelled: 'CANCELED',
+    cancelled: 'CANCELLED',
   } as const;
 
   return map[status];
@@ -50,11 +50,18 @@ export interface CreateConsultationResDto {
   deletedAt?: string;
 }
 
+export interface ConsultationCustomerResDto {
+  id: number;
+  name: string;
+  contact: string;
+  email: string;
+}
+
 // 상담 상세 정보 응답 DTO
 export interface ConsultationResDto {
   id: number;
   agentId: number;
-  customerId: number;
+  customer: ConsultationCustomerResDto;
   consultationType: ConsultationType;
   content?: string;
   consultationDate?: string;
@@ -101,7 +108,7 @@ export const fromApiStatus = (status: string): ConsultationStatus => {
   const map: Record<string, ConsultationStatus> = {
     RESERVED: 'reserved',
     COMPLETED: 'completed',
-    CANCELED: 'cancelled',
+    CANCELLED: 'cancelled',
   };
 
   return map[status] || 'reserved';

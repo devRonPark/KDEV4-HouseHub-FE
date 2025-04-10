@@ -39,9 +39,7 @@ const ConsultationListPage: React.FC = () => {
     setNoData(false);
 
     try {
-      console.log('상담 목록 조회 시작');
       const response = await getConsultationList();
-      console.log('상담 목록 조회 응답:', response);
 
       // 응답이 성공이면 (API에서 항상 success: true를 반환하도록 수정함)
       if (response.success) {
@@ -50,25 +48,21 @@ const ConsultationListPage: React.FC = () => {
           setConsultations(response.data);
           setFilteredConsultations(response.data);
           setNoData(false);
-          console.log('상담 목록 조회 성공:', response.data);
         }
         // 데이터가 없는 경우 (빈 배열)
         else {
           setConsultations([]);
           setFilteredConsultations([]);
           setNoData(true);
-          console.log('상담 내역이 없습니다.');
         }
       } else {
         // API 호출은 성공했지만 백엔드에서 오류 응답을 준 경우 (이 경우는 발생하지 않아야 함)
-        console.error('API 응답 오류:', response.error);
         setConsultations([]);
         setFilteredConsultations([]);
         setNoData(true);
       }
-    } catch (error) {
+    } catch {
       // 이 부분은 실행되지 않아야 함 (API에서 항상 success: true를 반환하도록 수정함)
-      console.error('상담 목록 조회 중 예외 발생:', error);
       setConsultations([]);
       setFilteredConsultations([]);
       setNoData(true);
@@ -96,15 +90,15 @@ const ConsultationListPage: React.FC = () => {
     }
   }, [searchTerm, filters, consultations]);
 
-  // 검색 기능 단순화 - 고객 ID와 내용으로만 검색
+  // 검색 기능 단순화 - 고객 이름과 내용으로만 검색
   const applyFilters = () => {
     let filtered = [...consultations];
 
-    // 검색어 필터링 (고객 ID로 검색)
+    // 검색어 필터링 (고객 이름으로 검색)
     if (searchTerm) {
       filtered = filtered.filter(
         (item) =>
-          item.customerId.toString().includes(searchTerm) ||
+          item.customer.name.toString().includes(searchTerm) ||
           (item.content && item.content.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
@@ -231,7 +225,7 @@ const ConsultationListPage: React.FC = () => {
             <div className="relative flex-grow">
               <input
                 type="text"
-                placeholder="고객 ID 또는 내용으로 검색"
+                placeholder="고객 이름 또는 내용으로 검색"
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -322,16 +316,19 @@ const ConsultationListPage: React.FC = () => {
                   상담일
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  고객 ID
+                  고객 이름
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  고객 전화번호
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  고객 이메일
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   상담유형
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   상담상태
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  내용
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   등록일
@@ -360,7 +357,6 @@ const ConsultationListPage: React.FC = () => {
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() => {
                       const id = consultation.id;
-                      console.log('consultation.id:', consultation.id, typeof consultation.id); // 여기서 체크
                       if (typeof id === 'number' && !isNaN(id)) {
                         navigate(`/consultations/${consultation.id}`);
                       } else {
@@ -371,7 +367,11 @@ const ConsultationListPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {formatDate(consultation.consultationDate)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{consultation.customerId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{consultation.customer.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{consultation.customer.contact}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {consultation.customer.email || '-'}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getTypeText(consultation.consultationType)}
                     </td>
@@ -383,9 +383,6 @@ const ConsultationListPage: React.FC = () => {
                       >
                         {getStatusText(consultation.status)}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap truncate max-w-xs">
-                      {consultation.content || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {formatDate(consultation.createdAt)}
