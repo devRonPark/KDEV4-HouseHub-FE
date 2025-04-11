@@ -3,6 +3,9 @@ import type {
   InquiryTemplate,
   CreateInquiryResponse,
   CreateInquiryRequest,
+  InquiryDetail,
+  InquiryListResponse,
+  InquiryFilter,
 } from '../types/inquiry';
 import { isAxiosError } from 'axios';
 import { ApiResponse } from '../types/api';
@@ -46,6 +49,43 @@ export const createInquiry = async (
       success: false,
       message: '문의 등록 중 오류가 발생했습니다.',
       code: 'UNKNOWN_ERROR',
+    };
+  }
+};
+
+// 문의 목록 조회 API
+export const getInquiries = async (
+  filter: InquiryFilter
+): Promise<ApiResponse<InquiryListResponse>> => {
+  try {
+    const params = new URLSearchParams();
+    if (filter.keyword) params.append('keyword', filter.keyword);
+    if (filter.sortBy) params.append('sortBy', filter.sortBy);
+    if (filter.sortDirection) params.append('sortDirection', filter.sortDirection);
+    params.append('page', filter.page.toString());
+    params.append('size', filter.size.toString());
+
+    const response = await apiClient.get<ApiResponse<InquiryListResponse>>(
+      `/inquiries?${params.toString()}`
+    );
+    return response.data;
+  } catch {
+    return {
+      success: false,
+      error: '문의 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 문의 상세 조회 API
+export const getInquiryById = async (inquiryId: number): Promise<ApiResponse<InquiryDetail>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<InquiryDetail>>(`/inquiries/${inquiryId}`);
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      error: '문의 상세 정보를 불러오는 중 오류가 발생했습니다.',
     };
   }
 };

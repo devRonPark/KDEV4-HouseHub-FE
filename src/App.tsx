@@ -26,6 +26,7 @@ import SmsSendPage from './pages/sms/send';
 import SmsTemplateListPage from './pages/sms/templates/templates';
 import SmsTemplateCreatePage from './pages/sms/templates/create';
 import SmsTemplateEditPage from './pages/sms/templates/[id]';
+import InquiryManagement from './pages/inquiryManagement/InquiryManagement';
 import ConsultationDetailPage from './pages/consultation/ConsultationDetailPage';
 import ConsultationFormPage from './pages/consultation/ConsultationFormPage';
 import ConsultationListPage from './pages/consultation/ConsultationListPage';
@@ -239,6 +240,16 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/inquiries"
+        element={
+          <ProtectedRoute>
+            <InquiryManagement />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="/consultations" element={<ConsultationListPage />} />
       <Route path="/consultations/:id" element={<ConsultationDetailPage />} />
       <Route path="/consultations/new" element={<ConsultationFormPage />} />
