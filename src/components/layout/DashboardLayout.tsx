@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
 import LogoWithText from '../LogoWithText';
+import { ClipboardList } from 'lucide-react';
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,7 +45,15 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { name: '고객 관리', icon: <Users size={18} />, href: '/customers' },
     { name: '매물 관리', icon: <FileText size={18} />, href: '/properties' },
     { name: '계약 관리', icon: <FileText size={18} />, href: '/contracts' },
-    { name: '상담/문의', icon: <MessageSquare size={18} />, href: '/consultations' },
+    {
+      name: '상담 관리',
+      icon: <MessageSquare size={18} />,
+      href: '/consultations',
+      subItems: [
+        { name: '상담 목록', href: '/consultations' },
+        { name: '상담 등록', href: '/consultations/new' },
+      ],
+    },
     {
       name: '문자 관리',
       icon: <Send size={18} />,
@@ -64,6 +73,11 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         { name: '템플릿 목록', href: '/inquiry-templates' },
         { name: '템플릿 생성', href: '/inquiry-templates/create' },
       ],
+    },
+    {
+      name: '문의 관리',
+      icon: <ClipboardList size={18} />,
+      href: '/inquiries',
     },
   ];
 
@@ -97,8 +111,10 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                         }`
                       }
                     >
-                      <span className="mr-1">{item.icon}</span>
-                      {item.name}
+                      <div className="flex flex-col items-center">
+                        <span>{item.icon}</span>
+                        <span className="text-xs mt-1">{item.name}</span>
+                      </div>
                       {item.subItems && <ChevronDown size={14} className="ml-1" />}
                     </NavLink>
 
@@ -110,10 +126,10 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                             key={subItem.name}
                             to={subItem.href}
                             className={({ isActive }) =>
-                              `block px-4 py-2 text-sm ${
+                              `flex flex-col items-center justify-center px-2 py-1 text-xs ${
                                 isActive
-                                  ? 'bg-gray-100 text-gray-900'
-                                  : 'text-gray-700 hover:bg-gray-50'
+                                  ? 'text-blue-600 font-semibold'
+                                  : 'text-gray-500 hover:text-gray-700'
                               }`
                             }
                           >
