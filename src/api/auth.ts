@@ -10,7 +10,7 @@ export interface SendVerificationEmailRequest {
 }
 
 export interface SendVerificationEmailResponse {
-  expiresAt: string; // ISO 형식의 만료 시간
+  expiresIn: number; // 인증 코드 유효 시간 (초 단위)
 }
 
 /**
@@ -143,7 +143,6 @@ export const signIn = async (
 export const signOut = async (): Promise<ApiResponse> => {
   try {
     const response = await apiClient.post<ApiResponse>('/auth/logout');
-    alert(JSON.stringify(response));
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

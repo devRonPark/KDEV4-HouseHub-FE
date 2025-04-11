@@ -1,5 +1,6 @@
 import type { CreateCustomerResDto } from './customer';
 import type { ContractResDto } from './contract';
+import type { PaginationDto } from './pagination';
 
 // 매물 유형 enum
 export enum PropertyType {
@@ -47,15 +48,14 @@ export interface FindPropertyResDto {
   propertyType: PropertyType;
   detailAddress: string;
   roadAddress: string;
+  jibunAddress: string;
+  active: boolean;
 }
 
-// 매물 목록 페이지네이션 응답
-export interface PropertyListResponse {
-  properties: FindPropertyResDto[];
-  totalPages: number;
-  totalElements: number;
-  currentPage: number;
-  size: number;
+// 매물 목록 응답 LIST DTO
+export interface PropertyListResDto {
+  content: FindPropertyResDto[];
+  pagination: PaginationDto;
 }
 
 // 매물 검색 필터 인터페이스를 백엔드 PropertySearchDto와 일치하도록 수정
@@ -63,9 +63,10 @@ export interface PropertySearchFilter {
   province?: string; // 도, 특별시, 광역시
   city?: string; // 시/군/구
   dong?: string; // 읍/면/동
-  propertyType?: PropertyType; // 매물 유형 (아파트, 오피스텔 등)
+  propertyType: PropertyType | null; // 매물 유형 (아파트, 오피스텔 등)
   agentName?: string; // 공인중개사 이름
   customerName?: string; // 고객 이름
+  active?: boolean; // 계약 가능 여부
   page: number;
   size: number;
 }
@@ -81,9 +82,11 @@ export interface FindPropertyDetailResDto {
   dong: string;
   detailAddress: string;
   roadAddress: string;
+  jibunAddress: string;
   createdAt: string;
   updatedAt: string;
   latitude?: number;
   longitude?: number;
   contractList: ContractResDto[];
+  active: boolean;
 }

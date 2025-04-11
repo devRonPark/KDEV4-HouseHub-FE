@@ -43,9 +43,6 @@ apiClient.interceptors.response.use(
   (error) => {
     // 에러 처리
     if (error.response) {
-      // 서버가 응답을 반환한 경우
-      console.error('API Error:', error.response.data);
-
       // 공개 경로에서는 401 에러를 무시
       const isPublicPath = publicPaths.some((path) => error.config?.url?.startsWith(path));
 
@@ -54,12 +51,6 @@ apiClient.interceptors.response.use(
         // 로그인 페이지로 리다이렉트 (필요시 구현)
         // window.location.href = '/signin';
       }
-    } else if (error.request) {
-      // 요청이 전송되었으나 응답을 받지 못한 경우
-      console.error('No response received:', error.request);
-    } else {
-      // 요청 설정 중 오류가 발생한 경우
-      console.error('Request error:', error.message);
     }
 
     return Promise.reject(error);

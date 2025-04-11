@@ -1,9 +1,11 @@
 'use client';
 
+import type React from 'react';
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Send, Search, RefreshCw } from 'react-feather';
+import { Send, Search } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -15,6 +17,8 @@ import { useToast } from '../../context/useToast';
 import { getAllSms, getSmsById } from '../../api/smsApi';
 import type { SendSmsResDto } from '../../types/sms';
 
+import Input from '../../components/ui/Input';
+
 const SmsListPage = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -22,22 +26,39 @@ const SmsListPage = () => {
   const [smsList, setSmsList] = useState<SendSmsResDto[]>([]);
   const [selectedSms, setSelectedSms] = useState<SendSmsResDto | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredSmsList, setFilteredSmsList] = useState<SendSmsResDto[]>([]);
+  const [searchBtnClicked, setSearchBtnClicked] = useState(false);
 
-  const itemsPerPage = 10;
+  // 페이지네이션 상태 관리
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 0,
+    totalElements: 0,
+    size: 10,
+  });
+
+  // 검색 필터 상태
+  const [filter, setFilter] = useState({
+    keyword: '',
+    page: 1,
+    size: 10,
+  });
 
   // 문자 목록 조회
   const fetchSmsList = async () => {
     setIsLoading(true);
     try {
-      const response = await getAllSms();
+      // API 호출 시 페이지네이션 및 검색 파라미터 전달
+      const response = await getAllSms({
+        page: filter.page,
+        size: filter.size,
+        keyword: filter.keyword,
+      });
+
       if (response.success && response.data) {
-        setSmsList(response.data);
-        setFilteredSmsList(response.data);
-        setTotalPages(Math.ceil(response.data.length / itemsPerPage));
+        setSmsList(response.data.content || []);
+
+        // 페이지네이션 정보 업데이트
+        setPagination(response.data.pagination);
       } else {
         showToast(response.message || '문자 목록을 불러오는데 실패했습니다.', 'error');
       }
@@ -70,25 +91,38 @@ const SmsListPage = () => {
     fetchSmsList();
   }, []);
 
-  // 검색어에 따른 필터링
+  // customer.tsx 방식으로 교체
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredSmsList(smsList);
-    } else {
-      const filtered = smsList.filter(
-        (sms) => sms.receiver.includes(searchTerm) || sms.msg.includes(searchTerm)
-      );
-      setFilteredSmsList(filtered);
+    if (searchBtnClicked) {
+      fetchSmsList();
+      setSearchBtnClicked(false);
     }
-    setCurrentPage(1);
-    setTotalPages(Math.ceil(filteredSmsList.length / itemsPerPage));
-  }, [searchTerm, smsList]);
+  }, [filter, searchBtnClicked]);
 
-  // 페이지네이션된 데이터
-  const paginatedData = filteredSmsList.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setFilter((prev) => ({
+      ...prev,
+      page: page,
+    }));
+    setSearchBtnClicked(true); // 페이지 변경 시 검색 트리거
+  };
+
+  // 기존 폼 제출 방식 제거
+  const handleSearch = () => {
+    setFilter((prev) => ({
+      ...prev,
+      page: 1, // 검색 시 1페이지로 리셋
+    }));
+    setSearchBtnClicked(true);
+  };
+
+  // Enter 키 처리
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   // 요청 시간 포맷팅 함수 추가
   const formatRequestTime = (requestTime: string): string => {
@@ -181,7 +215,7 @@ const SmsListPage = () => {
 
   // 문자 발송 통계
   const stats = {
-    total: smsList.length,
+    total: pagination.totalElements,
     success: smsList.filter((sms) => sms.status === 'SUCCESS').length,
     fail: smsList.filter((sms) => sms.status === 'FAIL').length,
   };
@@ -211,48 +245,79 @@ const SmsListPage = () => {
         </Card>
         <Card className="bg-green-50">
           <div className="p-5">
-            <h3 className="text-lg font-medium text-gray-900">발송 성공</h3>
+            <h3 className="text-lg font-medium text-gray-900">현재 페이지 발송 성공</h3>
             <div className="mt-1 text-3xl font-semibold text-green-600">{stats.success}</div>
           </div>
         </Card>
         <Card className="bg-red-50">
           <div className="p-5">
-            <h3 className="text-lg font-medium text-gray-900">발송 실패</h3>
+            <h3 className="text-lg font-medium text-gray-900">현재 페이지 발송 실패</h3>
             <div className="mt-1 text-3xl font-semibold text-red-600">{stats.fail}</div>
           </div>
         </Card>
       </div>
 
       {/* 검색 및 필터 */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-grow">
-          <input
-            type="text"
-            placeholder="수신자 번호 또는 내용 검색"
-            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={18}
-          />
+      <div className="mt-6">
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-grow">
+            <Input
+              label="문자 검색"
+              id="sms-search"
+              placeholder="수신자 번호 또는 내용 검색"
+              value={filter.keyword}
+              onChange={(e) => setFilter((prev) => ({ ...prev, keyword: e.target.value }))}
+              onKeyDown={handleKeyPress}
+              leftIcon={<Search size={16} />}
+            />
+          </div>
+          <div>
+            <Button variant="primary" onClick={handleSearch} leftIcon={<Search size={16} />}>
+              검색
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="outline"
-          leftIcon={<RefreshCw size={16} />}
-          onClick={fetchSmsList}
-          className="sm:w-auto w-full"
-        >
-          새로고침
-        </Button>
+        {/* <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-grow">
+            <input
+              type="text"
+              placeholder="수신자 번호 또는 내용 검색"
+              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={filter.keyword}
+              onChange={handleSearchChange}
+            />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" variant="secondary" className="sm:w-auto">
+              검색
+            </Button>
+            <Button
+              variant="outline"
+              leftIcon={<RefreshCw size={16} />}
+              onClick={() => {
+                setFilter({
+                  keyword: '',
+                  page: 1,
+                  size: 10,
+                });
+              }}
+              className="sm:w-auto"
+            >
+              초기화
+            </Button>
+          </div>
+        </form> */}
       </div>
 
       {/* 문자 목록 테이블 */}
       <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
         <Table
           columns={columns}
-          data={paginatedData}
+          data={smsList}
           keyExtractor={(item) => item.id.toString()}
           isLoading={isLoading}
           emptyMessage="문자 발송 내역이 없습니다."
@@ -260,22 +325,25 @@ const SmsListPage = () => {
         />
 
         {/* 페이지네이션 */}
-        {filteredSmsList.length > 0 && (
+        {pagination.totalElements > 0 && (
           <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="hidden sm:block">
               <p className="text-sm text-gray-700">
-                총 <span className="font-medium">{filteredSmsList.length}</span>건 중{' '}
-                <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>-
+                총 <span className="font-medium">{pagination.totalElements}</span>건 중{' '}
                 <span className="font-medium">
-                  {Math.min(currentPage * itemsPerPage, filteredSmsList.length)}
+                  {(pagination.currentPage - 1) * pagination.size + 1}
+                </span>
+                -
+                <span className="font-medium">
+                  {Math.min(pagination.currentPage * pagination.size, pagination.totalElements)}
                 </span>
                 건 표시
               </p>
             </div>
             <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              onPageChange={handlePageChange}
             />
           </div>
         )}

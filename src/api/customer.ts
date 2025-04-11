@@ -1,16 +1,27 @@
 import apiClient from './client';
 import type { ApiResponse } from '../types/api';
-import type { CreateCustomerResDto, CreateCustomerReqDto } from '../types/customer';
+import type {
+  CreateCustomerResDto,
+  CreateCustomerReqDto,
+  CustomerListResDto,
+  CustomerSearchFilter,
+} from '../types/customer';
 import axios from 'axios';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회
-export const getMyCustomers = async (): Promise<ApiResponse<CreateCustomerResDto[]>> => {
+export const getMyCustomers = async (
+  filter: CustomerSearchFilter
+): Promise<ApiResponse<CustomerListResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<CreateCustomerResDto[]>>('/customers');
+    let url = `/customers?page=${filter.page}&size=${filter.size}`;
+    if (filter.keyword) {
+      url += `&keyword=${encodeURIComponent(filter.keyword)}`;
+    }
+    const response = await apiClient.get<ApiResponse<CustomerListResDto>>(url);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<CreateCustomerResDto[]>;
+      return error.response.data as ApiResponse<CustomerListResDto>;
     }
 
     return {
@@ -79,15 +90,10 @@ export const deleteMyCustomer = async (id: number): Promise<ApiResponse<CreateCu
 
 // 엑셀 템플릿 다운로드
 export const downloadExcelTemplate = async (): Promise<Blob> => {
-  try {
-    const response = await apiClient.get('/customers/download', {
-      responseType: 'blob',
-    });
-    return response.data;
-  } catch (error) {
-    console.error('엑셀 템플릿 다운로드 오류:', error);
-    throw error;
-  }
+  const response = await apiClient.get('/customers/download', {
+    responseType: 'blob',
+  });
+  return response.data;
 };
 
 // 엑셀 파일로 고객 정보 업로드

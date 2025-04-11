@@ -35,6 +35,22 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({ property }) => {
                 >
                   {PropertyTypeLabels[property.propertyType]}
                 </span>
+                {/* <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  {isActive ? '계약 가능' : '계약 불가능'}
+                </span> */}
+              </div>
+              <div className="mt-1">
+                <span
+                  className={`inline-block px-2 py-0.5 text-xs rounded-full font-medium ${
+                    property.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
+                  }`}
+                >
+                  {property.active ? '계약 가능' : '계약 불가능'}
+                </span>
               </div>
               <p className="text-sm text-gray-500 mt-1 text-left">{property.detailAddress}</p>
             </div>

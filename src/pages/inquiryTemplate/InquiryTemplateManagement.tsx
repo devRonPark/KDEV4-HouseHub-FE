@@ -217,6 +217,7 @@ const InquiryTemplateManagement: React.FC = () => {
           onPreview={handleOpenPreviewModal}
           onDelete={handleOpenDeleteModal}
           isLoading={isLoading}
+          showToast={showToast}
         />
 
         {/* 페이지네이션 */}

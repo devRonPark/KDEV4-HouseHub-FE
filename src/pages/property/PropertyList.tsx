@@ -13,54 +13,38 @@ import PropertyTypeFilter from '../../components/property/PropertyTypeFilter';
 import { useToast } from '../../context/useToast';
 import { getProperties } from '../../api/property';
 import type { PropertyType, FindPropertyResDto, PropertySearchFilter } from '../../types/property';
+import { PaginationDto } from '../../types/pagination';
+import ActiveStatusFilter from '../../components/property/ActiveStatusFilter';
 
 const PropertyList: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [properties, setProperties] = useState<FindPropertyResDto[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedPropertyType, setSelectedPropertyType] = useState<PropertyType | null>(null);
+  const [pagination, setPagination] = useState<PaginationDto>({
+    totalPages: 1,
+    totalElements: 0,
+    size: 10,
+    currentPage: 1,
+  });
 
   // 검색 상태 및 필터 업데이트
-  const [searchParams, setSearchParams] = useState<{
-    province: string;
-    city: string;
-    dong: string;
-    customerName: string;
-    agentName: string;
-  }>({
+  const [filter, setFilter] = useState<PropertySearchFilter>({
     province: '',
     city: '',
     dong: '',
     customerName: '',
     agentName: '',
+    propertyType: null,
+    active: undefined,
+    page: 1,
+    size: 10,
   });
-
-  // 임시 검색어 상태 추가
-  const [tempSearchParams, setTempSearchParams] = useState({
-    province: '',
-    city: '',
-    dong: '',
-    customerName: '',
-    agentName: '',
-  });
+  const [searchBtnClicked, setSearchBtnClicked] = useState(false);
 
   // 매물 목록 조회
   const fetchProperties = useCallback(async () => {
     setIsLoading(true);
-
-    const filter: PropertySearchFilter = {
-      page: currentPage - 1, // API는 0부터 시작하는 페이지 인덱스 사용
-      size: 10,
-      province: searchParams.province || undefined,
-      city: searchParams.city || undefined,
-      dong: searchParams.dong || undefined,
-      propertyType: selectedPropertyType || undefined,
-      customerName: searchParams.customerName || undefined,
-      agentName: searchParams.agentName || undefined,
-    };
 
     try {
       const response = await getProperties(filter);
@@ -69,18 +53,20 @@ const PropertyList: React.FC = () => {
       if (response.success) {
         // 응답 데이터가 있는지 확인
         if (response.data) {
-          // properties 배열이 있는지 확인
-          const propertiesData = Array.isArray(response.data)
-            ? response.data
-            : response.data.properties || [];
+          console.log('Response data:', response.data);
+          // content 배열이 있는지 확인
+          const propertiesData = response.data.content || [];
           setProperties(propertiesData);
-
-          // 페이지네이션 정보 설정
-          setTotalPages(response.data.totalPages || 1);
+          setPagination(response.data.pagination);
         } else {
           // 데이터가 없는 경우 빈 배열로 설정
           setProperties([]);
-          setTotalPages(1);
+          setPagination({
+            totalPages: 1,
+            totalElements: 0,
+            size: 10,
+            currentPage: 1,
+          });
           console.warn('No data in response:', response);
         }
       } else {
@@ -96,50 +82,68 @@ const PropertyList: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchParams, selectedPropertyType, showToast]);
+  }, [filter, showToast]);
 
   // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    setFilter((prev) => ({ ...prev, page }));
+    setSearchBtnClicked(true);
   };
 
   // 검색 핸들러 수정
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setSearchParams(tempSearchParams);
-    setCurrentPage(1); // 검색 시 첫 페이지로 이동
+    setFilter((prev) => ({
+      ...prev,
+      province: filter.province,
+      city: filter.city,
+      dong: filter.dong,
+      customerName: filter.customerName,
+      agentName: filter.agentName,
+      active: filter.active,
+      page: 1,
+    }));
+    setSearchBtnClicked(true);
   };
 
   // 필터 변경 핸들러
   const handlePropertyTypeChange = (type: PropertyType | null) => {
-    setSelectedPropertyType(type);
-    setCurrentPage(1); // 필터 변경 시 첫 페이지로 이동
+    setFilter((prev) => ({ ...prev, propertyType: type, page: 1 }));
+    setSearchBtnClicked(true);
+  };
+
+  const handleActiveStatusChange = (status: boolean | undefined) => {
+    setFilter((prev) => ({ ...prev, active: status, page: 1 }));
+    setSearchBtnClicked(true);
   };
 
   // 필터 초기화 함수 수정
   const resetFilters = () => {
-    setTempSearchParams({
+    setFilter({
       province: '',
       city: '',
       dong: '',
       customerName: '',
       agentName: '',
+      propertyType: null,
+      page: 1,
+      size: 10,
     });
-    setSearchParams({
-      province: '',
-      city: '',
-      dong: '',
-      customerName: '',
-      agentName: '',
-    });
-    setSelectedPropertyType(null);
-    setCurrentPage(1);
+    setSearchBtnClicked(false);
   };
 
   // 초기 데이터 로딩 및 필터/페이지 변경 시 데이터 다시 로딩
+  // 최초 1회 로딩
   useEffect(() => {
     fetchProperties();
-  }, [fetchProperties]);
+  }, []);
+
+  useEffect(() => {
+    if (searchBtnClicked) {
+      fetchProperties();
+      setSearchBtnClicked(false); // 다시 false로 초기화
+    }
+  }, [fetchProperties, searchBtnClicked]);
 
   return (
     <DashboardLayout>
@@ -162,40 +166,35 @@ const PropertyList: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               placeholder="도/특별시/광역시"
-              value={tempSearchParams.province}
-              onChange={(e) =>
-                setTempSearchParams({ ...tempSearchParams, province: e.target.value })
-              }
+              value={filter.province}
+              onChange={(e) => setFilter({ ...filter, province: e.target.value })}
             />
             <Input
               placeholder="시/군/구"
-              value={tempSearchParams.city}
-              onChange={(e) => setTempSearchParams({ ...tempSearchParams, city: e.target.value })}
+              value={filter.city}
+              onChange={(e) => setFilter({ ...filter, city: e.target.value })}
             />
             <Input
               placeholder="읍/면/동"
-              value={tempSearchParams.dong}
-              onChange={(e) => setTempSearchParams({ ...tempSearchParams, dong: e.target.value })}
+              value={filter.dong}
+              onChange={(e) => setFilter({ ...filter, dong: e.target.value })}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
+          <div className="grid grid-cols-1 gap-4">
             <Input
               placeholder="고객 이름"
-              value={tempSearchParams.customerName}
-              onChange={(e) =>
-                setTempSearchParams({ ...tempSearchParams, customerName: e.target.value })
-              }
+              value={filter.customerName}
+              onChange={(e) => setFilter({ ...filter, customerName: e.target.value })}
               leftIcon={<Search size={18} />}
             />
-            <Input
+            {/* <Input
               placeholder="공인중개사 이름"
-              value={tempSearchParams.agentName}
-              onChange={(e) =>
-                setTempSearchParams({ ...tempSearchParams, agentName: e.target.value })
-              }
+              value={filter.agentName}
+              onChange={(e) => setFilter({ ...filter, agentName: e.target.value })}
               leftIcon={<Search size={18} />}
-            />
+            /> */}
           </div>
 
           <div className="flex justify-between">
@@ -218,10 +217,18 @@ const PropertyList: React.FC = () => {
           </div>
         </form>
 
-        <div className="mt-4">
+        <div className="mt-4 flex flex-wrap gap-4 justify-between items-center">
           <PropertyTypeFilter
-            selectedType={selectedPropertyType}
+            selectedType={filter.propertyType}
             onChange={handlePropertyTypeChange}
+          />
+          <ActiveStatusFilter
+            selected={filter.active}
+            onChange={handleActiveStatusChange}
+            // onChange={(status) => {
+            //   setFilter((prev) => ({ ...prev, active: status }));
+            //   setSearchBtnClicked(true);
+            // }}
           />
         </div>
       </div>
@@ -253,12 +260,12 @@ const PropertyList: React.FC = () => {
             <Home className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">매물 없음</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {searchParams.province ||
-              searchParams.city ||
-              searchParams.dong ||
-              searchParams.customerName ||
-              searchParams.agentName ||
-              selectedPropertyType
+              {filter.province ||
+              filter.city ||
+              filter.dong ||
+              filter.customerName ||
+              filter.agentName ||
+              filter.propertyType
                 ? '검색 조건에 맞는 매물이 없습니다.'
                 : '등록된 매물이 없습니다.'}
             </p>
@@ -279,8 +286,8 @@ const PropertyList: React.FC = () => {
       {!isLoading && properties && properties.length > 0 && (
         <div className="mt-6">
           <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
             onPageChange={handlePageChange}
           />
         </div>

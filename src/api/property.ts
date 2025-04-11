@@ -2,20 +2,11 @@ import apiClient from './client';
 import type { ApiResponse } from '../types/api';
 import type {
   PropertyRegistrationDTO,
-  PropertyListResponse,
+  PropertyListResDto,
   PropertySearchFilter,
   FindPropertyDetailResDto, // Added import
-  PropertyType,
 } from '../types/property';
 import { isAxiosError } from 'axios';
-
-export interface PropertyReqDto {
-  propertyType: PropertyType;
-  roadAddress: string;
-  jibunAddress: string;
-  detailAddress: string;
-  memo?: string;
-}
 
 // 매물 등록 API
 export const registerProperty = async (
@@ -36,7 +27,7 @@ export const registerProperty = async (
 // 매물 목록 조회 API
 export const getProperties = async (
   filter: PropertySearchFilter
-): Promise<ApiResponse<PropertyListResponse>> => {
+): Promise<ApiResponse<PropertyListResDto>> => {
   try {
     let url = `/properties?page=${filter.page}&size=${filter.size}`;
 
@@ -65,46 +56,14 @@ export const getProperties = async (
       url += `&customerName=${encodeURIComponent(filter.customerName)}`;
     }
 
-    const response = await apiClient.get<ApiResponse<PropertyListResponse>>(url);
+    if (filter.active !== undefined) {
+      url += `&active=${filter.active}`;
+    }
+
+    const response = await apiClient.get<ApiResponse<PropertyListResDto>>(url);
 
     // 응답 구조 로깅
     console.log('API Response:', response.data);
-
-    // // 응답 구조가 예상과 다를 경우 안전하게 처리
-    // if (response.data.success) {
-    //   // 응답 데이터가 직접 배열인 경우
-    //   if (Array.isArray(response.data.data)) {
-    //     return {
-    //       success: true,
-    //       data: {
-    //         properties: response.data.data,
-    //         totalPages: 1, // 기본값
-    //         totalElements: response.data.data.length,
-    //         currentPage: filter.page,
-    //         size: filter.size,
-    //       },
-    //     };
-    //   }
-    //   // 응답이 예상한 구조인 경우
-    //   else if (response.data.data && response.data.data.properties) {
-    //     return response.data;
-    //   }
-    //   // 다른 구조인 경우
-    //   else {
-    //     return {
-    //       success: true,
-    //       data: {
-    //         properties: Array.isArray(response.data.data)
-    //           ? response.data.data
-    //           : response.data.data?.properties || [],
-    //         totalPages: response.data.data?.totalPages || 1,
-    //         totalElements: response.data.data?.totalElements || 0,
-    //         currentPage: filter.page,
-    //         size: filter.size,
-    //       },
-    //     };
-    //   }
-    // }
 
     return response.data;
   } catch (error) {
@@ -150,7 +109,7 @@ export const deleteProperty = async (id: number): Promise<ApiResponse<void>> => 
 
 export const updateProperty = async (
   id: number,
-  data: PropertyReqDto
+  data: PropertyRegistrationDTO
 ): Promise<ApiResponse<void>> => {
   try {
     const response = await apiClient.put(`/properties/${id}`, data);

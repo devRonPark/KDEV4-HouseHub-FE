@@ -27,6 +27,9 @@ import SmsTemplateListPage from './pages/sms/templates/templates';
 import SmsTemplateCreatePage from './pages/sms/templates/create';
 import SmsTemplateEditPage from './pages/sms/templates/[id]';
 import InquiryManagement from './pages/inquiryManagement/InquiryManagement';
+import ConsultationDetailPage from './pages/consultation/ConsultationDetailPage';
+import ConsultationFormPage from './pages/consultation/ConsultationFormPage';
+import ConsultationListPage from './pages/consultation/ConsultationListPage';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -237,6 +240,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/inquiries"
         element={
@@ -245,6 +249,11 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/consultations" element={<ConsultationListPage />} />
+      <Route path="/consultations/:id" element={<ConsultationDetailPage />} />
+      <Route path="/consultations/new" element={<ConsultationFormPage />} />
+      <Route path="/consultations/:id/edit" element={<ConsultationFormPage />} />
 
       {/* 공개 문의 페이지 (인증 불필요) */}
       <Route path="/inquiry/share/:shareToken" element={<InquiryFormPage />} />

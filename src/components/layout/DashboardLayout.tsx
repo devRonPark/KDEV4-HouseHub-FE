@@ -97,7 +97,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 {menuItems.map((item) => (
                   <div
                     key={item.name}
-                    className="relative"
+                    className="relative group"
                     onMouseEnter={() => setHoveredItem(item.name)}
                     onMouseLeave={() => setHoveredItem(null)}
                   >
@@ -119,8 +119,12 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                     </NavLink>
 
                     {/* Dropdown menu for items with subitems */}
-                    {item.subItems && hoveredItem === item.name && (
-                      <div className="absolute z-10 left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
+                    {item.subItems && (
+                      <div
+                        className={`absolute z-10 left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 transition-opacity duration-150 ${
+                          hoveredItem === item.name ? 'opacity-100 visible' : 'opacity-0 invisible'
+                        }`}
+                      >
                         {item.subItems.map((subItem) => (
                           <NavLink
                             key={subItem.name}

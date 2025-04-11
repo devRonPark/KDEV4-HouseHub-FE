@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, FileText, Calendar, Home, User } from 'react-feather';
+import { ArrowLeft, FileText, Calendar, Home, User, CheckCircle } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -74,7 +74,7 @@ const ContractEdit: React.FC = () => {
 
   // 폼 상태 관리
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
-  const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.AVAILABLE);
+  const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
   const [jeonsePrice, setJeonsePrice] = useState<string>('');
   const [monthlyRentDeposit, setMonthlyRentDeposit] = useState<string>('');
@@ -84,6 +84,7 @@ const ContractEdit: React.FC = () => {
   const [memo, setMemo] = useState<string>('');
   const [propertyId, setPropertyId] = useState<number>(0);
   const [customerId, setCustomerId] = useState<number>(0);
+  const [completedDate, setCompletedDate] = useState<string>('');
 
   // 계약 상세 정보 조회
   useEffect(() => {
@@ -126,13 +127,50 @@ const ContractEdit: React.FC = () => {
   const showJeonsePrice = contractType === ContractType.JEONSE;
   const showMonthlyRent = contractType === ContractType.MONTHLY_RENT;
 
-  // 계약 상태가 AVAILABLE이 아닌 경우에만 계약 기간 표시
-  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE;
+  // 계약 상태가 완료인 경우 완료일 필드 표시
+  const showCompletedDate = contractStatus === ContractStatus.COMPLETED;
+
+  // 계약 유형 변경 시 가격 필드 초기화
+  useEffect(() => {
+    // 계약 유형이 변경되면 모든 가격 필드 초기화
+    setSalePrice('');
+    setJeonsePrice('');
+    setMonthlyRentDeposit('');
+    setMonthlyRentFee('');
+  }, [contractType]);
 
   // 폼 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
+
+    // 계약 상태가 완료인데 완료일이 없는 경우
+    if (showCompletedDate && !completedDate) {
+      showToast('계약 완료 상태일 경우, 거래 완료일은 필수입니다.', 'error');
+      return;
+    }
+
+    // 계약 기간 검증
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      showToast('계약 기간이 올바르지 않습니다.', 'error');
+      return;
+    }
+
+    // 계약 유형에 따른 가격 필드 검증
+    if (showSalePrice && !salePrice) {
+      showToast('매매 계약의 경우 매매가는 필수입니다.', 'error');
+      return;
+    }
+
+    if (showJeonsePrice && !jeonsePrice) {
+      showToast('전세 계약의 경우 전세가는 필수입니다.', 'error');
+      return;
+    }
+
+    if (showMonthlyRent && (!monthlyRentDeposit || !monthlyRentFee)) {
+      showToast('월세 계약의 경우 보증금과 월세는 필수입니다.', 'error');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -144,13 +182,10 @@ const ContractEdit: React.FC = () => {
         contractType,
         contractStatus: contractStatus,
         memo: memo || undefined,
+        startedAt: startDate || undefined,
+        expiredAt: endDate || undefined,
+        completedAt: completedDate || undefined,
       };
-
-      // 계약 상태가 AVAILABLE이 아닌 경우에만 계약 기간 추가
-      if (contractStatus !== ContractStatus.AVAILABLE) {
-        contractData.startedAt = startDate;
-        contractData.expiredAt = endDate;
-      }
 
       // 계약 유형에 따라 가격 정보 추가
       switch (contractType) {
@@ -176,6 +211,11 @@ const ContractEdit: React.FC = () => {
           contractData.monthlyRentDeposit = Number(monthlyRentDeposit);
           contractData.monthlyRentFee = Number(monthlyRentFee);
           break;
+      }
+
+      // 계약 상태가 완료인 경우 완료일 추가
+      if (showCompletedDate) {
+        contractData.completedAt = completedDate;
       }
 
       console.log('Sending contract update request:', {
@@ -360,27 +400,45 @@ const ContractEdit: React.FC = () => {
                 </div>
               )}
 
-              {showContractPeriod && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                  계약 기간 <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    required
+                    leftIcon={<Calendar size={18} />}
+                  />
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    required
+                    leftIcon={<Calendar size={18} />}
+                  />
+                </div>
+              </div>
+
+              {/* 계약 완료일 (계약 상태가 완료일 때만 표시) */}
+              {showCompletedDate && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                    계약 기간 <span className="text-red-500">*</span>
+                    거래 완료일 <span className="text-red-500">*</span>
                   </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      required
-                      leftIcon={<Calendar size={18} />}
-                    />
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      required
-                      leftIcon={<Calendar size={18} />}
-                    />
-                  </div>
+                  <Input
+                    type="date"
+                    value={completedDate}
+                    onChange={(e) => setCompletedDate(e.target.value)}
+                    required
+                    leftIcon={<CheckCircle size={18} />}
+                    className="border-green-500 focus:ring-green-500"
+                  />
+                  <p className="mt-1 text-sm text-gray-500 text-left">
+                    계약 완료 상태일 경우, 거래 완료일은 필수입니다.
+                  </p>
                 </div>
               )}
 

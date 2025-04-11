@@ -9,7 +9,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Textarea from '../../components/ui/Textarea';
 import AddressInput from '../../components/ui/AddressInput';
-// import CustomerSearchInput from '../../components/property/CustomerSearchInput';
+import CustomerDropdown from '../../components/property/CustomerDropdown';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
 import { useToast } from '../../context/useToast';
 import { getPropertyById, updateProperty } from '../../api/property';
@@ -26,16 +26,19 @@ const PropertyEdit: React.FC = () => {
 
   // 폼 상태 관리
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
   const [roadAddress, setRoadAddress] = useState('');
   const [jibunAddress, setJibunAddress] = useState('');
   const [detailAddress, setDetailAddress] = useState('');
   const [memo, setMemo] = useState('');
   const [isCustomerSearchActive, setIsCustomerSearchActive] = useState(false);
+  // 상태 추가
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     const fetchPropertyDetail = async () => {
-      if (!id) return;
+      if (!id || isRedirecting) return;
 
       setIsLoading(true);
       try {
@@ -47,7 +50,7 @@ const PropertyEdit: React.FC = () => {
           // 폼 초기값 설정
           setPropertyType(propertyData.propertyType);
           setRoadAddress(propertyData.roadAddress);
-          // setJibunAddress(propertyData.jibunAddress || '');
+          setJibunAddress(propertyData.jibunAddress || '');
           setDetailAddress(propertyData.detailAddress);
           setMemo(propertyData.memo || '');
 
@@ -63,6 +66,7 @@ const PropertyEdit: React.FC = () => {
               createdAt: propertyData.customer.createdAt,
               updatedAt: propertyData.customer.updatedAt,
             });
+            setSelectedCustomerId(propertyData.customer.id);
           }
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
@@ -76,7 +80,20 @@ const PropertyEdit: React.FC = () => {
     };
 
     fetchPropertyDetail();
-  }, [id, showToast]);
+  }, [id, isRedirecting, showToast]);
+
+  // 고객 선택 핸들러
+  const handleCustomerSelect = (customerId: number | null, customer?: Customer | null) => {
+    setSelectedCustomerId(customerId);
+    // 고객 객체가 전달되면 상태 업데이트
+    if (customer) {
+      setSelectedCustomer(customer);
+    } else {
+      setSelectedCustomer(null);
+    }
+    // 고객 선택 후 드롭다운 닫기
+    setIsCustomerSearchActive(false);
+  };
 
   // 주소 선택 핸들러
   const handleAddressSelect = (address: {
@@ -109,6 +126,7 @@ const PropertyEdit: React.FC = () => {
 
     try {
       const response = await updateProperty(Number(id), {
+        customerId: selectedCustomerId || 0,
         propertyType,
         roadAddress,
         jibunAddress,
@@ -117,8 +135,9 @@ const PropertyEdit: React.FC = () => {
       });
 
       if (response.success) {
+        setIsRedirecting(true);
         showToast('매물 정보가 성공적으로 수정되었습니다.', 'success');
-        navigate(`/properties/${id}`);
+        navigate(`/properties/${id}`, { replace: true });
       } else {
         showToast(response.error || '매물 수정에 실패했습니다.', 'error');
       }
@@ -206,7 +225,7 @@ const PropertyEdit: React.FC = () => {
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="block text-sm font-medium text-gray-700 text-left">
-                      의뢰인 검색 <span className="text-red-500">*</span>
+                      의뢰인 선택 <span className="text-red-500">*</span>
                     </label>
                     <Button
                       type="button"
@@ -217,13 +236,10 @@ const PropertyEdit: React.FC = () => {
                       취소
                     </Button>
                   </div>
-                  {/* <CustomerSearchInput
-                    onCustomerSelect={(customer) => {
-                      setSelectedCustomer(customer);
-                      setIsCustomerSearchActive(false);
-                    }}
-                    selectedCustomer={null}
-                  /> */}
+                  <CustomerDropdown
+                    onCustomerSelect={handleCustomerSelect}
+                    selectedCustomerId={selectedCustomer?.id}
+                  />
                 </div>
               )}
 
@@ -240,14 +256,7 @@ const PropertyEdit: React.FC = () => {
                   <p className="text-sm text-gray-700">{property.roadAddress}</p>
                   <p className="text-sm text-gray-500">{property.detailAddress}</p>
                 </div>
-                <AddressInput
-                  onAddressSelect={handleAddressSelect}
-                  // initialAddress={{
-                  //   roadAddress: roadAddress,
-                  //   jibunAddress: jibunAddress,
-                  //   detailAddress: detailAddress,
-                  // }}
-                />
+                <AddressInput onAddressSelect={handleAddressSelect} />
               </div>
 
               {/* 메모 */}
