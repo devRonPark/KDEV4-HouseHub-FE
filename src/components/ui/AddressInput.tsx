@@ -58,7 +58,6 @@ const AddressInput: React.FC<AddressProps> = ({ onAddressSelect }) => {
     setDetailAddress(value);
 
     // 부모 컴포넌트로 상세 주소 업데이트
-    console.log('jibunAddress', jibunAddress);
     onAddressSelect({ jibunAddress, roadAddress, detailAddress: value, zipCode });
   };
 

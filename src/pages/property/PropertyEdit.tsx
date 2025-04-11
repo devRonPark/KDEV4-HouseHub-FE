@@ -116,8 +116,6 @@ const PropertyEdit: React.FC = () => {
       showToast('매물 유형을 선택해주세요.', 'error');
       return;
     }
-    console.log('roadAddress', roadAddress);
-    console.log('jibunAddress', jibunAddress);
 
     if (!roadAddress || !jibunAddress) {
       showToast('주소를 입력해주세요.', 'error');
