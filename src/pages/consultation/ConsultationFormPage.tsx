@@ -322,7 +322,12 @@ const ConsultationFormPage: React.FC = () => {
                   name="consultationDate"
                   value={
                     formData.consultationDate
-                      ? new Date(formData.consultationDate).toISOString().slice(0, 16)
+                      ? new Date(formData.consultationDate)
+                          .toLocaleString('sv-SE', {
+                            timeZone: 'Asia/Seoul',
+                          })
+                          .replace(' ', 'T') // 'YYYY-MM-DDTHH:mm' 포맷 유지
+                          .slice(0, 16) // 초 이하 잘라냄: YYYY-MM-DDTHH:mm
                       : ''
                   }
                   onChange={(e) => {
@@ -330,7 +335,7 @@ const ConsultationFormPage: React.FC = () => {
                     if (value) {
                       setFormData((prev) => ({
                         ...prev,
-                        consultationDate: new Date(value).toISOString(),
+                        consultationDate: value, // 그대로 ISO string 형태 유지
                       }));
                     }
                   }}
