@@ -41,7 +41,6 @@ const FormRenderer: React.FC<FormRendererProps> = ({
 
   // 폼 제출 핸들러
   const onSubmit = async (data: any) => {
-    console.log(data);
     if (isSubmitting) return;
 
     try {

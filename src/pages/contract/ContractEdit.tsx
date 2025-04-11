@@ -218,14 +218,9 @@ const ContractEdit: React.FC = () => {
         contractData.completedAt = completedDate;
       }
 
-      console.log('Sending contract update request:', {
-        id: Number(id),
-        data: contractData,
-      });
-
       const response = await updateContract(Number(id), contractData);
 
-      console.log('Update response:', response);
+      // console.log('Update response:', response);
 
       if (response.success) {
         showToast('계약 정보가 성공적으로 수정되었습니다.', 'success');

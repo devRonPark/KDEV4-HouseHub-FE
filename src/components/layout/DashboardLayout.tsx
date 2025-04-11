@@ -31,7 +31,6 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const handleSignOut = async () => {
     alert('로그아웃 버튼 클릭');
     const success = await signOut();
-    console.log(success);
     if (success) {
       showToast('로그아웃 되었습니다.', 'success');
       navigate('/signin');

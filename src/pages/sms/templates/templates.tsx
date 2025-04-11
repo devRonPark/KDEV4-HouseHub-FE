@@ -146,8 +146,7 @@ const SmsTemplateListPage = () => {
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'yyyy-MM-dd HH:mm');
-    } catch (error) {
-      console.log(error);
+    } catch {
       return dateString;
     }
   };

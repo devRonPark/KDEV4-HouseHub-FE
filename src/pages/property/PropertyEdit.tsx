@@ -72,7 +72,6 @@ const PropertyEdit: React.FC = () => {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
         }
       } catch (error) {
-        console.log(error);
         showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
       } finally {
         setIsLoading(false);
@@ -80,7 +79,7 @@ const PropertyEdit: React.FC = () => {
     };
 
     fetchPropertyDetail();
-  }, [id, isRedirecting, showToast]);
+  }, [id, showToast]);
 
   // 고객 선택 핸들러
   const handleCustomerSelect = (customerId: number | null, customer?: Customer | null) => {
