@@ -48,12 +48,12 @@ const PropertyList: React.FC = () => {
 
     try {
       const response = await getProperties(filter);
-      console.log('Response in component:', response);
+      // console.log('Response in component:', response);
 
       if (response.success) {
         // 응답 데이터가 있는지 확인
         if (response.data) {
-          console.log('Response data:', response.data);
+          // console.log('Response data:', response.data);
           // content 배열이 있는지 확인
           const propertiesData = response.data.content || [];
           setProperties(propertiesData);

@@ -225,7 +225,6 @@ const SignUp: React.FC = () => {
         signUpData.realEstate = undefined;
       }
 
-      console.log(signUpData);
       const success = await signUp(signUpData);
 
       if (success) {
@@ -242,10 +241,8 @@ const SignUp: React.FC = () => {
   };
 
   const formatTimeRemaining = (seconds: number) => {
-    console.log(`남은 시간: ${seconds}초`);
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    console.log(`남은 시간: ${minutes}분 ${remainingSeconds}초`);
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 

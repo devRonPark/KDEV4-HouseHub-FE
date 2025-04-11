@@ -28,7 +28,6 @@ const ConsultationDetailPage: React.FC = () => {
   // fetchConsultation 함수 내부의 ID 처리 로직 수정
   const fetchConsultation = async () => {
     if (!id) {
-      console.log('id 에러 체크', id);
       showToast('유효하지 않은 상담 ID입니다.', 'error');
       navigate('/consultations', { replace: true });
       return;

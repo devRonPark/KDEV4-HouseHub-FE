@@ -77,7 +77,6 @@ const InquiryTemplateManagement: React.FC = () => {
 
   // 검색 핸들러
   const handleSearch = () => {
-    console.log('검색어:', searchKeyword);
     setFilter((prev) => ({
       ...prev,
       keyword: searchKeyword,

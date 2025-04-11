@@ -33,7 +33,6 @@ const ChartContainer: React.FC<ChartContainerProps> = ({
       Chart.register(ChartDataLabels);
 
       const isCartesianChart = type === 'bar' || type === 'line';
-      console.log(isCartesianChart);
       const ctx = chartRef.current.getContext('2d');
       if (ctx) {
         chartInstance.current = new Chart(ctx, {

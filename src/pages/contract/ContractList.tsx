@@ -47,13 +47,13 @@ const ContractList: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log('Fetching contracts with filter:', filter);
+      // console.log('Fetching contracts with filter:', filter);
       const response = await getContracts(filter);
-      console.log('Contracts API response:', response);
+      // console.log('Contracts API response:', response);
 
       if (response.success && response.data) {
-        console.log('response.data:', response.data);
-        console.log('Setting contracts:', response.data.content);
+        // console.log('response.data:', response.data);
+        // console.log('Setting contracts:', response.data.content);
         setContracts(response.data.content || []);
         setPagination(response.data.pagination);
       } else {

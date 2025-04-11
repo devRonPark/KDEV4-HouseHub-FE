@@ -15,8 +15,7 @@ export const registerProperty = async (
   try {
     const response = await apiClient.post<ApiResponse<{ id: number }>>('/properties', propertyData);
     return response.data;
-  } catch (error) {
-    console.log(error);
+  } catch {
     return {
       success: false,
       error: '매물 등록 중 오류가 발생했습니다.',
@@ -63,7 +62,7 @@ export const getProperties = async (
     const response = await apiClient.get<ApiResponse<PropertyListResDto>>(url);
 
     // 응답 구조 로깅
-    console.log('API Response:', response.data);
+    // console.log('API Response:', response.data);
 
     return response.data;
   } catch (error) {
@@ -83,7 +82,7 @@ export const getPropertyById = async (
     const response = await apiClient.get<ApiResponse<FindPropertyDetailResDto>>(
       `/properties/${id}`
     );
-    console.log('Property detail response:', response.data);
+    // console.log('Property detail response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching property details:', error);
