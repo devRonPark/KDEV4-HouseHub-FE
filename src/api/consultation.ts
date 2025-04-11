@@ -4,8 +4,17 @@ import type {
   CreateConsultationReqDto,
   CreateConsultationResDto,
   ConsultationResDto,
+  ConsultationType,
+  ConsultationStatus,
+  ConsultationListResDto,
 } from '../types/consultation';
-import { toApiConsultationDto, fromApiConsultationDto } from '../types/consultation';
+import {
+  toApiConsultationDto,
+  fromApiConsultationDto,
+  toApiConsultationType,
+  toApiStatus,
+  fromApiConsultationListDto,
+} from '../types/consultation';
 import axios from 'axios';
 
 /**
@@ -43,39 +52,51 @@ export const createConsultation = async (
  * 상담 목록 조회 API
  * @returns API 응답
  */
-export const getConsultationList = async (): Promise<ApiResponse<ConsultationResDto[]>> => {
+export const getConsultationList = async (params?: {
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+  type?: ConsultationType;
+  status?: ConsultationStatus;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+}): Promise<ApiResponse<ConsultationListResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<any[]>>('/consultations');
+    // 파라미터 변환 (소문자 -> 대문자)
+    const apiParams: Record<string, any> = {};
 
-    // 백엔드 응답이 성공이면, 데이터가 비어있더라도 성공으로 처리
-    if (response.data.success) {
-      // 데이터가 있으면 변환, 없으면 빈 배열 반환
-      if (response.data.data && Array.isArray(response.data.data)) {
-        response.data.data = response.data.data.map((item) => fromApiConsultationDto(item));
-      } else {
-        // 데이터가 없거나 배열이 아닌 경우 빈 배열로 설정
-        response.data.data = [];
-      }
-
-      // 성공 응답 반환
-      return {
-        success: true,
-        data: response.data.data as ConsultationResDto[],
-      };
-    } else {
-      // 백엔드에서 명시적으로 실패를 반환한 경우
-      return {
-        success: true, // 여기를 true로 변경하여 에러 메시지가 표시되지 않도록 함
-        error: '데이터가 없습니다.',
-        data: [],
-      };
+    if (params) {
+      if (params.keyword) apiParams.keyword = params.keyword;
+      if (params.startDate) apiParams.startDate = params.startDate;
+      if (params.endDate) apiParams.endDate = params.endDate;
+      if (params.type) apiParams.type = toApiConsultationType(params.type);
+      if (params.status) apiParams.status = toApiStatus(params.status);
+      if (params.page !== undefined) apiParams.page = params.page;
+      if (params.size !== undefined) apiParams.size = params.size;
+      // 정렬 관련 파라미터 추가
+      if (params.sortBy) apiParams.sortBy = params.sortBy;
+      if (params.sortDirection) apiParams.sortDirection = params.sortDirection;
     }
+
+    const response = await apiClient.get<ApiResponse<ConsultationListResDto>>('/consultations', {
+      params: apiParams,
+    });
+
+    // 백엔드 응답이 성공이면, 데이터 변환
+    if (response.data.success && response.data.data) {
+      response.data.data = fromApiConsultationListDto(response.data.data);
+    }
+
+    return response.data as ApiResponse<ConsultationListResDto>;
   } catch (error) {
-    // 네트워크 오류 등 실제 API 호출 실패 시에만 에러 반환
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<ConsultationListResDto>;
+    }
     return {
-      success: true, // 여기를 true로 변경하여 에러 메시지가 표시되지 않도록 함
-      error: '데이터가 없습니다.',
-      data: [],
+      success: false,
+      error: '상담 목록을 불러오는 중 오류가 발생했습니다.',
     };
   }
 };
