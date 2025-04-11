@@ -14,7 +14,7 @@ export enum ContractType {
 export enum ContractStatus {
   IN_PROGRESS = 'IN_PROGRESS', // 계약 진행 중
   COMPLETED = 'COMPLETED', // 계약 완료
-  CANCELLED = 'CANCELLED', // 계약 취소
+  CANCELED = 'CANCELED', // 계약 취소
 }
 
 // 계약 유형 표시 텍스트
@@ -28,7 +28,7 @@ export const ContractTypeLabels: Record<ContractType, string> = {
 export const ContractStatusLabels: Record<ContractStatus, string> = {
   [ContractStatus.IN_PROGRESS]: '계약 진행 중',
   [ContractStatus.COMPLETED]: '계약 완료',
-  [ContractStatus.CANCELLED]: '계약 취소',
+  [ContractStatus.CANCELED]: '계약 취소',
 };
 
 // 계약 유형별 배경색 및 텍스트 색상
@@ -42,7 +42,7 @@ export const ContractTypeColors: Record<ContractType, { bg: string; text: string
 export const ContractStatusColors: Record<ContractStatus, { bg: string; text: string }> = {
   [ContractStatus.IN_PROGRESS]: { bg: 'bg-blue-100', text: 'text-blue-800' },
   [ContractStatus.COMPLETED]: { bg: 'bg-green-100', text: 'text-green-800' },
-  [ContractStatus.CANCELLED]: { bg: 'bg-red-100', text: 'text-red-800' },
+  [ContractStatus.CANCELED]: { bg: 'bg-red-100', text: 'text-red-800' },
 };
 
 // 계약 등록 요청 DTO

@@ -307,7 +307,7 @@ const ConsultationFormPage: React.FC = () => {
                   >
                     <option value="reserved">예약됨</option>
                     <option value="completed">완료</option>
-                    <option value="cancelled">취소됨</option>
+                    <option value="canceled">취소됨</option>
                   </select>
                 </div>
               </div>
