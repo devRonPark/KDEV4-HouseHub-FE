@@ -1,3 +1,4 @@
+import { PaginationDto } from './pagination';
 import type { FindPropertyResDto } from './property';
 
 // Customer 타입 이름을 ConsultationCustomer로 변경하여 충돌 방지
@@ -71,11 +72,17 @@ export interface ConsultationResDto {
   deletedAt?: string;
 }
 
-// 상담 필터 타입
+// 상담 목록 응답 DTO
+export interface ConsultationListResDto {
+  content: ConsultationResDto[];
+  pagination: PaginationDto;
+}
+
+// 상담 검색 필터 타입
 export interface ConsultationFilter {
-  search?: string;
-  dateFrom?: string;
-  dateTo?: string;
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
   type?: ConsultationType;
   status?: ConsultationStatus;
 }
@@ -128,5 +135,13 @@ export const fromApiConsultationDto = (data: any): ConsultationResDto => {
     ...data,
     consultationType: fromApiConsultationType(data.consultationType),
     status: fromApiStatus(data.status),
+  };
+};
+
+// 목록 응답 변환 함수
+export const fromApiConsultationListDto = (data: any): ConsultationListResDto => {
+  return {
+    content: data.content.map((item: any) => fromApiConsultationDto(item)),
+    pagination: data.pagination,
   };
 };
