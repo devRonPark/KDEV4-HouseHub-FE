@@ -217,8 +217,12 @@ const ContractDetail: React.FC = () => {
               {/* 매물 정보 */}
               <div>
                 <h2 className="text-lg font-medium text-gray-900 mb-4">매물 정보</h2>
-                <div className="space-y-4">
-                  <div className="flex items-center">
+                <div
+                  // className="p-4 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer transition"
+                  className="p-4 rounded-md hover:bg-gray-50 cursor-pointer transition"
+                  onClick={() => navigate(`/properties/${contract.property.id}`)}
+                >
+                  <div className="flex items-center mb-2">
                     <Home className="h-5 w-5 text-gray-400 mr-2" />
                     <span className="text-gray-700">{contract.property.roadAddress}</span>
                   </div>

@@ -79,7 +79,7 @@ const PropertyEdit: React.FC = () => {
     };
 
     fetchPropertyDetail();
-  }, [id, isRedirecting, showToast]);
+  }, [id, showToast]);
 
   // 고객 선택 핸들러
   const handleCustomerSelect = (customerId: number | null, customer?: Customer | null) => {

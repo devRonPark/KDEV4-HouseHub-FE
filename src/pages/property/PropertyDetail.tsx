@@ -236,7 +236,9 @@ const PropertyDetail: React.FC = () => {
               {property.contractList.map((contract) => (
                 <div
                   key={contract.id}
-                  className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
+                  // className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
+                  className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0 cursor-pointer hover:bg-gray-50 px-4 py-2 rounded transition"
+                  onClick={() => navigate(`/contracts/${contract.id}`)} // ← 여기에 이동 추가
                 >
                   <div className="flex justify-between items-center mb-2">
                     <Badge
