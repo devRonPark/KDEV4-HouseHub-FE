@@ -30,6 +30,8 @@ import InquiryManagement from './pages/inquiryManagement/InquiryManagement';
 import ConsultationDetailPage from './pages/consultation/ConsultationDetailPage';
 import ConsultationFormPage from './pages/consultation/ConsultationFormPage';
 import ConsultationListPage from './pages/consultation/ConsultationListPage';
+import InquiryDetailPage from './pages/inquiryManagement/InquiryDetail';
+import NotificationsPage from './pages/notification/NotificationPage';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -246,6 +248,22 @@ function App() {
         element={
           <ProtectedRoute>
             <InquiryManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/inquiries/:inquiryId/answers"
+        element={
+          <ProtectedRoute>
+            <InquiryDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />

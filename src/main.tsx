@@ -4,12 +4,15 @@ import App from './App.tsx';
 import { BrowserRouter } from 'react-router-dom';
 import { ToastProvider } from './context/ToastContext.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
+import { NotificationProvider } from './context/NotificationContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <BrowserRouter>
     <ToastProvider>
       <AuthProvider>
-        <App />
+        <NotificationProvider>
+          <App />
+        </NotificationProvider>
       </AuthProvider>
     </ToastProvider>
   </BrowserRouter>

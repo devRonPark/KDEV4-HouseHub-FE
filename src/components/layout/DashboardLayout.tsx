@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useState } from 'react';
-import { useNavigate, NavLink } from 'react-router-dom';
+import { useNavigate, NavLink, Link } from 'react-router-dom';
 import {
   Menu,
   X,
@@ -19,6 +19,7 @@ import { useAuth } from '../../context/useAuth';
 import { useToast } from '../../context/useToast';
 import LogoWithText from '../LogoWithText';
 import { ClipboardList } from 'lucide-react';
+import NotificationBadge from '../notification/NotificationBadge';
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -148,11 +149,8 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
             {/* 사용자 정보 및 알림 */}
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
-              {/* 알림 버튼 */}
-              <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <span className="sr-only">알림 보기</span>
-                <Bell size={20} />
-              </button>
+              {/* 알림 배지 */}
+              <NotificationBadge className="mr-3" />
 
               {/* 사용자 드롭다운 */}
               <div className="ml-3 relative">
@@ -182,20 +180,14 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                     aria-labelledby="user-menu-button"
                     tabIndex={-1}
                   >
-                    <a
-                      href="/profile"
+                    <Link
+                      to="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       role="menuitem"
+                      onClick={() => setUserMenuOpen(false)}
                     >
                       내 프로필
-                    </a>
-                    <a
-                      href="/settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      설정
-                    </a>
+                    </Link>
                     <button
                       onClick={handleSignOut}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -291,18 +283,12 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 </button>
               </div>
               <div className="mt-3 space-y-1">
-                <a
-                  href="/profile"
+                <Link
+                  to="/profile"
                   className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                 >
                   내 프로필
-                </a>
-                <a
-                  href="/settings"
-                  className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                >
-                  설정
-                </a>
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
