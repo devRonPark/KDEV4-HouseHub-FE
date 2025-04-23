@@ -8,13 +8,21 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Textarea from '../../components/ui/Textarea';
+import Input from '../../components/ui/Input';
 import AddressInput from '../../components/ui/AddressInput';
 import CustomerDropdown from '../../components/property/CustomerDropdown';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
+import PropertyDirectionSelector from '../../components/property/PropertyDirectionSelector';
 import { useToast } from '../../context/useToast';
 import { getPropertyById, updateProperty } from '../../api/property';
-import type { PropertyType, FindPropertyDetailResDto } from '../../types/property';
+import type {
+  PropertyType,
+  PropertyDirection,
+  FindPropertyDetailResDto,
+  PropertyRegistrationDTO,
+} from '../../types/property';
 import type { Customer } from '../../types/customer';
+import { getObjectDiff } from '../../utils/objectUtil';
 
 const PropertyEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +31,9 @@ const PropertyEdit: React.FC = () => {
   const [property, setProperty] = useState<FindPropertyDetailResDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 원본 데이터 저장용 상태
+  const [originalData, setOriginalData] = useState<PropertyRegistrationDTO | null>(null);
 
   // 폼 상태 관리
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -33,6 +44,16 @@ const PropertyEdit: React.FC = () => {
   const [detailAddress, setDetailAddress] = useState('');
   const [memo, setMemo] = useState('');
   const [isCustomerSearchActive, setIsCustomerSearchActive] = useState(false);
+  const [active, setActive] = useState(true);
+
+  // 새로 추가된 필드들
+  const [area, setArea] = useState<string>('');
+  const [floor, setFloor] = useState<string>('');
+  const [allFloors, setAllFloors] = useState<string>('');
+  const [direction, setDirection] = useState<PropertyDirection | null>(null);
+  const [bathroomCnt, setBathroomCnt] = useState<string>('');
+  const [roomCnt, setRoomCnt] = useState<string>('');
+
   // 상태 추가
   const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -53,6 +74,15 @@ const PropertyEdit: React.FC = () => {
           setJibunAddress(propertyData.jibunAddress || '');
           setDetailAddress(propertyData.detailAddress);
           setMemo(propertyData.memo || '');
+          setActive(propertyData.active);
+
+          // 새로 추가된 필드들 초기값 설정
+          setArea(propertyData.area?.toString() || '');
+          setFloor(propertyData.floor?.toString() || '');
+          setAllFloors(propertyData.allFloors?.toString() || '');
+          setDirection(propertyData.direction || null);
+          setBathroomCnt(propertyData.bathroomCnt?.toString() || '');
+          setRoomCnt(propertyData.roomCnt?.toString() || '');
 
           // 고객 정보 설정
           if (propertyData.customer) {
@@ -68,6 +98,23 @@ const PropertyEdit: React.FC = () => {
             });
             setSelectedCustomerId(propertyData.customer.id);
           }
+
+          // 원본 데이터 저장
+          setOriginalData({
+            customerId: propertyData.customer?.id || 0,
+            propertyType: propertyData.propertyType,
+            roadAddress: propertyData.roadAddress,
+            jibunAddress: propertyData.jibunAddress || '',
+            detailAddress: propertyData.detailAddress,
+            memo: propertyData.memo || '',
+            active: propertyData.active,
+            area: propertyData.area,
+            floor: propertyData.floor,
+            allFloors: propertyData.allFloors,
+            direction: propertyData.direction,
+            bathroomCnt: propertyData.bathroomCnt,
+            roomCnt: propertyData.roomCnt,
+          });
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
         }
@@ -106,6 +153,28 @@ const PropertyEdit: React.FC = () => {
     setDetailAddress(address.detailAddress);
   };
 
+  // 숫자 입력 필드 핸들러 (정수만 허용)
+  const handleIntegerInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    const value = e.target.value;
+    if (value === '' || /^\d+$/.test(value)) {
+      setter(value);
+    }
+  };
+
+  // 숫자 입력 필드 핸들러 (소수점 허용)
+  const handleNumberInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
+    const value = e.target.value;
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setter(value);
+    }
+  };
+
   // 폼 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,17 +190,36 @@ const PropertyEdit: React.FC = () => {
       return;
     }
 
+    // 현재 폼 데이터
+    const currentData: PropertyRegistrationDTO = {
+      customerId: selectedCustomerId || 0,
+      propertyType,
+      roadAddress,
+      jibunAddress,
+      detailAddress,
+      memo: memo || '',
+      active,
+      area: area ? Number.parseFloat(area) : undefined,
+      floor: floor ? Number.parseInt(floor, 10) : undefined,
+      allFloors: allFloors ? Number.parseInt(allFloors, 10) : undefined,
+      direction: direction || undefined,
+      bathroomCnt: bathroomCnt ? Number.parseInt(bathroomCnt, 10) : undefined,
+      roomCnt: roomCnt ? Number.parseInt(roomCnt, 10) : undefined,
+    };
+
+    // 변경된 필드만 추출
+    const changedFields = getObjectDiff(originalData || {}, currentData);
+
+    // 변경 사항이 없는 경우
+    if (Object.keys(changedFields).length === 0) {
+      showToast('변경 사항이 없습니다.', 'info');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const response = await updateProperty(Number(id), {
-        customerId: selectedCustomerId || 0,
-        propertyType,
-        roadAddress,
-        jibunAddress,
-        detailAddress,
-        memo: memo || undefined,
-      });
+      const response = await updateProperty(Number(id), changedFields as PropertyRegistrationDTO);
 
       if (response.success) {
         setIsRedirecting(true);
@@ -257,6 +345,66 @@ const PropertyEdit: React.FC = () => {
                 </div>
                 <AddressInput onAddressSelect={handleAddressSelect} />
               </div>
+
+              {/* 매물 활성화 여부 */}
+              <div className="flex items-center">
+                <input
+                  id="active"
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                />
+                <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
+                  매물 활성화 (체크 해제 시 비활성화)
+                </label>
+              </div>
+
+              {/* 새로 추가된 필드들 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 면적 */}
+                <Input
+                  label="면적 (평)"
+                  placeholder="예: 24.5"
+                  value={area}
+                  onChange={(e) => handleNumberInput(e, setArea)}
+                />
+
+                {/* 층수 */}
+                <Input
+                  label="층수"
+                  placeholder="예: 3"
+                  value={floor}
+                  onChange={(e) => handleIntegerInput(e, setFloor)}
+                />
+
+                {/* 총 층수 */}
+                <Input
+                  label="총 층수"
+                  placeholder="예: 15"
+                  value={allFloors}
+                  onChange={(e) => handleIntegerInput(e, setAllFloors)}
+                />
+
+                {/* 방 개수 */}
+                <Input
+                  label="방 개수"
+                  placeholder="예: 2"
+                  value={roomCnt}
+                  onChange={(e) => handleIntegerInput(e, setRoomCnt)}
+                />
+
+                {/* 욕실 개수 */}
+                <Input
+                  label="욕실 개수"
+                  placeholder="예: 1"
+                  value={bathroomCnt}
+                  onChange={(e) => handleIntegerInput(e, setBathroomCnt)}
+                />
+              </div>
+
+              {/* 방향 선택 */}
+              <PropertyDirectionSelector selectedDirection={direction} onChange={setDirection} />
 
               {/* 메모 */}
               <Textarea
