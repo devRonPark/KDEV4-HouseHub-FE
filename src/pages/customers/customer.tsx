@@ -288,7 +288,7 @@ const CustomersPage = () => {
       key: 'name',
       header: '이름',
       render: (customer: Customer) => (
-        <div className="font-medium text-gray-900">{customer.name}</div>
+        <div className="font-medium text-gray-900">{customer.name || '선택 안 함'}</div>
       ),
     },
     {
@@ -297,7 +297,7 @@ const CustomersPage = () => {
       render: (customer: Customer) => (
         <div>
           <div>{formatPhoneNumber(customer.contact)}</div>
-          <div className="text-gray-500 text-xs">{customer.email}</div>
+          <div className="text-gray-500 text-xs">{customer.email || '선택 안 함'}</div>
         </div>
       ),
     },

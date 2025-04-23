@@ -488,45 +488,39 @@ const SmsSendPage = () => {
 
               {/* 템플릿 선택 */}
               <div>
-                <label htmlFor="template" className="block text-sm font-medium text-gray-700">
-                  템플릿 선택
-                </label>
-                <div className="flex space-x-2">
-                  <div>
-                    {isLoading ? (
-                      <div className="flex justify-center py-8">
-                        {/* 로딩 스피너 */}
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                      </div>
-                    ) : templates.content.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">템플릿이 없습니다.</div>
-                    ) : (
-                      <Select
-                        id="template"
-                        value={selectedTemplateId?.toString() || ''}
-                        onChange={(value) =>
-                          setSelectedTemplateId(value ? Number.parseInt(value) : null)
-                        }
-                        options={[
-                          { value: '', label: '템플릿을 선택하세요' },
-                          ...templates.content.map((template) => ({
-                            value: template.id.toString(),
-                            label: template.title,
-                          })),
-                        ]}
-                        className="flex-1"
-                      />
-                    )}
+                <label className="block text-sm font-medium text-gray-700 mb-1">템플릿 선택</label>
+                {isLoading ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate('/sms/templates/create')}
-                    className="whitespace-nowrap"
-                  >
-                    <Plus size={16} className="mr-1" />
-                    템플릿 생성
-                  </Button>
-                </div>
+                ) : templates.content.length === 0 ? (
+                  <div className="text-sm text-gray-500">
+                    사용 가능한 템플릿이 없습니다.
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/sms/templates/create')}
+                      className="ml-2"
+                    >
+                      <Plus size={16} className="mr-1" />
+                      템플릿 생성
+                    </Button>
+                  </div>
+                ) : (
+                  <Select
+                    value={selectedTemplateId?.toString() || ''}
+                    onChange={(value: string) => {
+                      setSelectedTemplateId(value ? Number(value) : null);
+                    }}
+                    options={[
+                      { value: '', label: '템플릿 선택' },
+                      ...templates.content.map((template) => ({
+                        value: template.id.toString(),
+                        label: template.title,
+                      })),
+                    ]}
+                  />
+                )}
               </div>
 
               {/* 메시지 유형 */}

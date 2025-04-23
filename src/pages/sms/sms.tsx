@@ -155,11 +155,22 @@ const SmsListPage = () => {
   };
 
   const formatContact = (contact: string) => {
-    if (!contact || contact.length !== 11) return '-';
-    const head = contact.substring(0, 3);
-    const body = contact.substring(3, 7);
-    const foot = contact.substring(7, 11);
-    return `${head}-${body}-${foot}`;
+    if (!contact) return '-';
+
+    // 하이픈이 포함된 경우 그대로 반환
+    if (contact.includes('-')) {
+      return contact;
+    }
+
+    // 11자리 숫자인 경우에만 포맷팅
+    if (contact.length === 11) {
+      const head = contact.substring(0, 3);
+      const body = contact.substring(3, 7);
+      const foot = contact.substring(7, 11);
+      return `${head}-${body}-${foot}`;
+    }
+
+    return contact;
   };
 
   // 테이블 컬럼 정의
