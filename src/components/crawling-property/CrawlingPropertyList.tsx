@@ -37,7 +37,7 @@ export const CrawlingPropertyList = ({ searchParams, page, onPageChange }: Crawl
   return (
     <div>
       <div className="space-y-4">
-        {properties.map((property) => (
+        {properties.map((property: CrawlingPropertyItem) => (
           <CrawlingPropertyCard
             key={property.crawlingPropertiesId}
             property={property}

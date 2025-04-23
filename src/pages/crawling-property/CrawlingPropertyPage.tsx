@@ -3,8 +3,7 @@ import { Search } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { searchCrawlingProperties } from '../../api/crawling-property';
 import { 
-  CrawlingPropertyItem, 
-  CrawlingPropertyListResponse, 
+  CrawlingPropertyItem,
   PaginationDto,
   CrawlingPropertyType,
   CrawlingTransactionType,
@@ -23,12 +22,6 @@ interface ToggleOption {
 interface PriceRange {
   min: string;
   max: string;
-}
-
-interface SearchResult {
-  id: number;
-  title: string;
-  // TODO: 검색 결과 타입 정의 추가
 }
 
 export const CrawlingPropertyPage = () => {
