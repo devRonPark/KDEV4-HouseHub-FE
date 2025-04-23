@@ -32,6 +32,7 @@ import ConsultationFormPage from './pages/consultation/ConsultationFormPage';
 import ConsultationListPage from './pages/consultation/ConsultationListPage';
 import InquiryDetailPage from './pages/inquiryManagement/InquiryDetail';
 import NotificationsPage from './pages/notification/NotificationPage';
+import { CrawlingPropertyPage } from './pages/crawling-property/CrawlingPropertyPage';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -276,6 +277,9 @@ function App() {
       {/* 공개 문의 페이지 (인증 불필요) */}
       <Route path="/inquiry/share/:shareToken" element={<InquiryFormPage />} />
       <Route path="/inquiry/complete" element={<InquiryCompletePage />} />
+
+      {/* 라우트 추가 */}
+      <Route path="/crawling-properties" element={<ProtectedRoute><CrawlingPropertyPage /></ProtectedRoute>} />
 
       {/* 기본 리다이렉트 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
