@@ -17,6 +17,7 @@ import ContractDetail from './pages/contract/ContractDetail';
 import ContractEdit from './pages/contract/ContractEdit';
 import LoadingScreen from './components/ui/LoadingScreen';
 import CustomersPage from './pages/customers/customer';
+import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
 import InquiryTemplateCreate from './pages/inquiryTemplate/InquiryTemplateCreate';
 import InquiryFormPage from './pages/inquiryForm/InquiryFormPage';
@@ -126,6 +127,14 @@ function App() {
         element={
           <ProtectedRoute>
             <CustomersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/customers/:id"
+        element={
+          <ProtectedRoute>
+            <CustomerDetailPage />
           </ProtectedRoute>
         }
       />

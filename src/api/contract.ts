@@ -96,3 +96,59 @@ export const deleteContract = async (id: number): Promise<ApiResponse<void>> => 
     };
   }
 };
+
+// 고객 매수 계약 내역 조회
+export const getCustomerBuyContracts = async (
+  customerId: number,
+  customerName: string,
+  page: number,
+  size: number = 10
+): Promise<ApiResponse<ContractListResDto>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<ContractListResDto>>(
+      `/customers/${customerId}/buy-contracts`,
+      {
+        params: {
+          customerName,
+          page,
+          size,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('고객 매수 계약 내역 조회 중 오류:', error);
+    return {
+      success: false,
+      error: '고객 매수 계약 내역을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 고객 매도 계약 내역 조회
+export const getCustomerSellContracts = async (
+  customerId: number,
+  customerName: string,
+  page: number,
+  size: number = 10
+): Promise<ApiResponse<ContractListResDto>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<ContractListResDto>>(
+      `/customers/${customerId}/sell-contracts`,
+      {
+        params: {
+          customerName,
+          page,
+          size,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('고객 매도 계약 내역 조회 중 오류:', error);
+    return {
+      success: false,
+      error: '고객 매도 계약 내역을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};

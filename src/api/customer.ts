@@ -5,10 +5,14 @@ import type {
   CreateCustomerReqDto,
   CustomerListResDto,
   CustomerSearchFilter,
+  Customer,
 } from '../types/customer';
+import type { ConsultationListResDto } from '../types/consultation';
+import type { ContractListResDto } from '../types/contract';
+import type { InquiryListResponse } from '../types/inquiry';
 import axios from 'axios';
 
-// 현재 로그인한 에이전트의 고객 리스트 조회
+// 현재 로그인한 에이전트의 고객 리스트 조회 (상담 내역 제외)
 export const getMyCustomers = async (
   filter: CustomerSearchFilter
 ): Promise<ApiResponse<CustomerListResDto>> => {
@@ -122,5 +126,140 @@ export const uploadCustomersExcel = async (
       success: false,
       error: '고객 정보 업로드 중 오류가 발생했습니다.',
     };
+  }
+};
+
+// 고객 상세 정보 조회 (상담 내역 포함)
+export const getCustomerById = async (id: number): Promise<ApiResponse<Customer>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<Customer>>(
+      `/customers/${id}?include=consultations`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<Customer>;
+    }
+    return {
+      success: false,
+      error: '고객 정보를 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 고객 상담 목록 조회 API
+export const getCustomerConsultations = async (
+  id: number,
+  customerName: string,
+  page: number,
+  size: number
+): Promise<ApiResponse<ConsultationListResDto>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<ConsultationListResDto>>(
+      `/customers/${id}/consultations?customerName=${encodeURIComponent(customerName)}&page=${page}&size=${size}`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<ConsultationListResDto>;
+    }
+    return {
+      success: false,
+      error: '고객 상담 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 고객 계약 목록 조회 API
+export const getCustomerContracts = async (
+  id: number,
+  customerName: string,
+  page: number,
+  size: number
+): Promise<ApiResponse<ContractListResDto>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<ContractListResDto>>(
+      `/customers/${id}/contracts?customerName=${encodeURIComponent(customerName)}&page=${page}&size=${size}`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<ContractListResDto>;
+    }
+    return {
+      success: false,
+      error: '고객 계약 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 고객 문의 목록 조회 API
+export const getCustomerInquiries = async (
+  id: number,
+  customerName: string,
+  page: number,
+  size: number
+): Promise<ApiResponse<InquiryListResponse>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<InquiryListResponse>>(
+      `/customers/${id}/inquiries?customerName=${encodeURIComponent(customerName)}&page=${page}&size=${size}`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<InquiryListResponse>;
+    }
+    return {
+      success: false,
+      error: '고객 문의 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+export const getCustomerSaleContracts = async (
+  customerId: number,
+  customerName: string,
+  page: number = 1,
+  size: number = 5
+): Promise<ApiResponse<ContractListResDto>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<ContractListResDto>>(
+      `/customers/${customerId}/sell-contracts`,
+      {
+        params: {
+          page,
+          size,
+          customerName,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('매도 계약 내역 조회 중 오류가 발생했습니다:', error);
+    throw error;
+  }
+};
+
+export const getCustomerPurchaseContracts = async (
+  customerId: number,
+  customerName: string,
+  page: number = 1,
+  size: number = 5
+): Promise<ApiResponse<ContractListResDto>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<ContractListResDto>>(
+      `/customers/${customerId}/buy-contracts`,
+      {
+        params: {
+          page,
+          size,
+          customerName,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('매수 계약 내역 조회 중 오류가 발생했습니다:', error);
+    throw error;
   }
 };

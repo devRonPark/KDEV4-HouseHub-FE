@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Edit } from 'react-feather';
+import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Modal from '../ui/Modal';
@@ -18,6 +19,7 @@ interface CustomerDetailModalProps {
 }
 
 const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDetailModalProps) => {
+  const navigate = useNavigate();
   // const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -48,6 +50,12 @@ const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDe
 
     onUpdate(requestData); // 변환된 데이터 전달
     setIsEditing(false);
+  };
+
+  // 상담 상세 페이지로 이동하는 핸들러
+  const handleConsultationClick = (consultationId: number) => {
+    navigate(`/consultations/${consultationId}`);
+    onClose(); // 모달 닫기
   };
 
   if (!customer) return null;
@@ -109,6 +117,51 @@ const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDe
               <div>
                 <h4 className="text-sm font-medium text-gray-500">메모</h4>
                 <p className="mt-1 text-gray-700 whitespace-pre-line">{customer.memo}</p>
+              </div>
+            )}
+
+            {/* 상담 내역 */}
+            {customer.consultations && customer.consultations.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-500">상담 내역</h4>
+                <div className="mt-2 space-y-3">
+                  {customer.consultations.map((consultation) => (
+                    <div
+                      key={consultation.id}
+                      className="border rounded-lg p-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleConsultationClick(consultation.id)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {consultation.consultationType === 'VISIT' ? '방문 상담' : '전화 상담'}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(consultation.consultationDate).toLocaleString('ko-KR')}
+                          </p>
+                        </div>
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            consultation.status === 'RESERVED'
+                              ? 'bg-blue-100 text-blue-800'
+                              : consultation.status === 'COMPLETED'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {consultation.status === 'RESERVED'
+                            ? '예약'
+                            : consultation.status === 'COMPLETED'
+                              ? '완료'
+                              : '취소'}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">
+                        {consultation.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

@@ -1,5 +1,4 @@
 import { PaginationDto } from './pagination';
-import type { FindPropertyResDto } from './property';
 
 // Customer 타입 이름을 ConsultationCustomer로 변경하여 충돌 방지
 export interface ConsultationCustomer {
@@ -9,22 +8,20 @@ export interface ConsultationCustomer {
 }
 
 // 기존 Customer 타입을 사용하는 곳을 ConsultationCustomer로 변경
-export type ConsultationType = 'phone' | 'visit';
+export type ConsultationType = 'PHONE' | 'VISIT';
 
 export const toApiConsultationType = (type: ConsultationType): 'PHONE' | 'VISIT' => {
-  return type.toUpperCase() as 'PHONE' | 'VISIT';
+  return type;
 };
 
-export type ConsultationStatus = 'reserved' | 'completed' | 'canceled';
+export enum ConsultationStatus {
+  COMPLETED = 'COMPLETED',
+  RESERVED = 'RESERVED',
+  CANCELED = 'CANCELED',
+}
 
-export const toApiStatus = (status: ConsultationStatus): 'RESERVED' | 'COMPLETED' | 'CANCELED' => {
-  const map = {
-    reserved: 'RESERVED',
-    completed: 'COMPLETED',
-    canceled: 'CANCELED',
-  } as const;
-
-  return map[status];
+export const toApiStatus = (status: ConsultationStatus): ConsultationStatus => {
+  return status;
 };
 
 // 백엔드 API와 일치하는 요청 DTO
@@ -88,41 +85,40 @@ export interface ConsultationFilter {
 }
 
 export interface Consultation {
-  id: string;
+  id: number;
+  type: ConsultationType;
   date: string;
-  customerId: string;
-  customerName: string;
-  phone: string;
-  type: string;
-  status: string;
-  content: string;
-  consultant: string;
-  createdAt: string;
-  updatedAt: string;
+  agentId: number;
   agent?: {
-    id: string;
     name: string;
   };
-  relatedProperties?: FindPropertyResDto[];
+  relatedProperties?: Array<{
+    id: number;
+    name: string;
+  }>;
+  status: ConsultationStatus;
+  content: string;
+  consultationType: ConsultationType;
+  consultationDate: string;
+  customer?: {
+    id: number;
+    name: string;
+    contact: string;
+    email: string;
+  };
 }
 
 // 백엔드 응답을 프론트엔드 형식으로 변환하는 함수 추가
 export const fromApiConsultationType = (type: string): ConsultationType => {
-  return type.toLowerCase() as ConsultationType;
+  return type as ConsultationType;
 };
 
 export const fromApiStatus = (status: string): ConsultationStatus => {
-  const map: Record<string, ConsultationStatus> = {
-    RESERVED: 'reserved',
-    COMPLETED: 'completed',
-    CANCELED: 'canceled',
-  };
-
-  return map[status] || 'reserved';
+  return status as ConsultationStatus;
 };
 
 // DTO 변환 함수 추가
-export const toApiConsultationDto = (data: CreateConsultationReqDto): any => {
+export const toApiConsultationDto = (data: CreateConsultationReqDto): CreateConsultationReqDto => {
   return {
     ...data,
     consultationType: toApiConsultationType(data.consultationType),
@@ -130,7 +126,7 @@ export const toApiConsultationDto = (data: CreateConsultationReqDto): any => {
   };
 };
 
-export const fromApiConsultationDto = (data: any): ConsultationResDto => {
+export const fromApiConsultationDto = (data: ConsultationResDto): ConsultationResDto => {
   return {
     ...data,
     consultationType: fromApiConsultationType(data.consultationType),
@@ -139,9 +135,11 @@ export const fromApiConsultationDto = (data: any): ConsultationResDto => {
 };
 
 // 목록 응답 변환 함수
-export const fromApiConsultationListDto = (data: any): ConsultationListResDto => {
+export const fromApiConsultationListDto = (
+  data: ConsultationListResDto
+): ConsultationListResDto => {
   return {
-    content: data.content.map((item: any) => fromApiConsultationDto(item)),
+    content: data.content.map((item: ConsultationResDto) => fromApiConsultationDto(item)),
     pagination: data.pagination,
   };
 };

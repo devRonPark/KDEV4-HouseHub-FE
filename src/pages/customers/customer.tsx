@@ -1,6 +1,7 @@
 'use client';
 
 import type React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
   getMyCustomers,
@@ -55,6 +56,8 @@ const CustomersPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const itemsPerPage = 10;
+
+  const navigate = useNavigate();
 
   // 고객 데이터 로드 함수
   const loadCustomers = useCallback(async () => {
@@ -121,8 +124,7 @@ const CustomersPage = () => {
 
   // 고객 상세 정보 모달 열기
   const handleViewCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setIsDetailModalOpen(true);
+    navigate(`/customers/${customer.id}`);
   };
 
   // 고객 수정 버튼 클릭
