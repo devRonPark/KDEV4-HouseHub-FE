@@ -59,6 +59,8 @@ export const SortableItem: React.FC<SortableItemProps> = ({
         return '전화번호';
       case QuestionType.NUMBER:
         return '숫자';
+      case QuestionType.REGION:
+        return '지역 선택';
       default:
         return '알 수 없음';
     }
