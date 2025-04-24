@@ -150,13 +150,12 @@ export const getCustomerById = async (id: number): Promise<ApiResponse<Customer>
 // 고객 상담 목록 조회 API
 export const getCustomerConsultations = async (
   id: number,
-  customerName: string,
   page: number,
   size: number
 ): Promise<ApiResponse<ConsultationListResDto>> => {
   try {
     const response = await apiClient.get<ApiResponse<ConsultationListResDto>>(
-      `/customers/${id}/consultations?customerName=${encodeURIComponent(customerName)}&page=${page}&size=${size}`
+      `/customers/${id}/consultations?page=${page}&size=${size}`
     );
     return response.data;
   } catch (error) {
@@ -173,13 +172,12 @@ export const getCustomerConsultations = async (
 // 고객 계약 목록 조회 API
 export const getCustomerContracts = async (
   id: number,
-  customerName: string,
   page: number,
   size: number
 ): Promise<ApiResponse<ContractListResDto>> => {
   try {
     const response = await apiClient.get<ApiResponse<ContractListResDto>>(
-      `/customers/${id}/contracts?customerName=${encodeURIComponent(customerName)}&page=${page}&size=${size}`
+      `/customers/${id}/contracts?page=${page}&size=${size}`
     );
     return response.data;
   } catch (error) {
@@ -196,13 +194,12 @@ export const getCustomerContracts = async (
 // 고객 문의 목록 조회 API
 export const getCustomerInquiries = async (
   id: number,
-  customerName: string,
   page: number,
   size: number
 ): Promise<ApiResponse<InquiryListResponse>> => {
   try {
     const response = await apiClient.get<ApiResponse<InquiryListResponse>>(
-      `/customers/${id}/inquiries?customerName=${encodeURIComponent(customerName)}&page=${page}&size=${size}`
+      `/customers/${id}/inquiries?page=${page}&size=${size}`
     );
     return response.data;
   } catch (error) {
@@ -216,50 +213,44 @@ export const getCustomerInquiries = async (
   }
 };
 
-export const getCustomerSaleContracts = async (
+export const getCustomerSellContracts = async (
   customerId: number,
-  customerName: string,
   page: number = 1,
   size: number = 5
 ): Promise<ApiResponse<ContractListResDto>> => {
   try {
     const response = await apiClient.get<ApiResponse<ContractListResDto>>(
-      `/customers/${customerId}/sell-contracts`,
-      {
-        params: {
-          page,
-          size,
-          customerName,
-        },
-      }
+      `/customers/${customerId}/sell-contracts?page=${page}&size=${size}`
     );
     return response.data;
   } catch (error) {
-    console.error('매도 계약 내역 조회 중 오류가 발생했습니다:', error);
-    throw error;
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<ContractListResDto>;
+    }
+    return {
+      success: false,
+      error: '고객 매도 계약 목록을 불러오는 중 오류가 발생했습니다.',
+    };
   }
 };
 
-export const getCustomerPurchaseContracts = async (
+export const getCustomerBuyContracts = async (
   customerId: number,
-  customerName: string,
   page: number = 1,
   size: number = 5
 ): Promise<ApiResponse<ContractListResDto>> => {
   try {
     const response = await apiClient.get<ApiResponse<ContractListResDto>>(
-      `/customers/${customerId}/buy-contracts`,
-      {
-        params: {
-          page,
-          size,
-          customerName,
-        },
-      }
+      `/customers/${customerId}/buy-contracts?page=${page}&size=${size}`
     );
     return response.data;
   } catch (error) {
-    console.error('매수 계약 내역 조회 중 오류가 발생했습니다:', error);
-    throw error;
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<ContractListResDto>;
+    }
+    return {
+      success: false,
+      error: '고객 매수 계약 목록을 불러오는 중 오류가 발생했습니다.',
+    };
   }
 };

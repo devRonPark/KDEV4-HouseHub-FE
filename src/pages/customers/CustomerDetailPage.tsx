@@ -18,8 +18,8 @@ import {
   getCustomerById,
   updateMyCustomer,
   getCustomerConsultations,
-  getCustomerSaleContracts,
-  getCustomerPurchaseContracts,
+  getCustomerSellContracts,
+  getCustomerBuyContracts,
   getCustomerInquiries,
 } from '../../api/customer';
 import { useToast } from '../../context/useToast';
@@ -104,41 +104,26 @@ const CustomerDetailPage: React.FC = () => {
         let response;
         switch (activeTab) {
           case 'consultation':
-            response = await getCustomerConsultations(
-              Number(id),
-              customer.name,
-              currentPage,
-              pageSize
-            );
+            response = await getCustomerConsultations(Number(id), currentPage, pageSize);
             if (response.success && response.data) {
               setConsultations(response.data);
             }
             break;
           case 'contract':
             if (activeContractTab === 'sale') {
-              response = await getCustomerSaleContracts(
-                Number(id),
-                customer.name,
-                saleCurrentPage,
-                pageSize
-              );
+              response = await getCustomerSellContracts(Number(id), saleCurrentPage, pageSize);
               if (response.success && response.data) {
                 setContracts(response.data);
               }
             } else {
-              response = await getCustomerPurchaseContracts(
-                Number(id),
-                customer.name,
-                purchaseCurrentPage,
-                pageSize
-              );
+              response = await getCustomerBuyContracts(Number(id), purchaseCurrentPage, pageSize);
               if (response.success && response.data) {
                 setContracts(response.data);
               }
             }
             break;
           case 'inquiry':
-            response = await getCustomerInquiries(Number(id), customer.name, currentPage, pageSize);
+            response = await getCustomerInquiries(Number(id), currentPage, pageSize);
             if (response.success && response.data) {
               setInquiries(response.data);
             }
@@ -594,7 +579,7 @@ const CustomerDetailPage: React.FC = () => {
                         <div
                           key={inquiry.inquiryId}
                           className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
-                          onClick={() => navigate(`/inquiries/${inquiry.inquiryId}`)}
+                          onClick={() => navigate(`/inquiries/${inquiry.inquiryId}/answers`)}
                         >
                           <div className="flex justify-between items-start">
                             <div>

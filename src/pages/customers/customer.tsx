@@ -20,7 +20,6 @@ import Input from '../../components/ui/Input';
 import Pagination from '../../components/ui/Pagination';
 import Modal from '../../components/ui/Modal';
 import CustomerForm from '../../components/customers/CustomerForm';
-import CustomerDetailModal from '../../components/customers/CustomerDetailModal';
 import { formatPhoneNumber } from '../../utils/format';
 import { useToast } from '../../context/useToast';
 import type { CreateCustomerReqDto, Customer } from '../../types/customer';
@@ -49,7 +48,6 @@ const CustomersPage = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -531,14 +529,6 @@ const CustomersPage = () => {
           </div>
         </div>
       </Modal>
-
-      {/* 고객 상세 정보 모달 */}
-      <CustomerDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        customer={selectedCustomer}
-        onUpdate={handleUpdateCustomer}
-      />
 
       {/* 엑셀 업로드 모달 */}
       <Modal
