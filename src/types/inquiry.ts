@@ -24,6 +24,7 @@ export interface Question {
 
 // 템플릿 인터페이스
 export interface InquiryTemplate {
+  description: string;
   name: string;
   questions: Question[];
 }

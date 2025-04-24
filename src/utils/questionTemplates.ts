@@ -3,7 +3,7 @@ import type { Question, QuestionType } from '../types/inquiryTemplate';
 
 // 유형별 기본 질문 생성 함수
 export const generateTypeBasedQuestions = (
-  inquiryType: string,
+  propertyType: string,
   transactionPurpose: string
 ): Question[] => {
   // 공통 질문
@@ -530,7 +530,7 @@ export const generateTypeBasedQuestions = (
     ],
   };
 
-  const typeKey = `${inquiryType}_${transactionPurpose}`;
+  const typeKey = `${propertyType}_${transactionPurpose}`;
 
   // 해당 유형의 특화 질문이 있으면 반환, 없으면 공통 질문만 반환
   return typeSpecificQuestions[typeKey]
@@ -539,13 +539,13 @@ export const generateTypeBasedQuestions = (
 };
 
 // 유형 필드 생성 함수
-export const createTypeField = (inquiryType: string, transactionPurpose: string): Question => {
+export const createTypeField = (propertyType: string, transactionPurpose: string): Question => {
   return {
     id: uuidv4(),
     label: '유형',
     type: 'SELECT' as QuestionType,
     isRequired: true,
     questionOrder: 0, // 임시 순서, 나중에 조정됨
-    options: [`${inquiryType}_${transactionPurpose}`],
+    options: [`${propertyType}_${transactionPurpose}`],
   };
 };

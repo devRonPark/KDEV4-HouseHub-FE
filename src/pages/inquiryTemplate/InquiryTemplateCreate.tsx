@@ -24,6 +24,7 @@ import {
 import type {
   InquiryTemplate,
   InquiryTemplateRequest,
+  InquiryTemplateType,
   Question,
 } from '../../types/inquiryTemplate';
 import { getObjectDiff } from '../../utils/objectUtil';
@@ -48,12 +49,12 @@ const InquiryTemplateCreate: React.FC = () => {
     name?: string;
     description?: string;
     questions?: string;
-    inquiryType?: string;
+    propertyType?: string;
   }>({});
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
   // 문의 유형 및 거래 목적 상태 추가
-  const [inquiryType, setInquiryType] = useState('');
+  const [propertyType, setPropertyType] = useState('');
   const [transactionPurpose, setTransactionPurpose] = useState('');
   const [typeFieldAdded, setTypeFieldAdded] = useState(false);
 
@@ -89,11 +90,11 @@ const InquiryTemplateCreate: React.FC = () => {
             );
 
             const typeQuestion = sortedQuestions.find((q) => q.label === '유형');
-            if (typeQuestion && typeQuestion.options?.length > 0) {
+            if (typeQuestion && typeQuestion.options && typeQuestion.options?.length > 0) {
               const typeValue = typeQuestion.options[0];
               const [type, purpose] = typeValue.split('_');
               if (type && purpose) {
-                setInquiryType(type);
+                setPropertyType(type);
                 setTransactionPurpose(purpose);
                 setTypeFieldAdded(true);
               }
@@ -234,7 +235,7 @@ const InquiryTemplateCreate: React.FC = () => {
     // 유형 필드를 삭제하는 경우 typeFieldAdded 상태 업데이트
     if (questionToDelete && questionToDelete.label === '유형') {
       setTypeFieldAdded(false);
-      setInquiryType('');
+      setPropertyType('');
       setTransactionPurpose('');
     }
 
@@ -263,7 +264,7 @@ const InquiryTemplateCreate: React.FC = () => {
       name?: string;
       description?: string;
       questions?: string;
-      inquiryType?: string;
+      propertyType?: string;
     } = {};
 
     if (!name.trim()) {
@@ -278,9 +279,9 @@ const InquiryTemplateCreate: React.FC = () => {
       newErrors.questions = '최소 1개 이상의 질문을 추가해주세요.';
     }
 
-    // 문의 유형과 거래 목적 검증
-    if ((!inquiryType || !transactionPurpose) && !typeFieldAdded) {
-      newErrors.inquiryType = '문의 유형과 거래 목적을 모두 선택해주세요.';
+    // 매물 유형과 거래 목적 검증
+    if ((!propertyType || !transactionPurpose) && !typeFieldAdded) {
+      newErrors.propertyType = '매물 유형과 거래 목적을 모두 선택해주세요.';
     }
 
     // 필수 항목 검증 (연락처, 마케팅 수신 동의 여부, 연락 가능 시간)
@@ -302,6 +303,7 @@ const InquiryTemplateCreate: React.FC = () => {
 
     try {
       const templateData: InquiryTemplateRequest = {
+        type: `${propertyType}_${transactionPurpose}` as unknown as InquiryTemplateType,
         name,
         description,
         isActive,
@@ -315,6 +317,7 @@ const InquiryTemplateCreate: React.FC = () => {
         if (originalTemplate) {
           // 원본 템플릿과 현재 템플릿 비교하여 변경된 필드만 추출
           const originalData = {
+            type: originalTemplate.type,
             name: originalTemplate.name,
             description: originalTemplate.description,
             isActive: originalTemplate.isActive,
@@ -467,25 +470,25 @@ const InquiryTemplateCreate: React.FC = () => {
               </div>
             </Paper>
 
-            {/* 문의 유형 및 거래 목적 섹션 */}
+            {/* 매물 유형 및 거래 목적 섹션 */}
             <Paper className="p-6 shadow-sm">
               <Typography variant="h6" className="mb-4 font-medium text-gray-900">
-                문의 유형 및 거래 목적
+                매물 유형 및 거래 목적
               </Typography>
 
               <InquiryTypeSelector
-                inquiryType={inquiryType}
+                propertyType={propertyType}
                 transactionPurpose={transactionPurpose}
-                onInquiryTypeChange={setInquiryType}
+                onPropertyTypeChange={setPropertyType}
                 onTransactionPurposeChange={setTransactionPurpose}
                 onTypeSelected={handleTypeSelected}
-                error={errors.inquiryType}
+                error={errors.propertyType}
               />
 
               <Divider className="my-4" />
 
               <Typography variant="body2" className="text-gray-600">
-                문의 유형과 거래 목적을 선택하면 자동으로 '유형' 필드와 관련 기본 질문들이 생성되며,
+                매물 유형과 거래 목적을 선택하면 자동으로 '유형' 필드와 관련 기본 질문들이 생성되며,
                 템플릿 설명도 자동으로 채워집니다.
               </Typography>
             </Paper>
@@ -518,7 +521,7 @@ const InquiryTemplateCreate: React.FC = () => {
               {questions.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
                   <p className="text-gray-500">
-                    문의 유형과 거래 목적을 선택하여 기본 질문을 생성하거나, 직접 질문을
+                    매물 유형과 거래 목적을 선택하여 기본 질문을 생성하거나, 직접 질문을
                     추가해주세요.
                   </p>
                 </div>
@@ -588,6 +591,7 @@ const InquiryTemplateCreate: React.FC = () => {
           question={currentQuestion}
           onSave={handleSaveQuestion}
           onCancel={() => setIsQuestionModalOpen(false)}
+          previewMode={false}
         />
       </Modal>
 

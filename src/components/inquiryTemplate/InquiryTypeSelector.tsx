@@ -11,25 +11,25 @@ import {
 } from '@mui/material';
 
 interface InquiryTypeSelectorProps {
-  inquiryType: string;
+  propertyType: string;
   transactionPurpose: string;
-  onInquiryTypeChange: (value: string) => void;
+  onPropertyTypeChange: (value: string) => void;
   onTransactionPurposeChange: (value: string) => void;
   onTypeSelected: (type: string, purpose: string) => void;
   error?: string;
 }
 
 const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
-  inquiryType,
+  propertyType,
   transactionPurpose,
-  onInquiryTypeChange,
+  onPropertyTypeChange,
   onTransactionPurposeChange,
   onTypeSelected,
   error,
 }) => {
-  const handleInquiryTypeChange = (event: SelectChangeEvent) => {
+  const handlePropertyTypeChange = (event: SelectChangeEvent) => {
     const newType = event.target.value;
-    onInquiryTypeChange(newType);
+    onPropertyTypeChange(newType);
 
     // 둘 다 선택되었을 때 상위 컴포넌트에 알림
     if (newType && transactionPurpose) {
@@ -42,23 +42,23 @@ const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
     onTransactionPurposeChange(newPurpose);
 
     // 둘 다 선택되었을 때 상위 컴포넌트에 알림
-    if (inquiryType && newPurpose) {
-      onTypeSelected(inquiryType, newPurpose);
+    if (propertyType && newPurpose) {
+      onTypeSelected(propertyType, newPurpose);
     }
   };
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 문의 유형 선택 */}
+        {/* 매물 유형 선택 */}
         <FormControl fullWidth error={!!error} variant="outlined" size="small">
-          <InputLabel id="inquiry-type-label">문의 유형</InputLabel>
+          <InputLabel id="property-type-label">매물 유형</InputLabel>
           <Select
-            labelId="inquiry-type-label"
-            id="inquiry-type"
-            value={inquiryType}
-            onChange={handleInquiryTypeChange}
-            label="문의 유형"
+            labelId="property-type-label"
+            id="property-type"
+            value={propertyType}
+            onChange={handlePropertyTypeChange}
+            label="매물 유형"
             className="bg-white"
           >
             <MenuItem value="">선택해주세요</MenuItem>
@@ -94,10 +94,10 @@ const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
       {error && <FormHelperText className="text-red-500">{error}</FormHelperText>}
 
       {/* 미리보기 */}
-      {inquiryType && transactionPurpose && (
+      {propertyType && transactionPurpose && (
         <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
           <p className="text-sm font-medium text-gray-700">유형 필드 미리보기:</p>
-          <p className="text-sm font-bold text-blue-600 mt-1">{`${inquiryType}_${transactionPurpose}`}</p>
+          <p className="text-sm font-bold text-blue-600 mt-1">{`${propertyType}_${transactionPurpose}`}</p>
         </div>
       )}
     </div>
