@@ -2,6 +2,7 @@
 
 import type React from 'react';
 import { useState, useEffect } from 'react';
+import { Share2 } from 'react-feather';
 import { getInquiryTemplateById } from '../../api/inquiryTemplate';
 import { QuestionType, type InquiryTemplate, type Question } from '../../types/inquiryTemplate';
 import { useToast } from '../../context/useToast';
@@ -9,6 +10,7 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { Calendar, Paperclip, Mail, Phone, Hash } from 'react-feather';
 import InquiryTemplatePreviewInfo from './InquiryTemplatePreviewInfo';
+import ShareTemplateDialog from './ShareTemplateDialog';
 
 interface InquiryTemplatePreviewProps {
   inquiryTemplate: InquiryTemplate;
@@ -22,6 +24,7 @@ const InquiryTemplatePreview: React.FC<InquiryTemplatePreviewProps> = ({
   const [template, setTemplate] = useState<InquiryTemplate | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(true);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -34,7 +37,7 @@ const InquiryTemplatePreview: React.FC<InquiryTemplatePreviewProps> = ({
         } else {
           showToast(response.error || '템플릿 상세 정보를 불러오는데 실패했습니다.', 'error');
         }
-      } catch (error) {
+      } catch {
         showToast('템플릿 상세 정보를 불러오는 중 오류가 발생했습니다.', 'error');
       } finally {
         setIsLoading(false);
@@ -43,6 +46,11 @@ const InquiryTemplatePreview: React.FC<InquiryTemplatePreviewProps> = ({
 
     fetchTemplateDetails();
   }, [initialTemplate.id, showToast]);
+
+  // 공유 다이얼로그 열기
+  const handleOpenShareDialog = () => {
+    setShareDialogOpen(true);
+  };
 
   // 질문 유형에 따른 입력 필드 렌더링
   const renderQuestionField = (question: Question) => {
@@ -232,6 +240,34 @@ const InquiryTemplatePreview: React.FC<InquiryTemplatePreviewProps> = ({
             </div>
           </div>
         );
+      case QuestionType.REGION:
+        return (
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">
+              {question.label} {question.isRequired && <span className="text-red-500">*</span>}
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <select
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                disabled
+              >
+                <option value="">도/특별시/광역시 선택</option>
+              </select>
+              <select
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                disabled
+              >
+                <option value="">시/군/구 선택</option>
+              </select>
+              <select
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                disabled
+              >
+                <option value="">읍/면/동 선택</option>
+              </select>
+            </div>
+          </div>
+        );
       default:
         return (
           <Input
@@ -308,16 +344,25 @@ const InquiryTemplatePreview: React.FC<InquiryTemplatePreviewProps> = ({
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="px-6 py-4 bg-blue-600 text-white flex justify-between items-center">
         <h3 className="text-lg font-medium">문의 템플릿 미리보기: {template.name}</h3>
-        <button onClick={onClose} className="text-white hover:text-gray-200 focus:outline-none">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleOpenShareDialog}
+            className="text-white hover:text-gray-200 focus:outline-none flex items-center"
+            title="템플릿 공유"
+          >
+            <Share2 size={20} />
+          </button>
+          <button onClick={onClose} className="text-white hover:text-gray-200 focus:outline-none">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
       <div className="p-6">
         {/* 템플릿 정보/폼 토글 */}
@@ -326,6 +371,7 @@ const InquiryTemplatePreview: React.FC<InquiryTemplatePreviewProps> = ({
             template={template}
             onToggleView={() => setShowForm(!showForm)}
             showForm={showForm}
+            onShare={handleOpenShareDialog}
           />
         )}
 
@@ -382,6 +428,15 @@ const InquiryTemplatePreview: React.FC<InquiryTemplatePreviewProps> = ({
           닫기
         </button>
       </div>
+
+      {/* 공유 다이얼로그 */}
+      <ShareTemplateDialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        templateId={template.id}
+        templateName={template.name}
+        shareToken={template.shareToken || template.id}
+      />
     </div>
   );
 };
