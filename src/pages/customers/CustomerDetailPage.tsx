@@ -58,6 +58,19 @@ const CustomerDetailPage: React.FC = () => {
   const [saleCurrentPage, setSaleCurrentPage] = useState(1);
   const [purchaseCurrentPage, setPurchaseCurrentPage] = useState(1);
 
+  // 페이지 변경 핸들러 추가
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleSalePageChange = (page: number) => {
+    setSaleCurrentPage(page);
+  };
+
+  const handlePurchasePageChange = (page: number) => {
+    setPurchaseCurrentPage(page);
+  };
+
   useEffect(() => {
     const fetchCustomer = async () => {
       if (!id) return;
@@ -424,6 +437,30 @@ const CustomerDetailPage: React.FC = () => {
                       </p>
                     </div>
                   )}
+
+                  {/* 페이지네이션 컴포넌트 추가 */}
+                  {consultations && (
+                    <div className="mt-4 flex justify-center">
+                      <div className="flex space-x-2">
+                        {Array.from(
+                          { length: Math.ceil(consultations.pagination.totalElements / pageSize) },
+                          (_, i) => (
+                            <button
+                              key={i + 1}
+                              onClick={() => handlePageChange(i + 1)}
+                              className={`px-3 py-1 rounded ${
+                                currentPage === i + 1
+                                  ? 'bg-blue-500 text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
+                            >
+                              {i + 1}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -512,6 +549,37 @@ const CustomerDetailPage: React.FC = () => {
                           ? '아직 기록된 매도 계약 내역이 없습니다.'
                           : '아직 기록된 매수 계약 내역이 없습니다.'}
                       </p>
+                    </div>
+                  )}
+
+                  {/* 페이지네이션 컴포넌트 추가 */}
+                  {contracts && (
+                    <div className="mt-4 flex justify-center">
+                      <div className="flex space-x-2">
+                        {Array.from(
+                          { length: Math.ceil(contracts.pagination.totalElements / pageSize) },
+                          (_, i) => (
+                            <button
+                              key={i + 1}
+                              onClick={() =>
+                                activeContractTab === 'sale'
+                                  ? handleSalePageChange(i + 1)
+                                  : handlePurchasePageChange(i + 1)
+                              }
+                              className={`px-3 py-1 rounded ${
+                                (activeContractTab === 'sale'
+                                  ? saleCurrentPage
+                                  : purchaseCurrentPage) ===
+                                i + 1
+                                  ? 'bg-blue-500 text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
+                            >
+                              {i + 1}
+                            </button>
+                          )
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
