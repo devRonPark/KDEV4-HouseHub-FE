@@ -2,34 +2,23 @@
 
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Search,
-  RefreshCw,
-  ChevronDown,
-  ChevronUp,
-  Calendar,
-  Mail,
-  Phone,
-  User,
-} from 'react-feather';
+import { useNavigate } from 'react-router-dom';
+import { Search, RefreshCw, ChevronDown, ChevronUp, Calendar, User } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import Modal from '../../components/ui/Modal';
 import { useToast } from '../../context/useToast';
-import { getInquiries, getInquiryById } from '../../api/inquiry';
-import type { InquiryListItem, InquiryDetail, InquiryFilter } from '../../types/inquiry';
-import { CustomerType } from '../../types/inquiry'; // Import CustomerType
+import { getInquiries } from '../../api/inquiry';
+import type { InquiryListItem, InquiryFilter } from '../../types/inquiry';
+import { CustomerType } from '../../types/inquiry';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 const InquiryManagement: React.FC = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [inquiries, setInquiries] = useState<InquiryListItem[]>([]);
-  const [selectedInquiry, setSelectedInquiry] = useState<InquiryDetail | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [filter, setFilter] = useState<InquiryFilter>({
     keyword: '',
@@ -95,37 +84,23 @@ const InquiryManagement: React.FC = () => {
     }));
   };
 
-  // 문의 상세 조회
-  const handleViewDetail = async (inquiryId: number) => {
-    setIsDetailLoading(true);
-    try {
-      const response = await getInquiryById(inquiryId);
-      if (response.success && response.data) {
-        setSelectedInquiry(response.data);
-        setIsDetailModalOpen(true);
-      } else {
-        showToast(response.error || '문의 상세 정보를 불러오는데 실패했습니다.', 'error');
-      }
-    } catch (error) {
-      console.error('문의 상세 정보를 불러오는 중 오류가 발생했습니다:', error);
-      showToast('문의 상세 정보를 불러오는 중 오류가 발생했습니다.', 'error');
-    } finally {
-      setIsDetailLoading(false);
-    }
+  // 문의 상세 페이지로 이동
+  const handleViewDetail = (inquiryId: number) => {
+    navigate(`/inquiries/${inquiryId}/answers`);
   };
 
   // 날짜 포맷 함수
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'yyyy년 MM월 dd일 HH:mm', { locale: ko });
-    } catch (error) {
+    } catch {
       return dateString;
     }
   };
 
   // 고객 유형 표시 함수
   const getCustomerTypeText = (type: CustomerType) => {
-    return type === CustomerType.CUSTOMER ? '고객' : '잠재 고객';
+    return type === CustomerType.CUSTOMER ? '고객' : '고객 후보';
   };
 
   // 고객 유형에 따른 배지 색상
@@ -405,83 +380,6 @@ const InquiryManagement: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* 문의 상세 모달 */}
-      <Modal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        title="문의 상세 정보"
-        size="lg"
-      >
-        {isDetailLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : selectedInquiry ? (
-          <div className="p-4">
-            {/* 고객 정보 섹션 */}
-            <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">고객 정보</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center">
-                  <User className="h-5 w-5 text-gray-400 mr-2" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">고객명</div>
-                    <div className="text-sm text-gray-900">{selectedInquiry.customerName}</div>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Mail className="h-5 w-5 text-gray-400 mr-2" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">이메일</div>
-                    <div className="text-sm text-gray-900">{selectedInquiry.customerEmail}</div>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Phone className="h-5 w-5 text-gray-400 mr-2" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">연락처</div>
-                    <div className="text-sm text-gray-900">{selectedInquiry.customerContact}</div>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 text-gray-400 mr-2" />
-                  <div>
-                    <div className="text-sm font-medium text-gray-500">문의일시</div>
-                    <div className="text-sm text-gray-900">
-                      {formatDate(selectedInquiry.createdAt)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 질문/답변 섹션 */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">문의 내용</h3>
-              <div className="space-y-4">
-                {selectedInquiry.answers.map((answer, index) => (
-                  <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
-                    <div className="font-medium text-gray-900 mb-2">{answer.questionContent}</div>
-                    <div className="text-gray-700 whitespace-pre-wrap">
-                      {answer.answer || <span className="text-gray-400">응답 없음</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 하단 버튼 */}
-            <div className="mt-6 flex justify-end">
-              <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>
-                닫기
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 text-center text-gray-500">문의 정보를 불러올 수 없습니다.</div>
-        )}
-      </Modal>
     </DashboardLayout>
   );
 };
