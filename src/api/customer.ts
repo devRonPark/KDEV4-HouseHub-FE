@@ -169,28 +169,6 @@ export const getCustomerConsultations = async (
   }
 };
 
-// 고객 계약 목록 조회 API
-export const getCustomerContracts = async (
-  id: number,
-  page: number,
-  size: number
-): Promise<ApiResponse<ContractListResDto>> => {
-  try {
-    const response = await apiClient.get<ApiResponse<ContractListResDto>>(
-      `/customers/${id}/contracts?page=${page}&size=${size}`
-    );
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<ContractListResDto>;
-    }
-    return {
-      success: false,
-      error: '고객 계약 목록을 불러오는 중 오류가 발생했습니다.',
-    };
-  }
-};
-
 // 고객 문의 목록 조회 API
 export const getCustomerInquiries = async (
   id: number,

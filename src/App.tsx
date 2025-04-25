@@ -16,7 +16,7 @@ import ContractRegistration from './pages/contract/ContractRegistration';
 import ContractDetail from './pages/contract/ContractDetail';
 import ContractEdit from './pages/contract/ContractEdit';
 import LoadingScreen from './components/ui/LoadingScreen';
-import CustomersPage from './pages/customers/customer';
+import CustomersPage from './pages/customers/Customer';
 import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
 import InquiryTemplateCreate from './pages/inquiryTemplate/InquiryTemplateCreate';

@@ -35,16 +35,12 @@ const CustomersPage = () => {
     size: 10,
   });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  // 검색 필드 상태 분리
-  // 검색어는 하나로만 해요. > 백엔드에서 검색 대상: 이름, 이메일, 연락처 하면 됨.
   const [filter, setFilter] = useState({
     keyword: '',
     page: 1,
     size: 10,
   });
-  const [searchBtnClicked, setSearchBtnClicked] = useState(false);
-
+  const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -53,15 +49,12 @@ const CustomersPage = () => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const itemsPerPage = 10;
-
   const navigate = useNavigate();
 
   // 고객 데이터 로드 함수
   const loadCustomers = useCallback(async () => {
     setIsLoading(true);
     try {
-      // API 호출
       const response = await getMyCustomers({
         keyword: filter.keyword,
         page: filter.page,
@@ -82,33 +75,18 @@ const CustomersPage = () => {
     }
   }, [showToast, filter]);
 
-  // 데이터 로딩
+  // 데이터 로딩 및 필터 변경 시 리로드
   useEffect(() => {
     loadCustomers();
-  }, []);
-
-  useEffect(() => {
-    if (searchBtnClicked) {
-      loadCustomers();
-      setSearchBtnClicked(false);
-    }
-  }, [filter, searchBtnClicked]);
+  }, [loadCustomers]);
 
   // 검색 실행 함수
   const handleSearch = () => {
     setFilter((prev) => ({
       ...prev,
-      keyword: filter.keyword,
+      keyword: searchKeyword,
       page: 1,
     }));
-    setSearchBtnClicked(true);
-  };
-
-  // 검색어 입력 시 Enter 키 처리
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
   };
 
   // 페이지 변경 핸들러
@@ -117,7 +95,6 @@ const CustomersPage = () => {
       ...prev,
       page: newPage,
     }));
-    setSearchBtnClicked(true);
   };
 
   // 고객 상세 정보 모달 열기
@@ -349,8 +326,8 @@ const CustomersPage = () => {
   ];
 
   // Calculate the range of customers being displayed
-  const startIndex = (pagination.currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(pagination.currentPage * itemsPerPage, pagination.totalElements);
+  const startIndex = (pagination.currentPage - 1) * pagination.size + 1;
+  const endIndex = Math.min(pagination.currentPage * pagination.size, pagination.totalElements);
 
   return (
     <DashboardLayout>
@@ -410,9 +387,13 @@ const CustomersPage = () => {
                   label="키워드 검색"
                   id="keyword-search"
                   placeholder="이름, 이메일, 연락처로 검색"
-                  value={filter.keyword}
-                  onChange={(e) => setFilter((prev) => ({ ...prev, keyword: e.target.value }))}
-                  onKeyDown={handleKeyPress}
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearch();
+                    }
+                  }}
                   leftIcon={<Search size={16} />}
                 />
               </div>
