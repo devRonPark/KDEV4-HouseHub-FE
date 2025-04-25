@@ -105,9 +105,20 @@ const ContractDetail: React.FC = () => {
           </Button>
           <Button
             variant="primary"
-            onClick={() => navigate(`/contracts/edit/${id}`)}
+            onClick={() => {
+              if (!id) {
+                showToast('계약 ID가 없습니다.', 'error');
+                return;
+              }
+              try {
+                navigate(`/contracts/edit/${id}`);
+              } catch (error) {
+                console.error('Navigation error:', error);
+                showToast('페이지 이동 중 오류가 발생했습니다.', 'error');
+              }
+            }}
             leftIcon={<Edit2 size={16} />}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !id}
           >
             수정
           </Button>
@@ -235,23 +246,27 @@ const ContractDetail: React.FC = () => {
 
               {/* 고객 정보 */}
               <div>
-                <h2 className="text-lg font-medium text-gray-900 mb-4">고객 정보</h2>
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <User className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">이름: {contract.customer.name}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <User className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">연락처: {contract.customer.contact}</span>
-                  </div>
-                  {contract.customer.email && (
+                <h2 className="text-lg font-medium text-gray-900 mb-4">계약자 정보</h2>
+                {contract.customer ? (
+                  <div className="space-y-4">
                     <div className="flex items-center">
                       <User className="h-5 w-5 text-gray-400 mr-2" />
-                      <span className="text-gray-700">이메일: {contract.customer.email}</span>
+                      <span className="text-gray-700">이름: {contract.customer.name}</span>
                     </div>
-                  )}
-                </div>
+                    <div className="flex items-center">
+                      <User className="h-5 w-5 text-gray-400 mr-2" />
+                      <span className="text-gray-700">연락처: {contract.customer.contact}</span>
+                    </div>
+                    {contract.customer.email && (
+                      <div className="flex items-center">
+                        <User className="h-5 w-5 text-gray-400 mr-2" />
+                        <span className="text-gray-700">이메일: {contract.customer.email}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">고객 정보가 없습니다.</p>
+                )}
               </div>
             </div>
 

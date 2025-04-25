@@ -78,7 +78,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
               <div className="flex items-center mt-2">
                 <div className="flex items-center text-sm text-gray-500 mr-4">
                   <User className="h-4 w-4 mr-1" />
-                  {contract.customer.name}
+                  {contract.customer?.name || '계약자를 등록해주세요.'}
                 </div>
                 {contract.startedAt && contract.expiredAt && (
                   <div className="flex items-center text-sm text-gray-500">

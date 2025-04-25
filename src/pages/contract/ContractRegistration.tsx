@@ -1,9 +1,9 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, FileText, Calendar, CheckCircle, Edit, User } from 'react-feather';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, FileText, Calendar, CheckCircle, Edit, User, AlertCircle } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -11,7 +11,6 @@ import Input from '../../components/ui/Input';
 import Textarea from '../../components/ui/Textarea';
 import { useToast } from '../../context/useToast';
 import { registerContract } from '../../api/contract';
-import { getPropertyById } from '../../api/property';
 import {
   ContractType,
   ContractTypeLabels,
@@ -21,7 +20,7 @@ import {
 } from '../../types/contract';
 import { PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
-import { CreateCustomerResDto } from '../../types/customer';
+import type { CreateCustomerResDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 
 // 계약 유형 선택 버튼 컴포넌트
@@ -70,15 +69,16 @@ const ContractStatusButton: React.FC<{
 
 const ContractRegistration: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  // const location = useLocation();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // URL 파라미터에서 propertyId 추출
-  const queryParams = new URLSearchParams(location.search);
-  const propertyIdParam = queryParams.get('propertyId');
+  // const queryParams = new URLSearchParams(location.search);
+  // const propertyIdParam = queryParams.get('propertyId');
 
   // 폼 상태 관리
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
@@ -94,34 +94,39 @@ const ContractRegistration: React.FC = () => {
   const [completedDate, setCompletedDate] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
 
-  // propertyId가 URL 파라미터로 제공된 경우 해당 매물 정보 로드
+  // 계약 상태에 따른 고객 선택 필요 여부
+  const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
+
+  // 계약 상태 변경 시 고객 정보 초기화
   useEffect(() => {
-    const loadPropertyData = async () => {
-      if (!propertyIdParam) return;
+    if (contractStatus === ContractStatus.AVAILABLE) {
+      setSelectedCustomer(null);
+    }
+  }, [contractStatus]);
 
-      try {
-        const response = await getPropertyById(Number(propertyIdParam));
-        if (response.success && response.data) {
-          setSelectedProperty(response.data);
-        } else {
-          showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
-        }
-      } catch {
-        showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
-      }
-    };
+  // propertyId가 URL 파라미터로 제공된 경우 해당 매물 정보 로드
+  // useEffect(() => {
+  //   const loadPropertyData = async () => {
+  //     if (!propertyIdParam) return;
 
-    loadPropertyData();
-  }, [propertyIdParam, showToast]);
+  //     try {
+  //       const response = await getPropertyById(Number(propertyIdParam));
+  //       if (response.success && response.data) {
+  //         setSelectedProperty(response.data);
+  //       } else {
+  //         showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
+  //       }
+  //     } catch {
+  //       showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
+  //     }
+  //   };
+
+  //   loadPropertyData();
+  // }, [propertyIdParam, showToast]);
 
   const handlePropertySelect = async (property: FindPropertyResDto) => {
     // 선택된 매물 정보를 바로 사용
-    setSelectedProperty({
-      id: property.id,
-      roadAddress: property.roadAddress,
-      detailAddress: property.detailAddress,
-      propertyType: property.propertyType,
-    } as FindPropertyResDto);
+    setSelectedProperty(property);
     showToast('매물이 성공적으로 선택되었습니다.', 'success');
   };
 
@@ -139,6 +144,10 @@ const ContractRegistration: React.FC = () => {
 
   // 고객 변경 버튼 클릭 핸들러
   const handleChangeCustomer = () => {
+    // if (contractStatus === ContractStatus.IN_PROGRESS) {
+    //   showToast('계약 진행 중 상태에서는 고객을 선택할 수 없습니다.', 'error');
+    //   return;
+    // }
     setIsCustomerModalOpen(true);
   };
 
@@ -149,6 +158,9 @@ const ContractRegistration: React.FC = () => {
 
   // 계약 상태가 완료인 경우 완료일 필드 표시
   const showCompletedDate = contractStatus === ContractStatus.COMPLETED;
+
+  // 계약 상태가 진행 중인 경우에만 계약 기간 필드 표시
+  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE;
 
   // 계약 유형 변경 시 가격 필드 초기화
   useEffect(() => {
@@ -169,20 +181,9 @@ const ContractRegistration: React.FC = () => {
       return;
     }
 
-    if (!selectedCustomer) {
-      showToast('고객을 선택해주세요.', 'error');
-      return;
-    }
-
-    // 계약 상태가 완료인데 완료일이 없는 경우
-    if (showCompletedDate && !completedDate) {
-      showToast('계약 완료 상태일 경우, 거래 완료일은 필수입니다.', 'error');
-      return;
-    }
-
-    // 계약 기간 검증
-    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-      showToast('계약 기간이 올바르지 않습니다.', 'error');
+    // 계약 상태에 따른 고객 필드 검증
+    if (isCustomerRequired && !selectedCustomer) {
+      showToast('계약 중 또는 계약 완료 상태일 경우, 고객 선택은 필수입니다.', 'error');
       return;
     }
 
@@ -197,8 +198,38 @@ const ContractRegistration: React.FC = () => {
       return;
     }
 
-    if (showMonthlyRent && (!monthlyRentDeposit || !monthlyRentFee)) {
-      showToast('월세 계약의 경우 보증금과 월세는 필수입니다.', 'error');
+    if (showMonthlyRent) {
+      if (!monthlyRentDeposit) {
+        showToast('월세 계약의 경우 보증금은 필수입니다.', 'error');
+        return;
+      }
+      if (!monthlyRentFee) {
+        showToast('월세 계약의 경우 월세는 필수입니다.', 'error');
+        return;
+      }
+    }
+
+    // 계약 상태에 따른 날짜 필드 검증
+    if (showContractPeriod) {
+      if (!startDate) {
+        showToast('계약 진행 중 상태일 경우, 계약 시작일은 필수입니다.', 'error');
+        return;
+      }
+      if (!endDate) {
+        showToast('계약 진행 중 상태일 경우, 계약 종료일은 필수입니다.', 'error');
+        return;
+      }
+
+      // 계약 기간 검증 (시작일이 종료일보다 늦으면 안 됨)
+      if (new Date(startDate) > new Date(endDate)) {
+        showToast('계약 기간이 올바르지 않습니다. 시작일이 종료일보다 늦을 수 없습니다.', 'error');
+        return;
+      }
+    }
+
+    // 계약 상태가 완료인데 완료일이 없는 경우
+    if (showCompletedDate && !completedDate) {
+      showToast('계약 완료 상태일 경우, 거래 완료일은 필수입니다.', 'error');
       return;
     }
 
@@ -207,14 +238,34 @@ const ContractRegistration: React.FC = () => {
     try {
       const contractData: ContractReqDto = {
         propertyId: selectedProperty.id,
-        customerId: selectedCustomer.id,
+        customerId: selectedCustomer?.id ?? null,
         contractType,
         contractStatus,
-        memo: memo || undefined,
-        startedAt: startDate || undefined,
-        expiredAt: endDate || undefined,
-        completedAt: completedDate || undefined,
+        memo: memo || null,
+        startedAt: startDate || null,
+        expiredAt: endDate || null,
+        salePrice: showSalePrice ? Number(salePrice) : null,
+        jeonsePrice: showJeonsePrice ? Number(jeonsePrice) : null,
+        monthlyRentDeposit: showMonthlyRent ? Number(monthlyRentDeposit) : null,
+        monthlyRentFee: showMonthlyRent ? Number(monthlyRentFee) : null,
+        completedAt: showCompletedDate ? completedDate : null,
       };
+
+      // 계약 상태에 따라 고객 ID 추가
+      if (isCustomerRequired && selectedCustomer) {
+        contractData.customerId = selectedCustomer.id;
+      }
+
+      // 계약 진행 중일 때만 계약 기간 추가
+      if (showContractPeriod) {
+        contractData.startedAt = startDate;
+        contractData.expiredAt = endDate;
+      }
+
+      // 계약 완료일 때만 완료일 추가
+      if (showCompletedDate) {
+        contractData.completedAt = completedDate;
+      }
 
       // 계약 유형에 따라 가격 정보 추가
       if (showSalePrice) {
@@ -226,19 +277,13 @@ const ContractRegistration: React.FC = () => {
         contractData.monthlyRentFee = Number(monthlyRentFee);
       }
 
-      // 계약 상태가 완료인 경우 완료일 추가
-      if (showCompletedDate) {
-        contractData.completedAt = completedDate;
-      }
-
       const response = await registerContract(contractData);
 
       if (response.success) {
         showToast('계약이 성공적으로 등록되었습니다.', 'success');
-        // navigate('/contracts');
         setTimeout(() => {
           navigate('/contracts');
-        }, 500); // 1.5초 후 이동
+        }, 500);
       } else {
         showToast(response.error || '계약 등록에 실패했습니다.', 'error');
       }
@@ -265,7 +310,7 @@ const ContractRegistration: React.FC = () => {
       </div>
 
       <div className="mt-6">
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit} noValidate>
           <Card className="mb-6">
             <div className="space-y-6">
               {/* 매물 정보와 고객 정보를 같은 행에 배치 */}
@@ -319,9 +364,9 @@ const ContractRegistration: React.FC = () => {
                 <div className="h-full">
                   <div className="flex justify-between items-center mb-1">
                     <label className="block text-sm font-medium text-gray-700 text-left">
-                      고객 정보 <span className="text-red-500">*</span>
+                      고객 정보 {isCustomerRequired && <span className="text-red-500">*</span>}
                     </label>
-                    {selectedCustomer && (
+                    {selectedCustomer && isCustomerRequired && (
                       <Button
                         type="button"
                         variant="outline"
@@ -334,7 +379,19 @@ const ContractRegistration: React.FC = () => {
                     )}
                   </div>
 
-                  {selectedCustomer ? (
+                  {contractStatus === ContractStatus.AVAILABLE ? (
+                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
+                        <AlertCircle size={20} className="text-yellow-500" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">고객 선택 불가</p>
+                        <p className="text-sm text-gray-500">
+                          계약 가능 상태에서는 고객을 선택할 수 없습니다.
+                        </p>
+                      </div>
+                    </div>
+                  ) : selectedCustomer ? (
                     <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
                       <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
                         <User size={20} className="text-gray-500" />
@@ -346,19 +403,21 @@ const ContractRegistration: React.FC = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 bg-gray-50 rounded-md text-left flex items-center justify-start">
-                      <div className="flex flex-col items-start">
-                        <User className="h-8 w-8 text-gray-400 mb-2" />
-                        <p className="text-gray-500">고객을 선택해주세요.</p>
-                        <Button
-                          type="button"
-                          variant="primary"
-                          size="sm"
-                          className="mt-2"
-                          onClick={handleChangeCustomer}
-                        >
-                          고객 선택하기
-                        </Button>
+                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center justify-start">
+                      <div className="flex items-center gap-4">
+                        <User className="h-10 w-10 text-gray-400 mt-1" />
+                        <div className="flex flex-col">
+                          <p className="text-gray-500 mb-2">고객을 선택해주세요.</p>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            size="sm"
+                            className="mt-2"
+                            onClick={handleChangeCustomer}
+                          >
+                            고객 선택하기
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -413,7 +472,6 @@ const ContractRegistration: React.FC = () => {
                     placeholder="매매가 입력"
                     value={salePrice}
                     onChange={(e) => setSalePrice(e.target.value)}
-                    required
                   />
                 </div>
               )}
@@ -428,7 +486,6 @@ const ContractRegistration: React.FC = () => {
                     placeholder="전세가 입력"
                     value={jeonsePrice}
                     onChange={(e) => setJeonsePrice(e.target.value)}
-                    required
                   />
                 </div>
               )}
@@ -444,41 +501,39 @@ const ContractRegistration: React.FC = () => {
                       placeholder="보증금 입력"
                       value={monthlyRentDeposit}
                       onChange={(e) => setMonthlyRentDeposit(e.target.value)}
-                      required
                     />
                     <Input
                       type="number"
                       placeholder="월세 입력"
                       value={monthlyRentFee}
                       onChange={(e) => setMonthlyRentFee(e.target.value)}
-                      required
                     />
                   </div>
                 </div>
               )}
 
-              {/* 계약 기간 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                  계약 기간 <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
-                    leftIcon={<Calendar size={18} />}
-                  />
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                    leftIcon={<Calendar size={18} />}
-                  />
+              {/* 계약 기간 - 계약 진행 중일 때만 표시 */}
+              {showContractPeriod && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                    계약 기간 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      leftIcon={<Calendar size={18} />}
+                    />
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      leftIcon={<Calendar size={18} />}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* 계약 완료일 (계약 상태가 완료일 때만 표시) */}
               {showCompletedDate && (
@@ -490,7 +545,6 @@ const ContractRegistration: React.FC = () => {
                     type="date"
                     value={completedDate}
                     onChange={(e) => setCompletedDate(e.target.value)}
-                    required
                     leftIcon={<CheckCircle size={18} />}
                     className="border-green-500 focus:ring-green-500"
                   />
@@ -542,13 +596,15 @@ const ContractRegistration: React.FC = () => {
         onSelectProperty={handlePropertySelect}
         selectedPropertyId={selectedProperty?.id || null}
       />
-      {/* 고객 선택 모달 */}
-      <CustomerSelectionModal
-        isOpen={isCustomerModalOpen}
-        onClose={() => setIsCustomerModalOpen(false)}
-        onSelectCustomer={handleCustomerSelect}
-        selectedCustomerId={selectedCustomer?.id || null}
-      />
+      {/* 고객 선택 모달 - 계약 상태가 진행 중이 아닐 때만 활성화 */}
+      {isCustomerRequired && (
+        <CustomerSelectionModal
+          isOpen={isCustomerModalOpen}
+          onClose={() => setIsCustomerModalOpen(false)}
+          onSelectCustomer={handleCustomerSelect}
+          selectedCustomerId={selectedCustomer?.id || null}
+        />
+      )}
     </DashboardLayout>
   );
 };
