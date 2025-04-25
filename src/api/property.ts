@@ -74,7 +74,7 @@ export const getProperties = async (
   }
 };
 
-// 매물 상세 조회 API 수정
+// 매물 상세 조회 API
 export const getPropertyById = async (
   id: number
 ): Promise<ApiResponse<FindPropertyDetailResDto>> => {
@@ -82,7 +82,7 @@ export const getPropertyById = async (
     const response = await apiClient.get<ApiResponse<FindPropertyDetailResDto>>(
       `/properties/${id}`
     );
-    // console.log('Property detail response:', response.data);
+    console.log('Property detail response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching property details:', error);

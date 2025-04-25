@@ -222,14 +222,7 @@ const PropertyList: React.FC = () => {
             selectedType={filter.propertyType}
             onChange={handlePropertyTypeChange}
           />
-          <ActiveStatusFilter
-            selected={filter.active}
-            onChange={handleActiveStatusChange}
-            // onChange={(status) => {
-            //   setFilter((prev) => ({ ...prev, active: status }));
-            //   setSearchBtnClicked(true);
-            // }}
-          />
+          <ActiveStatusFilter selected={filter.active} onChange={handleActiveStatusChange} />
         </div>
       </div>
 

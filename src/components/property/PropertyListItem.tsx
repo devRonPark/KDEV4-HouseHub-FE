@@ -6,12 +6,16 @@ import {
   PropertyTypeLabels,
   PropertyTypeColors,
 } from '../../types/property';
+import { ContractTypeLabels } from '../../types/contract';
+import Badge from '../ui/Badge';
 
 interface PropertyListItemProps {
   property: FindPropertyResDto;
 }
 
 const PropertyListItem: React.FC<PropertyListItemProps> = ({ property }) => {
+  console.log('Property contractList:', property.contractTypes);
+
   return (
     <Link
       to={`/properties/${property.id}`}
@@ -35,13 +39,6 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({ property }) => {
                 >
                   {PropertyTypeLabels[property.propertyType]}
                 </span>
-                {/* <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-600'
-                  }`}
-                >
-                  {isActive ? '계약 가능' : '계약 불가능'}
-                </span> */}
               </div>
               <div className="mt-1">
                 <span
@@ -55,6 +52,16 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({ property }) => {
               <p className="text-sm text-gray-500 mt-1 text-left">{property.detailAddress}</p>
             </div>
           </div>
+
+          {property.contractTypes && property.contractTypes.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1 items-start">
+              {property.contractTypes.map((contractType, index) => (
+                <Badge key={index} variant="secondary" className="text-sm font-medium px-3 py-1">
+                  {ContractTypeLabels[contractType]}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Link>
