@@ -33,14 +33,14 @@ export const PropertyTypeColors: Record<PropertyType, { bg: string; text: string
 };
 
 export enum PropertyDirection {
-  NORTH = '북향',
-  SOUTH = '남향',
-  EAST = '동향',
-  WEST = '서향',
-  NORTHEAST = '북동향',
-  NORTHWEST = '북서향',
-  SOUTHEAST = '남동향',
-  SOUTHWEST = '남서향',
+  NORTH = 'NORTH',
+  SOUTH = 'SOUTH',
+  EAST = 'EAST',
+  WEST = 'WEST',
+  NORTHEAST = 'NORTHEAST',
+  NORTHWEST = 'NORTHWEST',
+  SOUTHEAST = 'SOUTHEAST',
+  SOUTHWEST = 'SOUTHWEST',
 }
 
 // 매물 방향 표시 텍스트

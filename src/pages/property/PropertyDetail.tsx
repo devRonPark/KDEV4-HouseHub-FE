@@ -43,7 +43,7 @@ const PropertyDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchPropertyDetail = async () => {
-      if (!id || isDeleting) return; // isDeleting이 true면 API 호출 방지
+      if (!id || isDeleting) return;
       setIsLoading(true);
       try {
         const response = await getPropertyById(Number(id));
@@ -69,10 +69,9 @@ const PropertyDetail: React.FC = () => {
     try {
       const response = await deleteProperty(Number(id));
       if (response.success) {
-        setIsDeleteModalOpen(false); // 모달 먼저 닫기
+        setIsDeleteModalOpen(false);
         showToast('매물이 성공적으로 삭제되었습니다.', 'success');
-        // 즉시 리다이렉트하여 추가 API 호출 방지
-        navigate('/properties', { replace: true }); // replace: true 옵션 추가
+        navigate('/properties', { replace: true });
       } else {
         showToast(response.error || '매물 삭제에 실패했습니다.', 'error');
         setIsDeleting(false);
@@ -81,9 +80,6 @@ const PropertyDetail: React.FC = () => {
       showToast('매물 삭제 중 오류가 발생했습니다.', 'error');
       setIsDeleting(false);
     }
-    // } finally {
-    //   setIsDeleteModalOpen(false);
-    // }
   };
 
   const formatDate = (dateString: string) => {
@@ -97,6 +93,10 @@ const PropertyDetail: React.FC = () => {
   const formatCurrency = (amount?: number) => {
     if (amount === undefined) return '-';
     return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
+  };
+
+  const displayValue = (value: any, unit?: string) => {
+    return value !== undefined && value !== null ? `${value}${unit || ''}` : '미입력';
   };
 
   if (isLoading) {
@@ -201,9 +201,6 @@ const PropertyDetail: React.FC = () => {
                 <div>
                   <p className="text-gray-900">{property.roadAddress}</p>
                   <p className="text-sm text-gray-500">{property.detailAddress}</p>
-                  {/* <p className="text-sm text-gray-500">
-                    {property.province} {property.city} {property.dong}
-                  </p> */}
                 </div>
               </div>
             </div>
@@ -212,45 +209,42 @@ const PropertyDetail: React.FC = () => {
             <div className="border-t border-gray-200 pt-4">
               <h3 className="text-lg font-medium text-gray-900 mb-4 text-left">상세 정보</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {property.area !== undefined && (
-                  <div className="flex items-center">
-                    <Square className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">면적: {property.area}평</span>
-                  </div>
-                )}
+                <div className="flex items-center">
+                  <Square className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">면적: {displayValue(property.area, '평')}</span>
+                </div>
 
-                {property.floor !== undefined && (
-                  <div className="flex items-center">
-                    <Layers className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">
-                      층수: {property.floor}층
-                      {property.allFloors !== null && ` / 총 ${property.allFloors}층`}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center">
+                  <Layers className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">
+                    층수: {displayValue(property.floor, '층')}
+                    {property.allFloors !== null && ` / 총 ${property.allFloors}층`}
+                  </span>
+                </div>
 
-                {property.direction && (
-                  <div className="flex items-center">
-                    <Compass className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">
-                      방향: {PropertyDirectionLabels[property.direction]}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center">
+                  <Compass className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">
+                    방향:{' '}
+                    {property.direction && PropertyDirectionLabels[property.direction]
+                      ? PropertyDirectionLabels[property.direction]
+                      : '미입력'}
+                  </span>
+                </div>
 
-                {property.roomCnt !== undefined && (
-                  <div className="flex items-center">
-                    <Home className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">방 개수: {property.roomCnt}개</span>
-                  </div>
-                )}
+                <div className="flex items-center">
+                  <Home className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">
+                    방 개수: {displayValue(property.roomCnt, '개')}
+                  </span>
+                </div>
 
-                {property.bathroomCnt !== undefined && (
-                  <div className="flex items-center">
-                    <Droplet className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">욕실 개수: {property.bathroomCnt}개</span>
-                  </div>
-                )}
+                <div className="flex items-center">
+                  <Droplet className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">
+                    욕실 개수: {displayValue(property.bathroomCnt, '개')}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -289,7 +283,7 @@ const PropertyDetail: React.FC = () => {
                 <div
                   key={contract.id}
                   className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0 cursor-pointer hover:bg-gray-50 px-4 py-2 rounded transition"
-                  onClick={() => navigate(`/contracts/${contract.id}`)} // ← 여기에 이동 추가
+                  onClick={() => navigate(`/contracts/${contract.id}`)}
                 >
                   <div className="flex justify-between items-center mb-2">
                     <Badge
