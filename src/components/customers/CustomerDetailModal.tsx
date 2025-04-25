@@ -84,7 +84,7 @@ const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDe
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-medium text-gray-500">이름</h4>
-              <p className="mt-1 text-gray-900">{customer.name}</p>
+              <p className="mt-1 text-gray-900">{customer.name || '선택 안 함'}</p>
             </div>
 
             <div>
@@ -94,7 +94,7 @@ const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDe
 
             <div>
               <h4 className="text-sm font-medium text-gray-500">이메일</h4>
-              <p className="mt-1">{customer.email}</p>
+              <p className="mt-1">{customer.email || '선택 안 함'}</p>
             </div>
 
             <div>
