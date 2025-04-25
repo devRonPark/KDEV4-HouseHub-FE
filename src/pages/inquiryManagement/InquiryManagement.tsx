@@ -100,7 +100,7 @@ const InquiryManagement: React.FC = () => {
 
   // 고객 유형 표시 함수
   const getCustomerTypeText = (type: CustomerType) => {
-    return type === CustomerType.CUSTOMER ? '고객' : '고객 후보';
+    return type === CustomerType.CUSTOMER ? '고객' : '잠재 고객';
   };
 
   // 고객 유형에 따른 배지 색상

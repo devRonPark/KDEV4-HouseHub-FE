@@ -8,7 +8,7 @@ export interface Sms {
   msg: string;
   msgType: 'SMS' | 'LMS' | 'MMS';
   title: string;
-  status: 'SUCCESS' | 'FAIL';
+  status: 'SUCCESS' | 'FAIL' | 'PERMANENT_FAIL';
   rdate: string;
   rtime: string;
   createdAt: string; // LocalDateTime ISO 포맷 문자열
@@ -45,7 +45,7 @@ export interface SendSmsResDto {
   msg: string; // 메시지 내용
   msgType: 'SMS' | 'LMS' | 'MMS'; // 메시지 유형
   title?: string; // 제목
-  status: 'SUCCESS' | 'FAIL';
+  status: 'SUCCESS' | 'FAIL' | 'PERMANENT_FAIL';
   rtime: string; // 예약 발송 시간
   rdate: string; // 예약 발송 일자
   createdAt: string;

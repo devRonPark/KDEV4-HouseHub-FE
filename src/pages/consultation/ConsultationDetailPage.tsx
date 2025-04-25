@@ -10,6 +10,7 @@ import { useToast } from '../../context/useToast';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
+import { ConsultationStatus } from '../../types/consultation';
 
 const ConsultationDetailPage: React.FC = () => {
   // 상담 상세보기 페이지의 ID 처리 로직 개선
@@ -124,14 +125,26 @@ const ConsultationDetailPage: React.FC = () => {
     }
   };
 
-  // 상담 상태 텍스트 변환
-  const getStatusText = (status: string) => {
+  const getStatusBadgeClass = (status: ConsultationStatus) => {
     switch (status) {
-      case 'completed':
+      case ConsultationStatus.COMPLETED:
+        return 'bg-green-100 text-green-800';
+      case ConsultationStatus.RESERVED:
+        return 'bg-yellow-100 text-yellow-800';
+      case ConsultationStatus.CANCELED:
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: ConsultationStatus) => {
+    switch (status) {
+      case ConsultationStatus.COMPLETED:
         return '완료';
-      case 'reserved':
+      case ConsultationStatus.RESERVED:
         return '예약됨';
-      case 'canceled':
+      case ConsultationStatus.CANCELED:
         return '취소됨';
       default:
         return status;
@@ -242,13 +255,7 @@ const ConsultationDetailPage: React.FC = () => {
               <dt className="text-sm font-medium text-gray-500">상담 상태</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <span
-                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    consultation.status === 'completed'
-                      ? 'bg-green-100 text-green-800'
-                      : consultation.status === 'reserved'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                  }`}
+                  className={`px-2 py-1 text-xs rounded-full ${getStatusBadgeClass(consultation.status)}`}
                 >
                   {getStatusText(consultation.status)}
                 </span>
