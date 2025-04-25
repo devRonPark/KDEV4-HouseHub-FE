@@ -8,6 +8,7 @@ import type {
   ConsultationCustomerResDto,
   CreateConsultationReqDto,
 } from '../../types/consultation';
+import { ConsultationStatus } from '../../types/consultation';
 import type { CreateCustomerResDto } from '../../types/customer';
 import {
   getConsultationById,
@@ -33,10 +34,10 @@ const ConsultationFormPage: React.FC = () => {
   const [formData, setFormData] = useState<CreateConsultationReqDto>({
     agentId: user?.id ? Number(user.id) : 0,
     customerId: 0,
-    consultationType: 'phone',
+    consultationType: 'PHONE',
     content: '',
     consultationDate: new Date().toISOString(),
-    status: 'reserved',
+    status: ConsultationStatus.RESERVED,
   });
 
   const [loading, setLoading] = useState(isEditMode);
@@ -288,8 +289,8 @@ const ConsultationFormPage: React.FC = () => {
                     onChange={handleChange}
                     className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="phone">전화상담</option>
-                    <option value="visit">방문상담</option>
+                    <option value="PHONE">전화상담</option>
+                    <option value="VISIT">방문상담</option>
                   </select>
                 </div>
 
@@ -305,9 +306,9 @@ const ConsultationFormPage: React.FC = () => {
                     onChange={handleChange}
                     className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="reserved">예약됨</option>
-                    <option value="completed">완료</option>
-                    <option value="canceled">취소됨</option>
+                    <option value="RESERVED">예약됨</option>
+                    <option value="COMPLETED">완료</option>
+                    <option value="CANCELED">취소됨</option>
                   </select>
                 </div>
               </div>

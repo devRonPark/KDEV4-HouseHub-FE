@@ -28,6 +28,18 @@ import type {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
+interface ConsultationFilter {
+  keyword: string;
+  startDate: string;
+  endDate: string;
+  type?: ConsultationType;
+  status?: ConsultationStatus;
+  sortBy: string;
+  sortDirection: 'asc' | 'desc';
+  page: number;
+  size: number;
+}
+
 const ConsultationListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,14 +55,14 @@ const ConsultationListPage: React.FC = () => {
   const [hasShownToast, setHasShownToast] = useState(false);
 
   // 필터 상태
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<ConsultationFilter>({
     keyword: '',
     startDate: '',
     endDate: '',
-    type: '' as ConsultationType | '',
-    status: '' as ConsultationStatus | '',
+    type: undefined,
+    status: undefined,
     sortBy: 'consultationDate',
-    sortDirection: 'desc' as 'asc' | 'desc',
+    sortDirection: 'desc',
     page: 1,
     size: 10,
   });
@@ -63,12 +75,12 @@ const ConsultationListPage: React.FC = () => {
       // 빈 문자열인 필터는 제외하고 API 호출
       const params = Object.entries(filters).reduce(
         (acc, [key, value]) => {
-          if (value !== '') {
+          if (value !== '' && value !== undefined) {
             acc[key] = value;
           }
           return acc;
         },
-        {} as Record<string, any>
+        {} as Record<string, string | number | ConsultationType | ConsultationStatus>
       );
 
       const response = await getConsultationList(params);
@@ -86,17 +98,19 @@ const ConsultationListPage: React.FC = () => {
     }
   }, [filters, showToast]);
 
+  // filters 상태가 변경될 때마다 API 호출
   useEffect(() => {
     fetchConsultations();
+  }, [fetchConsultations]);
 
-    // location.state에서 메시지 확인 (다른 페이지에서 넘어온 경우)
+  // 초기 로드 및 라우팅 메시지 처리
+  useEffect(() => {
     if (location.state && location.state.message && !hasShownToast) {
       showToast(location.state.message, location.state.type || 'success');
       setHasShownToast(true);
-      // 메시지를 표시한 후 state 초기화
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [fetchConsultations, location, navigate, showToast, hasShownToast]);
+  }, [location, navigate, showToast, hasShownToast]);
 
   // 검색 핸들러
   const handleSearch = (e: React.FormEvent) => {
@@ -104,12 +118,8 @@ const ConsultationListPage: React.FC = () => {
     setFilters((prev) => ({
       ...prev,
       keyword: searchKeyword,
-      page: 1, // 검색 시 첫 페이지로 이동
+      page: 1,
     }));
-    // 검색 후 즉시 데이터 다시 불러오기
-    setTimeout(() => {
-      fetchConsultations();
-    }, 0);
   };
 
   // 정렬 변경 핸들러
@@ -119,10 +129,6 @@ const ConsultationListPage: React.FC = () => {
       sortDirection: prev.sortDirection === 'desc' ? 'asc' : 'desc',
       page: 1,
     }));
-    // 정렬 변경 후 즉시 데이터 다시 불러오기
-    setTimeout(() => {
-      fetchConsultations();
-    }, 0);
   };
 
   // 필터 초기화
@@ -132,18 +138,14 @@ const ConsultationListPage: React.FC = () => {
       keyword: '',
       startDate: '',
       endDate: '',
-      type: '',
-      status: '',
+      type: undefined,
+      status: undefined,
       sortBy: 'consultationDate',
       sortDirection: 'desc',
       page: 1,
       size: 10,
     });
     setShowFilters(false);
-    // 필터 초기화 후 즉시 데이터 다시 불러오기
-    setTimeout(() => {
-      fetchConsultations();
-    }, 0);
   };
 
   // 페이지 변경 핸들러
@@ -153,10 +155,6 @@ const ConsultationListPage: React.FC = () => {
         ...prev,
         page,
       }));
-      // 페이지 변경 후 즉시 데이터 다시 불러오기
-      setTimeout(() => {
-        fetchConsultations();
-      }, 0);
     }
   };
 
@@ -187,7 +185,7 @@ const ConsultationListPage: React.FC = () => {
     if (!dateString) return '-';
     try {
       return format(new Date(dateString), 'yyyy년 MM월 dd일 HH:mm', { locale: ko });
-    } catch (error) {
+    } catch {
       return dateString;
     }
   };
@@ -195,11 +193,11 @@ const ConsultationListPage: React.FC = () => {
   // 상담 상태에 따른 스타일 클래스 반환
   const getStatusClass = (status: ConsultationStatus) => {
     switch (status) {
-      case 'completed':
+      case 'COMPLETED':
         return 'bg-green-100 text-green-800';
-      case 'reserved':
+      case 'RESERVED':
         return 'bg-yellow-100 text-yellow-800';
-      case 'canceled':
+      case 'CANCELED':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -209,11 +207,11 @@ const ConsultationListPage: React.FC = () => {
   // 상담 상태 텍스트 변환
   const getStatusText = (status: ConsultationStatus) => {
     switch (status) {
-      case 'completed':
+      case 'COMPLETED':
         return '완료';
-      case 'reserved':
+      case 'RESERVED':
         return '예약됨';
-      case 'canceled':
+      case 'CANCELED':
         return '취소됨';
       default:
         return status;
@@ -223,9 +221,9 @@ const ConsultationListPage: React.FC = () => {
   // 상담 유형 텍스트 변환
   const getTypeText = (type: ConsultationType) => {
     switch (type) {
-      case 'phone':
+      case 'PHONE':
         return '전화상담';
-      case 'visit':
+      case 'VISIT':
         return '방문상담';
       default:
         return type;
@@ -331,13 +329,13 @@ const ConsultationListPage: React.FC = () => {
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
-                      type: e.target.value as ConsultationType | '',
+                      type: e.target.value as ConsultationType | undefined,
                     }))
                   }
                 >
                   <option value="">전체</option>
-                  <option value="phone">전화상담</option>
-                  <option value="visit">방문상담</option>
+                  <option value="PHONE">전화상담</option>
+                  <option value="VISIT">방문상담</option>
                 </select>
               </div>
 
@@ -349,14 +347,14 @@ const ConsultationListPage: React.FC = () => {
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
-                      status: e.target.value as ConsultationStatus | '',
+                      status: e.target.value as ConsultationStatus | undefined,
                     }))
                   }
                 >
                   <option value="">전체</option>
-                  <option value="reserved">예약됨</option>
-                  <option value="completed">완료</option>
-                  <option value="canceled">취소됨</option>
+                  <option value="RESERVED">예약됨</option>
+                  <option value="COMPLETED">완료</option>
+                  <option value="CANCELED">취소됨</option>
                 </select>
               </div>
             </div>
