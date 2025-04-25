@@ -100,6 +100,13 @@ export interface PropertySearchFilter {
   active?: boolean; // 계약 가능 여부
   page: number;
   size: number;
+  contractType?: ContractType; // 계약 유형
+  minPrice?: number; // 최소 가격
+  maxPrice?: number; // 최대 가격
+  minDeposit?: number; // 최소 보증금
+  maxDeposit?: number; // 최대 보증금
+  minMonthlyRent?: number; // 최소 월세
+  maxMonthlyRent?: number; // 최대 월세
 }
 
 // 매물 상세 정보 응답 DTO

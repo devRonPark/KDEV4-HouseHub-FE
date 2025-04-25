@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, FileText, Calendar, User, CheckCircle, Edit, AlertCircle } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -114,11 +114,7 @@ const ContractEdit: React.FC = () => {
           setMemo(contract.memo || '');
           setCompletedDate(contract.completedAt || '');
           setSelectedProperty(contract.property);
-          // setSelectedCustomer(contract.customer || null);
-
-          if (!selectedCustomer) {
-            setSelectedCustomer(contract.customer || null);
-          }
+          setSelectedCustomer(contract.customer || null);
         } else {
           showToast(response.error || '계약 정보를 불러오는데 실패했습니다.', 'error');
           navigate('/contracts');
@@ -132,19 +128,22 @@ const ContractEdit: React.FC = () => {
     };
 
     fetchContract();
-  }, [id, navigate, showToast]);
+  }, [id]);
 
   const handlePropertySelect = async (property: FindPropertyResDto) => {
     setSelectedProperty(property);
     showToast('매물이 성공적으로 선택되었습니다.', 'success');
   };
 
-  const handleCustomerSelect = (customer: CreateCustomerResDto) => {
-    console.log('Selected customer:', customer);
-    setSelectedCustomer(customer);
-    setIsCustomerModalOpen(false);
-    showToast('고객이 성공적으로 선택되었습니다.', 'success');
-  };
+  const handleCustomerSelect = useCallback(
+    (customer: CreateCustomerResDto) => {
+      console.log('Selected customer:', customer);
+      setSelectedCustomer(customer);
+      setIsCustomerModalOpen(false);
+      showToast('고객이 성공적으로 선택되었습니다.', 'success');
+    },
+    [showToast]
+  );
 
   const handleChangeProperty = () => {
     setIsPropertyModalOpen(true);

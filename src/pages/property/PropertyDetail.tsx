@@ -356,7 +356,7 @@ const PropertyDetail: React.FC = () => {
                 leftIcon={<Plus size={14} />}
                 className="w-full"
               >
-                새 계약 등록하기
+                계약 추가하기
               </Button>
             </div>
           </Card>

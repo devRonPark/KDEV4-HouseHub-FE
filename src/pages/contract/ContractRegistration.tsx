@@ -18,10 +18,11 @@ import {
   ContractStatusLabels,
   type ContractReqDto,
 } from '../../types/contract';
-import { PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
+import { PropertyType, PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
 import type { CreateCustomerResDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
+import { getPropertyById } from '../../api/property';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -77,8 +78,8 @@ const ContractRegistration: React.FC = () => {
   const formRef = useRef<HTMLFormElement>(null);
 
   // URL 파라미터에서 propertyId 추출
-  // const queryParams = new URLSearchParams(location.search);
-  // const propertyIdParam = queryParams.get('propertyId');
+  const queryParams = new URLSearchParams(location.search);
+  const propertyIdParam = queryParams.get('propertyId');
 
   // 폼 상태 관리
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
@@ -105,24 +106,28 @@ const ContractRegistration: React.FC = () => {
   }, [contractStatus]);
 
   // propertyId가 URL 파라미터로 제공된 경우 해당 매물 정보 로드
-  // useEffect(() => {
-  //   const loadPropertyData = async () => {
-  //     if (!propertyIdParam) return;
+  useEffect(() => {
+    const loadPropertyData = async () => {
+      if (!propertyIdParam) return;
 
-  //     try {
-  //       const response = await getPropertyById(Number(propertyIdParam));
-  //       if (response.success && response.data) {
-  //         setSelectedProperty(response.data);
-  //       } else {
-  //         showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
-  //       }
-  //     } catch {
-  //       showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
-  //     }
-  //   };
+      try {
+        const response = await getPropertyById(Number(propertyIdParam));
+        if (response.success && response.data) {
+          // setSelectedProperty(response.data);
+          setSelectedProperty({
+            ...response.data,
+            propertyType: response.data.propertyType as PropertyType,
+          } as unknown as FindPropertyResDto);
+        } else {
+          showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
+        }
+      } catch {
+        showToast('매물 정보를 불러오는 중 오류가 발생했습니다.', 'error');
+      }
+    };
 
-  //   loadPropertyData();
-  // }, [propertyIdParam, showToast]);
+    loadPropertyData();
+  }, [propertyIdParam, showToast]);
 
   const handlePropertySelect = async (property: FindPropertyResDto) => {
     // 선택된 매물 정보를 바로 사용
