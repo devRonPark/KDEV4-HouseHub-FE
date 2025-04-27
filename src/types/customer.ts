@@ -6,7 +6,7 @@ export interface Customer {
   name: string;
   email: string;
   contact: string;
-  ageGroup?: number; // 선택적
+  birthDate?: string; // 선택적
   gender?: 'M' | 'F' | undefined; // 선택적
   memo?: string; // 선택적
   consultations?: Consultation[]; // 선택적
@@ -20,7 +20,7 @@ export interface CreateCustomerReqDto {
   name?: string;
   email?: string;
   contact: string;
-  ageGroup?: number;
+  birthDate?: string;
   gender?: 'M' | 'F' | undefined;
   memo?: string;
 }
@@ -30,7 +30,7 @@ export interface CreateCustomerResDto {
   name: string;
   email: string;
   contact: string;
-  ageGroup: number;
+  birthDate: string;
   gender?: 'M' | 'F' | undefined;
   memo?: string;
   createdAt: string;

@@ -47,6 +47,8 @@ const CustomersPage = () => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadErrors, setUploadErrors] = useState<{ field: string; message: string }[]>([]);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
@@ -249,7 +251,12 @@ const CustomersPage = () => {
         // 고객 목록 새로고침
         loadCustomers();
       } else {
-        showToast(response.message || '고객 정보 업로드에 실패했습니다.', 'error');
+        if (response.errors && response.errors.length > 0) {
+          setUploadErrors(response.errors);
+          setIsErrorModalOpen(true);
+        } else {
+          showToast(response.message || '고객 정보 업로드에 실패했습니다.', 'error');
+        }
       }
     } catch (error) {
       console.error('고객 정보 업로드 오류:', error);
@@ -280,10 +287,14 @@ const CustomersPage = () => {
     },
     {
       key: 'demographic',
-      header: '연령대',
+      header: '생년월일',
       render: (customer: Customer) => (
         <div>
-          <div>{customer.ageGroup ? `${customer.ageGroup}대` : '선택 안 함'}</div>
+          <div>
+            {customer.birthDate
+              ? `${new Date(customer.birthDate).getFullYear()}년생`
+              : '선택 안 함'}
+          </div>
           <div className="text-gray-500 text-xs">
             {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '선택 안 함'}
           </div>
@@ -351,13 +362,6 @@ const CustomersPage = () => {
             }}
           >
             새로고침
-          </Button>
-          <Button
-            variant="outline"
-            leftIcon={<Download size={16} />}
-            onClick={handleDownloadTemplate}
-          >
-            엑셀 양식 다운로드
           </Button>
           <Button
             variant="outline"
@@ -449,7 +453,7 @@ const CustomersPage = () => {
               name: data.name || '',
               email: data.email || '',
               contact: data.contact || '',
-              ageGroup: Number(data.ageGroup),
+              birthDate: data.birthDate,
               gender: data.gender,
               memo: data.memo,
             };
@@ -476,7 +480,7 @@ const CustomersPage = () => {
                 name: data.name || selectedCustomer.name,
                 email: data.email || selectedCustomer.email,
                 contact: data.contact || selectedCustomer.contact,
-                ageGroup: data.ageGroup !== undefined ? Number(data.ageGroup) : undefined,
+                birthDate: data.birthDate || selectedCustomer.birthDate,
                 gender: data.gender !== undefined ? data.gender : undefined,
                 memo: data.memo !== undefined && data.memo !== '' ? data.memo : undefined,
               };
@@ -518,14 +522,34 @@ const CustomersPage = () => {
         title="고객 정보 엑셀 업로드"
         size="md"
       >
-        <div className="space-y-4">
-          <p className="text-gray-700">
-            엑셀 파일을 통해 다수의 고객 정보를 한 번에 등록할 수 있습니다. 올바른 형식의 파일을
-            업로드해주세요.
-          </p>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-medium text-gray-900">엑셀 파일 업로드</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<Download size={16} />}
+              onClick={handleDownloadTemplate}
+              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+            >
+              양식 다운로드
+            </Button>
+          </div>
 
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">엑셀 파일 선택</label>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="text-sm font-medium text-blue-800 mb-2">파일 형식 안내</h3>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• 이름: 50자 이하 (선택)</li>
+              <li>• 생년월일: yyyy-MM-dd 형식 (선택, 만 19세 이상만 가능)</li>
+              <li>• 연락처: 000-0000-0000 형식 (필수)</li>
+              <li>• 이메일: example@example.com 형식 (선택)</li>
+              <li>• 메모: 자유 입력 (선택)</li>
+              <li>• 성별: M(남성) 또는 F(여성) (선택)</li>
+            </ul>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">파일 선택</label>
             <div className="flex items-center">
               <input
                 type="file"
@@ -545,12 +569,11 @@ const CustomersPage = () => {
             )}
           </div>
 
-          <div className="mt-2 text-sm text-gray-500">
+          <div className="text-sm text-gray-500">
             <p>* 엑셀 파일은 .xlsx 또는 .xls 형식만 지원합니다.</p>
-            <p>* 올바른 형식의 파일을 업로드하려면 먼저 엑셀 양식을 다운로드하여 사용하세요.</p>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t mt-4">
+          <div className="flex justify-end space-x-3 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
@@ -572,6 +595,45 @@ const CustomersPage = () => {
               disabled={!uploadFile || isUploading}
             >
               업로드
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 엑셀 업로드 오류 모달 */}
+      <Modal
+        isOpen={isErrorModalOpen}
+        onClose={() => {
+          setIsErrorModalOpen(false);
+          setUploadErrors([]);
+        }}
+        title="엑셀 업로드 오류"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div className="bg-red-50 p-4 rounded-lg">
+            <h3 className="text-sm font-medium text-red-800 mb-2">
+              다음과 같은 오류가 발생했습니다:
+            </h3>
+            <ul className="text-sm text-red-700 space-y-1">
+              {uploadErrors.map((error, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{error.message}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsErrorModalOpen(false);
+                setUploadErrors([]);
+              }}
+            >
+              확인
             </Button>
           </div>
         </div>
