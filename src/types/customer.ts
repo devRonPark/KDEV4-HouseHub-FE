@@ -4,11 +4,12 @@ import type { Consultation } from './consultation';
 export interface Customer {
   id: number;
   name: string;
-  email: string;
+  email?: string;
   contact: string;
   birthDate?: string; // 선택적
-  gender?: 'M' | 'F' | undefined; // 선택적
+  gender?: 'M' | 'F'; // 선택적
   memo?: string; // 선택적
+  ageGroup?: number;
   consultations?: Consultation[]; // 선택적
   createdAt: string;
   updatedAt: string | null;
@@ -21,8 +22,9 @@ export interface CreateCustomerReqDto {
   email?: string;
   contact: string;
   birthDate?: string;
-  gender?: 'M' | 'F' | undefined;
+  gender?: 'M' | 'F';
   memo?: string;
+  ageGroup?: number;
 }
 
 export interface CreateCustomerResDto {
@@ -35,7 +37,6 @@ export interface CreateCustomerResDto {
   memo?: string;
   createdAt: string;
   updatedAt: string;
-  deletedAt?: string;
 }
 
 export interface CustomerListResDto {

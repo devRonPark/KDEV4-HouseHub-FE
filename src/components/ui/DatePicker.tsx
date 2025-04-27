@@ -1,5 +1,4 @@
 import React from 'react';
-import { Calendar } from 'react-feather';
 
 interface DatePickerProps {
   label?: string;

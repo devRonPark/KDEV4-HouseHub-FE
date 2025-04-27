@@ -12,8 +12,6 @@ import Textarea from '../../components/ui/Textarea';
 import DatePicker from '../../components/ui/DatePicker';
 import type { CreateCustomerReqDto } from '../../types/customer';
 
-// Select 박스 옵션 생성
-const ageOptions = Array.from({ length: 10 }, (_, i) => (i + 1) * 10); // [10, 20, ..., 100]
 interface Option {
   value: string;
   label: string;

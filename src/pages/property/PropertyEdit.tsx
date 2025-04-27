@@ -91,7 +91,7 @@ const PropertyEdit: React.FC = () => {
               name: propertyData.customer.name,
               contact: propertyData.customer.contact,
               email: propertyData.customer.email,
-              ageGroup: propertyData.customer.ageGroup,
+              birthDate: propertyData.customer.birthDate,
               gender: propertyData.customer.gender,
               createdAt: propertyData.customer.createdAt,
               updatedAt: propertyData.customer.updatedAt,
