@@ -59,6 +59,37 @@ export const getProperties = async (
       url += `&active=${filter.active}`;
     }
 
+    // 계약 유형 및 가격 필터 추가
+    if (filter.contractType) {
+      url += `&contractType=${filter.contractType}`;
+    }
+
+    // 가격 범위 필터 추가
+    if (filter.minPrice !== undefined) {
+      url += `&minPrice=${filter.minPrice}`;
+    }
+
+    if (filter.maxPrice !== undefined) {
+      url += `&maxPrice=${filter.maxPrice}`;
+    }
+
+    // 월세의 경우 보증금과 월세 범위 추가
+    if (filter.minDeposit !== undefined) {
+      url += `&minDeposit=${filter.minDeposit}`;
+    }
+
+    if (filter.maxDeposit !== undefined) {
+      url += `&maxDeposit=${filter.maxDeposit}`;
+    }
+
+    if (filter.minMonthlyRent !== undefined) {
+      url += `&minMonthlyRent=${filter.minMonthlyRent}`;
+    }
+
+    if (filter.maxMonthlyRent !== undefined) {
+      url += `&maxMonthlyRent=${filter.maxMonthlyRent}`;
+    }
+
     const response = await apiClient.get<ApiResponse<PropertyListResDto>>(url);
 
     // 응답 구조 로깅
@@ -74,7 +105,7 @@ export const getProperties = async (
   }
 };
 
-// 매물 상세 조회 API 수정
+// 매물 상세 조회 API
 export const getPropertyById = async (
   id: number
 ): Promise<ApiResponse<FindPropertyDetailResDto>> => {
@@ -82,7 +113,7 @@ export const getPropertyById = async (
     const response = await apiClient.get<ApiResponse<FindPropertyDetailResDto>>(
       `/properties/${id}`
     );
-    // console.log('Property detail response:', response.data);
+    console.log('Property detail response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching property details:', error);

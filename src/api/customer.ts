@@ -8,7 +8,7 @@ import type {
 } from '../types/customer';
 import axios from 'axios';
 
-// 현재 로그인한 에이전트의 고객 리스트 조회
+// 현재 로그인한 에이전트의 고객 리스트 조회 (상담 내역 제외)
 export const getMyCustomers = async (
   filter: CustomerSearchFilter
 ): Promise<ApiResponse<CustomerListResDto>> => {

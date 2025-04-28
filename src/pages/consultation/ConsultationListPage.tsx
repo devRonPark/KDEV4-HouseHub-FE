@@ -28,6 +28,18 @@ import {
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
+interface ConsultationFilter {
+  keyword: string;
+  startDate: string;
+  endDate: string;
+  type?: ConsultationType;
+  status?: ConsultationStatus;
+  sortBy: string;
+  sortDirection: 'asc' | 'desc';
+  page: number;
+  size: number;
+}
+
 const ConsultationListPage: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -56,14 +68,14 @@ const ConsultationListPage: React.FC = () => {
   };
 
   // 필터 상태
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<ConsultationFilter>({
     keyword: '',
     startDate: '',
     endDate: '',
-    type: '' as ConsultationType | '',
-    status: '' as ConsultationStatus | '',
+    type: undefined,
+    status: undefined,
     sortBy: 'consultationDate',
-    sortDirection: 'desc' as 'asc' | 'desc',
+    sortDirection: 'desc',
     page: 1,
     size: 10,
   });
@@ -76,7 +88,7 @@ const ConsultationListPage: React.FC = () => {
       // 빈 문자열인 필터는 제외하고 API 호출
       const params = Object.entries(filters).reduce(
         (acc, [key, value]) => {
-          if (value !== '') {
+          if (value !== '' && value !== undefined) {
             acc[key] = value;
           }
           return acc;
@@ -99,6 +111,7 @@ const ConsultationListPage: React.FC = () => {
     }
   }, [filters, showToast]);
 
+  // filters 상태가 변경될 때마다 API 호출
   useEffect(() => {
     fetchConsultations();
   }, [fetchConsultations]);
@@ -109,7 +122,7 @@ const ConsultationListPage: React.FC = () => {
     setFilters((prev) => ({
       ...prev,
       keyword: searchKeyword,
-      page: 1, // 검색 시 첫 페이지로 이동
+      page: 1,
     }));
   };
 
@@ -129,8 +142,8 @@ const ConsultationListPage: React.FC = () => {
       keyword: '',
       startDate: '',
       endDate: '',
-      type: '',
-      status: '',
+      type: undefined,
+      status: undefined,
       sortBy: 'consultationDate',
       sortDirection: 'desc',
       page: 1,
@@ -294,7 +307,7 @@ const ConsultationListPage: React.FC = () => {
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
-                      type: e.target.value as ConsultationType | '',
+                      type: e.target.value as ConsultationType | undefined,
                     }))
                   }
                 >
@@ -314,7 +327,7 @@ const ConsultationListPage: React.FC = () => {
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
-                      status: e.target.value as ConsultationStatus | '',
+                      status: e.target.value as ConsultationStatus | undefined,
                     }))
                   }
                 >

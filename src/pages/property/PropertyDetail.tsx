@@ -3,7 +3,21 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, MapPin, FileText, Edit, Trash2, Clock, Plus } from 'react-feather';
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  FileText,
+  Edit,
+  Trash2,
+  Clock,
+  Plus,
+  Home,
+  Layers,
+  Compass,
+  Square,
+  Droplet,
+} from 'react-feather';
 import { format } from 'date-fns';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
@@ -11,7 +25,11 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import { useToast } from '../../context/useToast';
 import { getPropertyById, deleteProperty } from '../../api/property';
-import { PropertyTypeLabels, type FindPropertyDetailResDto } from '../../types/property';
+import {
+  PropertyTypeLabels,
+  PropertyDirectionLabels,
+  type FindPropertyDetailResDto,
+} from '../../types/property';
 import Modal from '../../components/ui/Modal';
 
 const PropertyDetail: React.FC = () => {
@@ -25,8 +43,7 @@ const PropertyDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchPropertyDetail = async () => {
-      // if (!id) return;
-      if (!id || isDeleting) return; // isDeleting이 true면 API 호출 방지
+      if (!id || isDeleting) return;
       setIsLoading(true);
       try {
         const response = await getPropertyById(Number(id));
@@ -52,10 +69,9 @@ const PropertyDetail: React.FC = () => {
     try {
       const response = await deleteProperty(Number(id));
       if (response.success) {
-        setIsDeleteModalOpen(false); // 모달 먼저 닫기
+        setIsDeleteModalOpen(false);
         showToast('매물이 성공적으로 삭제되었습니다.', 'success');
-        // 즉시 리다이렉트하여 추가 API 호출 방지
-        navigate('/properties', { replace: true }); // replace: true 옵션 추가
+        navigate('/properties', { replace: true });
       } else {
         showToast(response.error || '매물 삭제에 실패했습니다.', 'error');
         setIsDeleting(false);
@@ -64,9 +80,6 @@ const PropertyDetail: React.FC = () => {
       showToast('매물 삭제 중 오류가 발생했습니다.', 'error');
       setIsDeleting(false);
     }
-    // } finally {
-    //   setIsDeleteModalOpen(false);
-    // }
   };
 
   const formatDate = (dateString: string) => {
@@ -80,6 +93,10 @@ const PropertyDetail: React.FC = () => {
   const formatCurrency = (amount?: number) => {
     if (amount === undefined) return '-';
     return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
+  };
+
+  const displayValue = (value: any, unit?: string) => {
+    return value !== undefined && value !== null ? `${value}${unit || ''}` : '미입력';
   };
 
   if (isLoading) {
@@ -184,9 +201,49 @@ const PropertyDetail: React.FC = () => {
                 <div>
                   <p className="text-gray-900">{property.roadAddress}</p>
                   <p className="text-sm text-gray-500">{property.detailAddress}</p>
-                  {/* <p className="text-sm text-gray-500">
-                    {property.province} {property.city} {property.dong}
-                  </p> */}
+                </div>
+              </div>
+            </div>
+
+            {/* 매물 상세 정보 */}
+            <div className="border-t border-gray-200 pt-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 text-left">상세 정보</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center">
+                  <Square className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">면적: {displayValue(property.area, '평')}</span>
+                </div>
+
+                <div className="flex items-center">
+                  <Layers className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">
+                    층수: {displayValue(property.floor, '층')}
+                    {property.allFloors !== null && ` / 총 ${property.allFloors}층`}
+                  </span>
+                </div>
+
+                <div className="flex items-center">
+                  <Compass className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">
+                    방향:{' '}
+                    {property.direction && PropertyDirectionLabels[property.direction]
+                      ? PropertyDirectionLabels[property.direction]
+                      : '미입력'}
+                  </span>
+                </div>
+
+                <div className="flex items-center">
+                  <Home className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">
+                    방 개수: {displayValue(property.roomCnt, '개')}
+                  </span>
+                </div>
+
+                <div className="flex items-center">
+                  <Droplet className="h-5 w-5 text-gray-400 mr-2" />
+                  <span className="text-gray-700">
+                    욕실 개수: {displayValue(property.bathroomCnt, '개')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -215,17 +272,6 @@ const PropertyDetail: React.FC = () => {
                 <p className="text-gray-700 whitespace-pre-line">{property.memo}</p>
               </div>
             )}
-
-            {property.latitude && property.longitude && (
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2 text-left">위치</h3>
-                <div className="h-64 bg-gray-100 rounded-md flex items-center justify-center">
-                  <p className="text-gray-500">
-                    지도 표시 영역 (위도: {property.latitude}, 경도: {property.longitude})
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </Card>
 
@@ -236,9 +282,8 @@ const PropertyDetail: React.FC = () => {
               {property.contractList.map((contract) => (
                 <div
                   key={contract.id}
-                  // className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0"
                   className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0 cursor-pointer hover:bg-gray-50 px-4 py-2 rounded transition"
-                  onClick={() => navigate(`/contracts/${contract.id}`)} // ← 여기에 이동 추가
+                  onClick={() => navigate(`/contracts/${contract.id}`)}
                 >
                   <div className="flex justify-between items-center mb-2">
                     <Badge
@@ -305,7 +350,7 @@ const PropertyDetail: React.FC = () => {
                 leftIcon={<Plus size={14} />}
                 className="w-full"
               >
-                새 계약 등록하기
+                계약 추가하기
               </Button>
             </div>
           </Card>

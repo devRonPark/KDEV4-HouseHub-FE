@@ -1,5 +1,5 @@
 import type { CreateCustomerResDto } from './customer';
-import type { ContractResDto } from './contract';
+import type { ContractResDto, ContractType } from './contract';
 import type { PaginationDto } from './pagination';
 
 // 매물 유형 enum
@@ -32,7 +32,30 @@ export const PropertyTypeColors: Record<PropertyType, { bg: string; text: string
   [PropertyType.TWO_ROOM]: { bg: 'bg-indigo-100', text: 'text-indigo-800' },
 };
 
-// 매물 등록 DTO
+export enum PropertyDirection {
+  NORTH = 'NORTH',
+  SOUTH = 'SOUTH',
+  EAST = 'EAST',
+  WEST = 'WEST',
+  NORTHEAST = 'NORTHEAST',
+  NORTHWEST = 'NORTHWEST',
+  SOUTHEAST = 'SOUTHEAST',
+  SOUTHWEST = 'SOUTHWEST',
+}
+
+// 매물 방향 표시 텍스트
+export const PropertyDirectionLabels: Record<PropertyDirection, string> = {
+  [PropertyDirection.NORTH]: '북향',
+  [PropertyDirection.SOUTH]: '남향',
+  [PropertyDirection.EAST]: '동향',
+  [PropertyDirection.WEST]: '서향',
+  [PropertyDirection.NORTHEAST]: '북동향',
+  [PropertyDirection.NORTHWEST]: '북서향',
+  [PropertyDirection.SOUTHEAST]: '남동향',
+  [PropertyDirection.SOUTHWEST]: '남서향',
+};
+
+// 매물 요청 DTO
 export interface PropertyRegistrationDTO {
   customerId: number;
   propertyType: PropertyType;
@@ -40,6 +63,13 @@ export interface PropertyRegistrationDTO {
   roadAddress: string;
   jibunAddress: string;
   detailAddress: string;
+  area?: number; // 면적
+  floor?: number; // 층수
+  allFloors?: number; // 총 층수
+  direction?: PropertyDirection; // 방향
+  bathroomCnt?: number; // 욕실 개수
+  roomCnt?: number; // 방 개수
+  active?: boolean; // 계약 가능 여부
 }
 
 // 매물 목록 응답 DTO
@@ -50,6 +80,7 @@ export interface FindPropertyResDto {
   roadAddress: string;
   jibunAddress: string;
   active: boolean;
+  contractTypes: ContractType[];
 }
 
 // 매물 목록 응답 LIST DTO
@@ -69,6 +100,13 @@ export interface PropertySearchFilter {
   active?: boolean; // 계약 가능 여부
   page: number;
   size: number;
+  contractType?: ContractType; // 계약 유형
+  minPrice?: number; // 최소 가격
+  maxPrice?: number; // 최대 가격
+  minDeposit?: number; // 최소 보증금
+  maxDeposit?: number; // 최대 보증금
+  minMonthlyRent?: number; // 최소 월세
+  maxMonthlyRent?: number; // 최대 월세
 }
 
 // 매물 상세 정보 응답 DTO
@@ -77,16 +115,16 @@ export interface FindPropertyDetailResDto {
   propertyType: PropertyType;
   customer: CreateCustomerResDto;
   memo?: string;
-  province: string;
-  city: string;
-  dong: string;
   detailAddress: string;
   roadAddress: string;
   jibunAddress: string;
-  createdAt: string;
-  updatedAt: string;
-  latitude?: number;
-  longitude?: number;
   contractList: ContractResDto[];
   active: boolean;
+  createdAt: string;
+  area?: number; // 면적
+  floor?: number; // 층수
+  allFloors?: number; // 총 층수
+  direction?: PropertyDirection; // 방향
+  bathroomCnt?: number; // 욕실 개수
+  roomCnt?: number; // 방 개수
 }

@@ -1,9 +1,9 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, FileText, Calendar, Home, User, CheckCircle } from 'react-feather';
+import { ArrowLeft, FileText, Calendar, User, CheckCircle, Edit, AlertCircle } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -17,8 +17,13 @@ import {
   ContractStatus,
   ContractStatusLabels,
   type ContractReqDto,
-  type ContractResDto,
 } from '../../types/contract';
+import { PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
+import PropertySelectionModal from '../../components/property/PropertySelectionModal';
+import type { CreateCustomerResDto } from '../../types/customer';
+import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
+import { getObjectDiff } from '../../utils/objectUtil';
+import type { ContractResDto } from '../../types/contract';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -64,15 +69,34 @@ const ContractStatusButton: React.FC<{
   </button>
 );
 
+interface ContractFormState {
+  propertyId: number | null;
+  customerId: number | null;
+  contractType: ContractType;
+  contractStatus: ContractStatus;
+  salePrice: number | null;
+  jeonsePrice: number | null;
+  monthlyRentDeposit: number | null;
+  monthlyRentFee: number | null;
+  startedAt: string;
+  expiredAt: string;
+  memo: string;
+  completedAt: string | null;
+}
+
 const ContractEdit: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [contract, setContract] = useState<ContractResDto | null>(null);
+  const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // 폼 상태 관리
+  const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<CreateCustomerResDto | null>(null);
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
@@ -82,9 +106,13 @@ const ContractEdit: React.FC = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
-  const [propertyId, setPropertyId] = useState<number>(0);
-  const [customerId, setCustomerId] = useState<number>(0);
   const [completedDate, setCompletedDate] = useState<string>('');
+
+  // 원본 계약 데이터 저장용 상태
+  const [originalContract, setOriginalContract] = useState<ContractResDto | null>(null);
+
+  // 계약 상태에 따른 고객 선택 필요 여부
+  const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
 
   // 계약 상세 정보 조회
   useEffect(() => {
@@ -95,6 +123,9 @@ const ContractEdit: React.FC = () => {
         const response = await getContractById(Number(id));
         if (response.success && response.data) {
           const contract = response.data;
+          setOriginalContract(contract);
+          setSelectedProperty(contract.property);
+          setSelectedCustomer(contract.customer || null);
           setContractType(contract.contractType);
           setContractStatus(contract.status);
           setSalePrice(contract.salePrice?.toString() || '');
@@ -104,9 +135,7 @@ const ContractEdit: React.FC = () => {
           setStartDate(contract.startedAt || '');
           setEndDate(contract.expiredAt || '');
           setMemo(contract.memo || '');
-          setPropertyId(contract.property.id);
-          setCustomerId(contract.customer.id);
-          setContract(contract);
+          setCompletedDate(contract.completedAt || '');
         } else {
           showToast(response.error || '계약 정보를 불러오는데 실패했습니다.', 'error');
           navigate('/contracts');
@@ -122,6 +151,24 @@ const ContractEdit: React.FC = () => {
     fetchContract();
   }, [id, navigate, showToast]);
 
+  const handlePropertySelect = async (property: FindPropertyResDto) => {
+    setSelectedProperty(property);
+    showToast('매물이 성공적으로 선택되었습니다.', 'success');
+  };
+
+  const handleCustomerSelect = useCallback(
+    (customer: CreateCustomerResDto) => {
+      setSelectedCustomer(customer);
+      setIsCustomerModalOpen(false);
+      showToast('고객이 성공적으로 선택되었습니다.', 'success');
+    },
+    [showToast]
+  );
+
+  const handleChangeCustomer = () => {
+    setIsCustomerModalOpen(true);
+  };
+
   // 계약 유형에 따라 필요한 필드 표시 여부 결정
   const showSalePrice = contractType === ContractType.SALE;
   const showJeonsePrice = contractType === ContractType.JEONSE;
@@ -130,19 +177,44 @@ const ContractEdit: React.FC = () => {
   // 계약 상태가 완료인 경우 완료일 필드 표시
   const showCompletedDate = contractStatus === ContractStatus.COMPLETED;
 
+  // 계약 상태가 진행 중인 경우에만 계약 기간 필드 표시
+  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE;
+
   // 계약 유형 변경 시 가격 필드 초기화
   useEffect(() => {
-    // 계약 유형이 변경되면 모든 가격 필드 초기화
-    setSalePrice('');
-    setJeonsePrice('');
-    setMonthlyRentDeposit('');
-    setMonthlyRentFee('');
-  }, [contractType]);
+    if (originalContract) {
+      setSalePrice(
+        originalContract.contractType === ContractType.SALE
+          ? originalContract.salePrice?.toString() || ''
+          : ''
+      );
+      setJeonsePrice(
+        originalContract.contractType === ContractType.JEONSE
+          ? originalContract.jeonsePrice?.toString() || ''
+          : ''
+      );
+      setMonthlyRentDeposit(
+        originalContract.contractType === ContractType.MONTHLY_RENT
+          ? originalContract.monthlyRentDeposit?.toString() || ''
+          : ''
+      );
+      setMonthlyRentFee(
+        originalContract.contractType === ContractType.MONTHLY_RENT
+          ? originalContract.monthlyRentFee?.toString() || ''
+          : ''
+      );
+    } else {
+      setSalePrice('');
+      setJeonsePrice('');
+      setMonthlyRentDeposit('');
+      setMonthlyRentFee('');
+    }
+  }, [contractType, originalContract]);
 
   // 폼 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
+    if (!id || !originalContract) return;
 
     // 계약 상태가 완료인데 완료일이 없는 경우
     if (showCompletedDate && !completedDate) {
@@ -175,52 +247,53 @@ const ContractEdit: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // 기본 계약 데이터
-      const contractData: ContractReqDto = {
-        propertyId,
-        customerId,
+      const currentData: ContractFormState = {
+        propertyId: selectedProperty?.id || null,
+        customerId: selectedCustomer?.id || null,
         contractType,
-        contractStatus: contractStatus,
-        memo: memo || undefined,
-        startedAt: startDate || undefined,
-        expiredAt: endDate || undefined,
-        completedAt: completedDate || undefined,
+        contractStatus,
+        salePrice: showSalePrice ? Number(salePrice) : null,
+        jeonsePrice: showJeonsePrice ? Number(jeonsePrice) : null,
+        monthlyRentDeposit: showMonthlyRent ? Number(monthlyRentDeposit) : null,
+        monthlyRentFee: showMonthlyRent ? Number(monthlyRentFee) : null,
+        startedAt: startDate,
+        expiredAt: endDate,
+        memo,
+        completedAt: showCompletedDate ? completedDate : null,
       };
 
-      // 계약 유형에 따라 가격 정보 추가
-      switch (contractType) {
-        case ContractType.SALE:
-          if (!salePrice) {
-            showToast('매매가를 입력해주세요.', 'error');
-            return;
-          }
-          contractData.salePrice = Number(salePrice);
-          break;
-        case ContractType.JEONSE:
-          if (!jeonsePrice) {
-            showToast('전세가를 입력해주세요.', 'error');
-            return;
-          }
-          contractData.jeonsePrice = Number(jeonsePrice);
-          break;
-        case ContractType.MONTHLY_RENT:
-          if (!monthlyRentDeposit || !monthlyRentFee) {
-            showToast('보증금과 월세를 모두 입력해주세요.', 'error');
-            return;
-          }
-          contractData.monthlyRentDeposit = Number(monthlyRentDeposit);
-          contractData.monthlyRentFee = Number(monthlyRentFee);
-          break;
+      const originalData: ContractFormState = {
+        propertyId: originalContract.property?.id || null,
+        customerId: originalContract.customer?.id || null,
+        contractType: originalContract.contractType,
+        contractStatus: originalContract.status,
+        salePrice: originalContract.salePrice || null,
+        jeonsePrice: originalContract.jeonsePrice || null,
+        monthlyRentDeposit: originalContract.monthlyRentDeposit || null,
+        monthlyRentFee: originalContract.monthlyRentFee || null,
+        startedAt: originalContract.startedAt || '',
+        expiredAt: originalContract.expiredAt || '',
+        memo: originalContract.memo || '',
+        completedAt: originalContract.completedAt || '',
+      };
+
+      const changedFields = getObjectDiff(originalData, currentData) as Partial<ContractReqDto>;
+
+      // propertyId와 customerId는 객체 비교가 아닌 id 직접 비교
+      if (selectedProperty?.id !== originalContract.property?.id) {
+        changedFields.propertyId = selectedProperty?.id || 0;
+      }
+      if (selectedCustomer?.id !== originalContract.customer?.id) {
+        changedFields.customerId = selectedCustomer?.id || null;
       }
 
-      // 계약 상태가 완료인 경우 완료일 추가
-      if (showCompletedDate) {
-        contractData.completedAt = completedDate;
+      // 변경된 필드가 없는 경우
+      if (Object.keys(changedFields).length === 0) {
+        showToast('변경 사항이 없습니다.', 'info');
+        return;
       }
 
-      const response = await updateContract(Number(id), contractData);
-
-      // console.log('Update response:', response);
+      const response = await updateContract(Number(id), changedFields as ContractReqDto);
 
       if (response.success) {
         showToast('계약 정보가 성공적으로 수정되었습니다.', 'success');
@@ -264,40 +337,105 @@ const ContractEdit: React.FC = () => {
       </div>
 
       <div className="mt-6">
-        <form onSubmit={handleSubmit}>
+        <form ref={formRef} onSubmit={handleSubmit} noValidate>
           <Card className="mb-6">
             <div className="space-y-6">
-              {/* 매물 정보 */}
-              <div>
-                <h2 className="text-lg font-medium text-gray-900 mb-4">매물 정보</h2>
-                <div className="p-4 bg-gray-50 rounded-md">
-                  <div className="flex items-center mb-2">
-                    <Home className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">{contract?.property.roadAddress}</span>
+              {/* 매물 정보와 고객 정보를 같은 행에 배치 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 매물 정보 */}
+                <div className="h-full">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                      매물 정보
+                    </label>
                   </div>
-                  <div className="flex items-center">
-                    <Home className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">{contract?.property.detailAddress}</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* 고객 정보 */}
-              <div>
-                <h2 className="text-lg font-medium text-gray-900 mb-4">고객 정보</h2>
-                <div className="p-4 bg-gray-50 rounded-md">
-                  <div className="flex items-center mb-2">
-                    <User className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">이름: {contract?.customer.name}</span>
+                  {selectedProperty ? (
+                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex flex-col justify-center">
+                      <p className="font-medium text-gray-900">{selectedProperty.roadAddress}</p>
+                      <p className="text-sm text-gray-500">{selectedProperty.detailAddress}</p>
+                      <div className="mt-1 flex items-center flex-wrap gap-2">
+                        <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                          {PropertyTypeLabels[selectedProperty.propertyType]}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex flex-col justify-center">
+                      <p className="text-gray-500">매물을 먼저 선택해주세요.</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 w-fit"
+                        onClick={() => setIsPropertyModalOpen(true)}
+                      >
+                        매물 선택하기
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 고객 정보 */}
+                <div className="h-full">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-medium text-gray-700 text-left">
+                      계약자 정보 {isCustomerRequired && <span className="text-red-500">*</span>}
+                    </label>
+                    {selectedCustomer && isCustomerRequired && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleChangeCustomer}
+                        leftIcon={<Edit size={14} />}
+                      >
+                        고객 변경
+                      </Button>
+                    )}
                   </div>
-                  <div className="flex items-center mb-2">
-                    <User className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-gray-700">연락처: {contract?.customer.contact}</span>
-                  </div>
-                  {contract?.customer.email && (
-                    <div className="flex items-center">
-                      <User className="h-5 w-5 text-gray-400 mr-2" />
-                      <span className="text-gray-700">이메일: {contract?.customer.email}</span>
+
+                  {contractStatus === ContractStatus.AVAILABLE ? (
+                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
+                        <AlertCircle size={20} className="text-yellow-500" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">고객 선택 불가</p>
+                        <p className="text-sm text-gray-500">
+                          계약 가능 상태에서는 고객을 선택할 수 없습니다.
+                        </p>
+                      </div>
+                    </div>
+                  ) : selectedCustomer ? (
+                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                        <User size={20} className="text-gray-500" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
+                        <p className="text-sm text-gray-500">{selectedCustomer.contact}</p>
+                        {selectedCustomer.email && (
+                          <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center justify-start">
+                      <div className="flex items-center gap-4">
+                        <User className="h-10 w-10 text-gray-400 mt-1" />
+                        <div className="flex flex-col">
+                          <p className="text-gray-500 mb-2">고객을 선택해주세요.</p>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            size="sm"
+                            onClick={handleChangeCustomer}
+                          >
+                            고객 선택하기
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -348,7 +486,7 @@ const ContractEdit: React.FC = () => {
                   </label>
                   <Input
                     type="number"
-                    placeholder="매매가 입력"
+                    placeholder={originalContract?.salePrice?.toString() || '매매가 입력'}
                     value={salePrice}
                     onChange={(e) => setSalePrice(e.target.value)}
                     required
@@ -363,7 +501,7 @@ const ContractEdit: React.FC = () => {
                   </label>
                   <Input
                     type="number"
-                    placeholder="전세가 입력"
+                    placeholder={originalContract?.jeonsePrice?.toString() || '전세가 입력'}
                     value={jeonsePrice}
                     onChange={(e) => setJeonsePrice(e.target.value)}
                     required
@@ -379,14 +517,16 @@ const ContractEdit: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       type="number"
-                      placeholder="보증금 입력"
+                      placeholder={
+                        originalContract?.monthlyRentDeposit?.toString() || '보증금 입력'
+                      }
                       value={monthlyRentDeposit}
                       onChange={(e) => setMonthlyRentDeposit(e.target.value)}
                       required
                     />
                     <Input
                       type="number"
-                      placeholder="월세 입력"
+                      placeholder={originalContract?.monthlyRentFee?.toString() || '월세 입력'}
                       value={monthlyRentFee}
                       onChange={(e) => setMonthlyRentFee(e.target.value)}
                       required
@@ -395,27 +535,28 @@ const ContractEdit: React.FC = () => {
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                  계약 기간 <span className="text-red-500">*</span>
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    required
-                    leftIcon={<Calendar size={18} />}
-                  />
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    required
-                    leftIcon={<Calendar size={18} />}
-                  />
+              {/* 계약 기간 - 계약 진행 중일 때만 표시 */}
+              {showContractPeriod && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                    계약 기간 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      leftIcon={<Calendar size={18} />}
+                    />
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      leftIcon={<Calendar size={18} />}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* 계약 완료일 (계약 상태가 완료일 때만 표시) */}
               {showCompletedDate && (
@@ -443,7 +584,7 @@ const ContractEdit: React.FC = () => {
                   메모 (선택사항)
                 </label>
                 <Textarea
-                  placeholder="계약에 대한 추가 정보를 입력하세요."
+                  placeholder={originalContract?.memo || '계약에 대한 추가 정보를 입력하세요.'}
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
                   className="min-h-[100px]"
@@ -472,6 +613,24 @@ const ContractEdit: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* 매물 선택 모달 */}
+      <PropertySelectionModal
+        isOpen={isPropertyModalOpen}
+        onClose={() => setIsPropertyModalOpen(false)}
+        onSelectProperty={handlePropertySelect}
+        selectedPropertyId={selectedProperty?.id || null}
+      />
+
+      {/* 고객 선택 모달 */}
+      {isCustomerRequired && (
+        <CustomerSelectionModal
+          isOpen={isCustomerModalOpen}
+          onClose={() => setIsCustomerModalOpen(false)}
+          onSelectCustomer={handleCustomerSelect}
+          selectedCustomerId={selectedCustomer?.id || null}
+        />
+      )}
     </DashboardLayout>
   );
 };

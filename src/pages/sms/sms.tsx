@@ -155,11 +155,22 @@ const SmsListPage = () => {
   };
 
   const formatContact = (contact: string) => {
-    if (!contact || contact.length !== 11) return '-';
-    const head = contact.substring(0, 3);
-    const body = contact.substring(3, 7);
-    const foot = contact.substring(7, 11);
-    return `${head}-${body}-${foot}`;
+    if (!contact) return '-';
+
+    // 하이픈이 포함된 경우 그대로 반환
+    if (contact.includes('-')) {
+      return contact;
+    }
+
+    // 11자리 숫자인 경우에만 포맷팅
+    if (contact.length === 11) {
+      const head = contact.substring(0, 3);
+      const body = contact.substring(3, 7);
+      const foot = contact.substring(7, 11);
+      return `${head}-${body}-${foot}`;
+    }
+
+    return contact;
   };
 
   // 테이블 컬럼 정의
@@ -189,11 +200,24 @@ const SmsListPage = () => {
     {
       key: 'status',
       header: '발송 상태',
-      render: (sms: SendSmsResDto) => (
-        <Badge variant={sms.status === 'SUCCESS' ? 'success' : 'danger'} size="sm">
-          {sms.status === 'SUCCESS' ? '성공' : '실패'}
-        </Badge>
-      ),
+      render: (sms: SendSmsResDto) => {
+        let badgeVariant: 'success' | 'danger' | 'warning' = 'danger';
+        let statusText = '실패';
+
+        if (sms.status === 'SUCCESS') {
+          badgeVariant = 'success';
+          statusText = '성공';
+        } else if (sms.status === 'PERMANENT_FAIL') {
+          badgeVariant = 'warning';
+          statusText = '영구 실패';
+        }
+
+        return (
+          <Badge variant={badgeVariant} size="sm">
+            {statusText}
+          </Badge>
+        );
+      },
     },
     {
       key: 'actions',
@@ -218,6 +242,7 @@ const SmsListPage = () => {
     total: pagination.totalElements,
     success: smsList.filter((sms) => sms.status === 'SUCCESS').length,
     fail: smsList.filter((sms) => sms.status === 'FAIL').length,
+    permanentFail: smsList.filter((sms) => sms.status === 'PERMANENT_FAIL').length,
   };
 
   return (
@@ -236,23 +261,29 @@ const SmsListPage = () => {
       </div>
 
       {/* 통계 카드 */}
-      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <Card className="bg-blue-50">
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-4">
+        <Card className="bg-white-50">
           <div className="p-5">
-            <h3 className="text-lg font-medium text-gray-900">총 발송</h3>
+            <h3 className="text-lg font-medium text-gray-900">총 발송 건수</h3>
             <div className="mt-1 text-3xl font-semibold text-blue-600">{stats.total}</div>
           </div>
         </Card>
-        <Card className="bg-green-50">
+        <Card className="bg-white-50">
           <div className="p-5">
             <h3 className="text-lg font-medium text-gray-900">현재 페이지 발송 성공</h3>
             <div className="mt-1 text-3xl font-semibold text-green-600">{stats.success}</div>
           </div>
         </Card>
-        <Card className="bg-red-50">
+        <Card className="bg-white-50">
           <div className="p-5">
             <h3 className="text-lg font-medium text-gray-900">현재 페이지 발송 실패</h3>
             <div className="mt-1 text-3xl font-semibold text-red-600">{stats.fail}</div>
+          </div>
+        </Card>
+        <Card className="bg-white-50">
+          <div className="p-5">
+            <h3 className="text-lg font-medium text-gray-900">현재 페이지 영구 실패</h3>
+            <div className="mt-1 text-3xl font-semibold text-yellow-600">{stats.permanentFail}</div>
           </div>
         </Card>
       </div>
@@ -379,8 +410,21 @@ const SmsListPage = () => {
             <div>
               <h3 className="text-sm font-medium text-gray-500">발송 상태</h3>
               <div className="mt-1">
-                <Badge variant={selectedSms.status === 'SUCCESS' ? 'success' : 'danger'} size="sm">
-                  {selectedSms.status === 'SUCCESS' ? '성공' : '실패'}
+                <Badge
+                  variant={
+                    selectedSms.status === 'SUCCESS'
+                      ? 'success'
+                      : selectedSms.status === 'PERMANENT_FAIL'
+                        ? 'warning'
+                        : 'danger'
+                  }
+                  size="sm"
+                >
+                  {selectedSms.status === 'SUCCESS'
+                    ? '성공'
+                    : selectedSms.status === 'PERMANENT_FAIL'
+                      ? '영구 실패'
+                      : '실패'}
                 </Badge>
               </div>
             </div>
