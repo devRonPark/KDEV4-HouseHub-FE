@@ -297,9 +297,7 @@ const CustomersPage = () => {
     {
       key: 'name',
       header: '이름',
-      render: (customer: Customer) => (
-        <div className="font-medium text-gray-900">{customer.name || '선택 안 함'}</div>
-      ),
+      render: (customer: Customer) => <div>{customer.name || '선택 안 함'}</div>,
     },
     {
       key: 'contact',

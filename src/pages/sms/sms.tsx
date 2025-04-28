@@ -216,7 +216,7 @@ const SmsListPage = () => {
       key: 'rdate',
       header: '예약 일시',
       render: (sms: SendSmsResDto) => {
-        const reserveDateTime = sms.rdate + sms.rtime; // 예약 일자와 시간 결합
+        const reserveDateTime = sms.rdate && sms.rtime ? sms.rdate + sms.rtime : ''; // 예약 일자와 시간 결합
         const formattedReserveTime = formatReserveTime(reserveDateTime); // 예약 시간 포맷팅
         const formattedRequestTime = formatRequestTime(sms.createdAt); // 요청 시간 포맷팅
         return (
@@ -481,13 +481,16 @@ const SmsListPage = () => {
               </div>
             </div>
             {/* 예약 일시 */}
-            {(selectedSms.rdate || selectedSms.rtime) &&
+            {selectedSms?.rdate &&
+              selectedSms?.rtime &&
               formatReserveTime(selectedSms.rdate + selectedSms.rtime) !==
                 formatRequestTime(selectedSms.createdAt) && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">예약 일시</h3>
                   <p className="mt-1 text-sm text-gray-900">
-                    {formatReserveTime(selectedSms.rdate + selectedSms.rtime)}
+                    {selectedSms?.rdate &&
+                      selectedSms?.rtime &&
+                      formatReserveTime(selectedSms.rdate + selectedSms.rtime)}
                   </p>
                 </div>
               )}
