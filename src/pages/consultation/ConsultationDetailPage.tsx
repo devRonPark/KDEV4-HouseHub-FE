@@ -4,7 +4,11 @@ import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
-import type { ConsultationResDto } from '../../types/consultation';
+import {
+  ConsultationType,
+  ConsultationStatus,
+  type ConsultationResDto,
+} from '../../types/consultation';
 import { getConsultationById, deleteConsultation } from '../../api/consultation';
 import { useToast } from '../../context/useToast';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -12,8 +16,6 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 
 const ConsultationDetailPage: React.FC = () => {
-  // 상담 상세보기 페이지의 ID 처리 로직 개선
-  // useParams 부분 수정
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -22,10 +24,28 @@ const ConsultationDetailPage: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // fetchConsultation 함수 내부의 ID 처리 로직 수정
-  //const [fetchConsultationFlag, setFetchConsultationFlag] = useState(false);
+  // 상담 유형 표시 레이블 매핑
+  const consultationTypeLabels: Record<ConsultationType, string> = {
+    [ConsultationType.PHONE]: '전화상담',
+    [ConsultationType.VISIT]: '방문상담',
+    [ConsultationType.EMAIL]: '이메일상담',
+    [ConsultationType.OTHER]: '기타',
+  };
 
-  // fetchConsultation 함수 내부의 ID 처리 로직 수정
+  // 상담 상태 표시 레이블 매핑
+  const consultationStatusLabels: Record<ConsultationStatus, string> = {
+    [ConsultationStatus.RESERVED]: '예약됨',
+    [ConsultationStatus.COMPLETED]: '완료',
+    [ConsultationStatus.CANCELED]: '취소됨',
+  };
+
+  // 상담 상태에 따른 배경색 클래스 매핑
+  const statusColorClasses: Record<ConsultationStatus, string> = {
+    [ConsultationStatus.RESERVED]: 'bg-yellow-100 text-yellow-800',
+    [ConsultationStatus.COMPLETED]: 'bg-green-100 text-green-800',
+    [ConsultationStatus.CANCELED]: 'bg-red-100 text-red-800',
+  };
+
   const fetchConsultation = async () => {
     if (!id) {
       showToast('유효하지 않은 상담 ID입니다.', 'error');
@@ -59,12 +79,10 @@ const ConsultationDetailPage: React.FC = () => {
     }
   };
 
-  // 상담 정보 조회 시 ID 처리 로직 개선
   useEffect(() => {
     fetchConsultation();
-  }, [id, navigate, showToast]);
+  }, [id, navigate]);
 
-  // 삭제 처리 로직 개선
   const handleDelete = async () => {
     if (!id) {
       showToast('유효하지 않은 상담 ID입니다.', 'error');
@@ -112,32 +130,6 @@ const ConsultationDetailPage: React.FC = () => {
     )} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
 
-  // 상담 유형 텍스트 변환
-  const getTypeText = (type: string) => {
-    switch (type) {
-      case 'phone':
-        return '전화상담';
-      case 'visit':
-        return '방문상담';
-      default:
-        return type;
-    }
-  };
-
-  // 상담 상태 텍스트 변환
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return '완료';
-      case 'reserved':
-        return '예약됨';
-      case 'canceled':
-        return '취소됨';
-      default:
-        return status;
-    }
-  };
-
   if (loading) {
     return (
       <DashboardLayout>
@@ -182,13 +174,15 @@ const ConsultationDetailPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">상담 상세정보</h1>
         </div>
         <div className="mt-3 sm:mt-0 sm:ml-4 flex flex-col sm:flex-row gap-2">
-          <Link
-            to={`/consultations/${id}/edit`}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <Edit size={16} className="mr-2" />
-            수정
-          </Link>
+          {consultation.status === ConsultationStatus.RESERVED && (
+            <Link
+              to={`/consultations/${id}/edit`}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <Edit size={16} className="mr-2" />
+              수정
+            </Link>
+          )}
           <Button
             variant="danger"
             leftIcon={<Trash2 size={16} />}
@@ -223,13 +217,14 @@ const ConsultationDetailPage: React.FC = () => {
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">고객 이메일</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {consultation.customer.email}
+                {consultation.customer.email || '-'}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">상담 유형</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {getTypeText(consultation.consultationType)}
+                {consultationTypeLabels[consultation.consultationType as ConsultationType] ||
+                  consultation.consultationType}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -243,14 +238,12 @@ const ConsultationDetailPage: React.FC = () => {
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <span
                   className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    consultation.status === 'completed'
-                      ? 'bg-green-100 text-green-800'
-                      : consultation.status === 'reserved'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
+                    statusColorClasses[consultation.status as ConsultationStatus] ||
+                    'bg-gray-100 text-gray-800'
                   }`}
                 >
-                  {getStatusText(consultation.status)}
+                  {consultationStatusLabels[consultation.status as ConsultationStatus] ||
+                    consultation.status}
                 </span>
               </dd>
             </div>

@@ -1,187 +1,108 @@
 import apiClient from './client';
-import type { ApiResponse } from '../types/api';
 import type {
-  CreateConsultationReqDto,
-  CreateConsultationResDto,
+  ConsultationReqDto,
+  UpdateConsultationReqDto,
   ConsultationResDto,
-  ConsultationType,
-  ConsultationStatus,
-  ConsultationListResDto,
 } from '../types/consultation';
-import {
-  toApiConsultationDto,
-  fromApiConsultationDto,
-  toApiConsultationType,
-  toApiStatus,
-  fromApiConsultationListDto,
-} from '../types/consultation';
-import axios from 'axios';
 
-/**
- * 상담 생성 API
- * @param data 상담 생성 요청 데이터
- * @returns API 응답
- */
-export const createConsultation = async (
-  data: CreateConsultationReqDto
-): Promise<ApiResponse<CreateConsultationResDto>> => {
+// 상담 상세 조회
+export const getConsultationById = async (id: number) => {
   try {
-    // 프론트엔드 형식(소문자)에서 백엔드 형식(대문자)으로 변환
-    const apiData = toApiConsultationDto(data);
-
-    const response = await apiClient.post<ApiResponse<any>>('/consultations', apiData);
-
-    // 백엔드 응답(대문자)을 프론트엔드 형식(소문자)으로 변환
-    if (response.data.success && response.data.data) {
-      response.data.data = fromApiConsultationDto(response.data.data);
-    }
-
-    return response.data as ApiResponse<CreateConsultationResDto>;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<CreateConsultationResDto>;
-    }
+    const response = await apiClient.get(`/consultations/${id}`);
+    return {
+      success: true,
+      data: response.data.data as ConsultationResDto,
+    };
+  } catch (error: any) {
     return {
       success: false,
-      error: '상담 정보를 등록하는 중 오류가 발생했습니다.',
+      error: error.response?.data?.message || '상담 정보를 불러오는데 실패했습니다.',
     };
   }
 };
 
-/**
- * 상담 목록 조회 API
- * @returns API 응답
- */
-export const getConsultationList = async (params?: {
-  keyword?: string;
-  startDate?: string;
-  endDate?: string;
-  type?: ConsultationType;
-  status?: ConsultationStatus;
+// 상담 등록
+export const createConsultation = async (data: ConsultationReqDto) => {
+  try {
+    const response = await apiClient.post('/consultations', data);
+    return {
+      success: true,
+      data: response.data as ConsultationResDto,
+    };
+  } catch (error: any) {
+    console.error('상담 등록 중 오류:', error);
+    return {
+      success: false,
+      error: error.response?.data?.message || '상담 등록에 실패했습니다.',
+    };
+  }
+};
+
+// 상담 수정
+export const updateConsultation = async (id: number, data: Partial<UpdateConsultationReqDto>) => {
+  try {
+    // agentId가 포함되어 있는지 확인
+    if (!data.agentId) {
+      return {
+        success: false,
+        error: '공인중개사 ID(agentId)는 필수 항목입니다.',
+      };
+    }
+
+    const response = await apiClient.patch(`/consultations/${id}`, data);
+
+    return {
+      success: true,
+      data: response.data as ConsultationResDto,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || '상담 정보 수정에 실패했습니다.',
+    };
+  }
+};
+
+// 상담 삭제
+export const deleteConsultation = async (id: number) => {
+  try {
+    await apiClient.delete(`/consultations/${id}`);
+    return {
+      success: true,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || '상담 삭제에 실패했습니다.',
+    };
+  }
+};
+
+// 상담 목록 조회
+export const getConsultationList = async (params: {
   page?: number;
   size?: number;
-  sortBy?: string;
-  sortDirection?: 'asc' | 'desc';
-}): Promise<ApiResponse<ConsultationListResDto>> => {
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  keyword?: string;
+}) => {
   try {
-    // 파라미터 변환 (소문자 -> 대문자)
-    const apiParams: Record<string, any> = {};
-
-    if (params) {
-      if (params.keyword) apiParams.keyword = params.keyword;
-      if (params.startDate) apiParams.startDate = params.startDate;
-      if (params.endDate) apiParams.endDate = params.endDate;
-      if (params.type) apiParams.type = toApiConsultationType(params.type);
-      if (params.status) apiParams.status = toApiStatus(params.status);
-      if (params.page !== undefined) apiParams.page = params.page;
-      if (params.size !== undefined) apiParams.size = params.size;
-      // 정렬 관련 파라미터 추가
-      if (params.sortBy) apiParams.sortBy = params.sortBy;
-      if (params.sortDirection) apiParams.sortDirection = params.sortDirection;
-    }
-
-    const response = await apiClient.get<ApiResponse<ConsultationListResDto>>('/consultations', {
-      params: apiParams,
+    const response = await apiClient.get('/consultations', {
+      params: {
+        ...params,
+        page: params.page ? params.page - 1 : 0, // 백엔드는 0부터 시작하는 페이지 인덱스 사용
+      },
     });
-
-    // 백엔드 응답이 성공이면, 데이터 변환
-    if (response.data.success && response.data.data) {
-      response.data.data = fromApiConsultationListDto(response.data.data);
-    }
-
-    return response.data as ApiResponse<ConsultationListResDto>;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<ConsultationListResDto>;
-    }
+    console.log(response);
     return {
-      success: false,
-      error: '상담 목록을 불러오는 중 오류가 발생했습니다.',
+      success: true,
+      data: response.data.data,
     };
-  }
-};
-
-/**
- * 상담 상세 조회 API
- * @param id 상담 ID
- * @returns API 응답
- */
-export const getConsultationById = async (id: number): Promise<ApiResponse<ConsultationResDto>> => {
-  try {
-    const response = await apiClient.get<ApiResponse<ConsultationResDto>>(`/consultations/${id}`);
-
-    // 백엔드 응답(대문자)을 프론트엔드 형식(소문자)으로 변환
-    if (response.data.success && response.data.data) {
-      response.data.data = fromApiConsultationDto(response.data.data);
-    }
-
-    return response.data as ApiResponse<ConsultationResDto>;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<ConsultationResDto>;
-    }
+  } catch (error: any) {
     return {
       success: false,
-      error: '상담 정보를 불러오는 중 오류가 발생했습니다.',
-    };
-  }
-};
-
-/**
- * 상담 수정 API
- * @param id 상담 ID
- * @param data 상담 수정 요청 데이터
- * @returns API 응답
- */
-export const updateConsultation = async (
-  id: number,
-  data: CreateConsultationReqDto
-): Promise<ApiResponse<ConsultationResDto>> => {
-  try {
-    // 프론트엔드 형식(소문자)에서 백엔드 형식(대문자)으로 변환
-    const apiData = toApiConsultationDto(data);
-
-    const response = await apiClient.put<ApiResponse<any>>(`/consultations/${id}`, apiData);
-
-    // 백엔드 응답(대문자)을 프론트엔드 형식(소문자)으로 변환
-    if (response.data.success && response.data.data) {
-      response.data.data = fromApiConsultationDto(response.data.data);
-    }
-
-    return response.data as ApiResponse<ConsultationResDto>;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<ConsultationResDto>;
-    }
-    return {
-      success: false,
-      error: '상담 정보를 수정하는 중 오류가 발생했습니다.',
-    };
-  }
-};
-
-/**
- * 상담 삭제 API
- * @param id 상담 ID
- * @returns API 응답
- */
-export const deleteConsultation = async (id: number): Promise<ApiResponse<ConsultationResDto>> => {
-  try {
-    const response = await apiClient.delete<ApiResponse<any>>(`/consultations/${id}`);
-
-    // 백엔드 응답(대문자)을 프론트엔드 형식(소문자)으로 변환
-    if (response.data.success && response.data.data) {
-      response.data.data = fromApiConsultationDto(response.data.data);
-    }
-
-    return response.data as ApiResponse<ConsultationResDto>;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<ConsultationResDto>;
-    }
-    return {
-      success: false,
-      error: '상담 정보를 삭제하는 중 오류가 발생했습니다.',
+      error: error.response?.data?.message || '상담 목록을 불러오는데 실패했습니다.',
     };
   }
 };
