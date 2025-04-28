@@ -15,25 +15,16 @@ import {
 } from 'lucide-react';
 import {
   getCustomerConsultations,
-  getCustomerPurchaseContracts,
-  getCustomerSaleContracts,
+  getCustomerBuyContracts,
+  getCustomerSellContracts,
   getCustomerInquiries,
 } from '../../api/customer';
-import { CustomerResDto } from '../../types/consultation';
-
-// 페이지네이션 타입 정의 추가
-interface Pagination {
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  currentPage: number;
-}
-
-// 페이지네이션된 데이터 타입 정의
-interface PaginatedData<T> {
-  content: T[];
-  pagination: Pagination;
-}
+import type { ApiResponse } from '../../types/api';
+import type { ConsultationListResDto, CustomerResDto } from '../../types/consultation';
+import { ContractStatus, ContractType, type ContractListResDto } from '../../types/contract';
+import { CustomerType, type InquiryListResponse } from '../../types/inquiry';
+import { PaginationDto } from '../../types/pagination';
+import { useNavigate } from 'react-router-dom';
 
 interface CustomerHistoryProps {
   customer: CustomerResDto | null;
@@ -41,53 +32,34 @@ interface CustomerHistoryProps {
 }
 
 const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
-  // 상태 타입 변경
-  const [consultations, setConsultations] = useState<PaginatedData<any>>({
-    content: [],
-    pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-  });
-  const [purchaseContracts, setPurchaseContracts] = useState<PaginatedData<any>>({
-    content: [],
-    pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-  });
-  const [saleContracts, setSaleContracts] = useState<PaginatedData<any>>({
-    content: [],
-    pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-  });
-  const [inquiries, setInquiries] = useState<PaginatedData<any>>({
-    content: [],
-    pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-  });
+  const [consultations, setConsultations] = useState<ConsultationListResDto | null>(null);
+  const [buyContracts, setBuyContracts] = useState<ContractListResDto | null>(null);
+  const [sellContracts, setSellContracts] = useState<ContractListResDto | null>(null);
+  const [inquiries, setInquiries] = useState<InquiryListResponse | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 페이지네이션 상태
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+
   // 탭 변경 핸들러
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
+    setPage(1); // 탭 변경 시 페이지 초기화
   };
 
   // 고객이 선택되면 데이터 로드
   useEffect(() => {
     if (!customer) {
       // 고객이 선택되지 않은 경우 데이터 초기화
-      setConsultations({
-        content: [],
-        pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-      });
-      setPurchaseContracts({
-        content: [],
-        pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-      });
-      setSaleContracts({
-        content: [],
-        pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-      });
-      setInquiries({
-        content: [],
-        pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-      });
+      setConsultations(null);
+      setBuyContracts(null);
+      setSellContracts(null);
+      setInquiries(null);
       return;
     }
 
@@ -100,65 +72,60 @@ const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => 
         switch (activeTab) {
           case 0: {
             // 상담 내역
-            const consultationResponse = await getCustomerConsultations(customer.id);
-            console.log('상담 내역 응답:', consultationResponse);
-            if (consultationResponse.success) {
-              setConsultations(
-                consultationResponse.data || {
-                  content: [],
-                  pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-                }
-              );
+            const response: ApiResponse<ConsultationListResDto> = await getCustomerConsultations(
+              customer.id,
+              page - 1, // API는 0-based 페이지 인덱스 사용
+              pageSize
+            );
+            if (response.success) {
+              setConsultations(response?.data ?? null);
             } else {
-              setError('상담 내역을 불러오는데 실패했습니다.');
+              setError(response.error || '상담 내역을 불러오는데 실패했습니다.');
             }
             break;
           }
 
           case 1: {
             // 매수 계약 내역
-            const purchaseResponse = await getCustomerPurchaseContracts(customer.id);
-            if (purchaseResponse.success) {
-              setPurchaseContracts(
-                purchaseResponse.data || {
-                  content: [],
-                  pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-                }
-              );
+            const response: ApiResponse<ContractListResDto> = await getCustomerBuyContracts(
+              customer.id,
+              page,
+              pageSize
+            );
+            if (response.success) {
+              setBuyContracts(response?.data ?? null);
             } else {
-              setError('매수 계약 내역을 불러오는데 실패했습니다.');
+              setError(response.error || '매수 계약 내역을 불러오는데 실패했습니다.');
             }
             break;
           }
 
           case 2: {
             // 매도 계약 내역
-            const saleResponse = await getCustomerSaleContracts(customer.id);
-            if (saleResponse.success) {
-              setSaleContracts(
-                saleResponse.data || {
-                  content: [],
-                  pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-                }
-              );
+            const response: ApiResponse<ContractListResDto> = await getCustomerSellContracts(
+              customer.id,
+              page,
+              pageSize
+            );
+            if (response.success) {
+              setSellContracts(response?.data ?? null);
             } else {
-              setError('매도 계약 내역을 불러오는데 실패했습니다.');
+              setError(response.error || '매도 계약 내역을 불러오는데 실패했습니다.');
             }
             break;
           }
 
           case 3: {
             // 문의 내역
-            const inquiryResponse = await getCustomerInquiries(customer.id);
-            if (inquiryResponse.success) {
-              setInquiries(
-                inquiryResponse.data || {
-                  content: [],
-                  pagination: { totalPages: 0, totalElements: 0, size: 10, currentPage: 0 },
-                }
-              );
+            const response: ApiResponse<InquiryListResponse> = await getCustomerInquiries(
+              customer.id,
+              page,
+              pageSize
+            );
+            if (response.success) {
+              setInquiries(response?.data ?? null);
             } else {
-              setError('문의 내역을 불러오는데 실패했습니다.');
+              setError(response.error || '문의 내역을 불러오는데 실패했습니다.');
             }
             break;
           }
@@ -172,7 +139,7 @@ const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => 
     };
 
     loadCustomerHistory();
-  }, [customer, activeTab]);
+  }, [customer, activeTab, page]);
 
   // 날짜 포맷 함수
   const formatDate = (dateString: string) => {
@@ -180,9 +147,9 @@ const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => 
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
 
-  const formatDateWithTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
 
   // 데이터 없음 표시 컴포넌트
@@ -206,6 +173,49 @@ const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => 
       <p>{message}</p>
     </div>
   );
+
+  // 페이지네이션 컴포넌트
+  const Pagination = <T,>({ data }: { data: { content: T[]; pagination: PaginationDto } }) => {
+    if (!data || !data.pagination || data.pagination.totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center mt-4">
+        <nav className="flex items-center space-x-1">
+          <button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page === 1}
+            className={`px-2 py-1 rounded ${
+              page === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            이전
+          </button>
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: data.pagination.totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => handlePageChange(pageNum)}
+                className={`px-3 py-1 rounded ${pageNum === page ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+              >
+                {pageNum}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page === data.pagination.totalPages}
+            className={`px-2 py-1 rounded ${
+              page === data.pagination.totalPages
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            다음
+          </button>
+        </nav>
+      </div>
+    );
+  };
 
   return (
     <div className={`${className}`}>
@@ -270,42 +280,45 @@ const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => 
             {activeTab === 0 && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-3">상담 내역</h3>
-                {consultations.content.length === 0 ? (
+                {!consultations || consultations.content.length === 0 ? (
                   <NoDataDisplay message="상담 내역이 없습니다" />
                 ) : (
-                  <div className="space-y-3">
-                    {consultations.content.map((consultation) => (
-                      <div
-                        key={consultation.id}
-                        className="border border-gray-200 rounded-md p-3 bg-white"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center">
-                            <Calendar size={16} className="text-gray-400 mr-2" />
-                            <span className="text-sm text-gray-600">
-                              {formatDateWithTime(consultation.consultationDate)}
+                  <>
+                    <div className="space-y-3">
+                      {consultations.content.map((consultation) => (
+                        <div
+                          key={consultation.id}
+                          className="border border-gray-200 rounded-md p-3 bg-white"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center">
+                              <Calendar size={16} className="text-gray-400 mr-2" />
+                              <span className="text-sm text-gray-600">
+                                {formatDate(consultation.consultationDate)}
+                              </span>
+                            </div>
+                            <span
+                              className={`px-2 py-1 text-xs rounded-full ${
+                                consultation.status === 'COMPLETED'
+                                  ? 'bg-green-100 text-green-800'
+                                  : consultation.status === 'CANCELED'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-yellow-100 text-yellow-800'
+                              }`}
+                            >
+                              {consultation.status === 'COMPLETED'
+                                ? '완료'
+                                : consultation.status === 'CANCELED'
+                                  ? '취소됨'
+                                  : '예약됨'}
                             </span>
                           </div>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              consultation.status === 'COMPLETED'
-                                ? 'bg-green-100 text-green-800'
-                                : consultation.status === 'CANCELED'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-yellow-100 text-yellow-800'
-                            }`}
-                          >
-                            {consultation.status === 'COMPLETED'
-                              ? '완료'
-                              : consultation.status === 'CANCELED'
-                                ? '취소됨'
-                                : '예약됨'}
-                          </span>
+                          <p className="mt-2 text-sm text-gray-700">{consultation.content}</p>
                         </div>
-                        <p className="mt-2 text-sm text-gray-700">{consultation.content}</p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                    <Pagination data={consultations} />
+                  </>
                 )}
               </div>
             )}
@@ -314,50 +327,53 @@ const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => 
             {activeTab === 1 && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-3">매수 계약 내역</h3>
-                {purchaseContracts.content.length === 0 ? (
+                {!buyContracts || buyContracts.content.length === 0 ? (
                   <NoDataDisplay message="매수 계약 내역이 없습니다" />
                 ) : (
-                  <div className="space-y-3">
-                    {purchaseContracts.content.map((contract) => (
-                      <div
-                        key={contract.id}
-                        className="border border-gray-200 rounded-md p-3 bg-white"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center">
-                            <Calendar size={16} className="text-gray-400 mr-2" />
-                            <span className="text-sm text-gray-600">
-                              {formatDate(contract.contractDate)}
+                  <>
+                    <div className="space-y-3">
+                      {buyContracts.content.map((contract) => (
+                        <div
+                          key={contract.id}
+                          className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                          onClick={() => navigate(`/contracts/${contract.id}`)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {contract.contractType === ContractType.SALE
+                                  ? '매매'
+                                  : contract.contractType === ContractType.JEONSE
+                                    ? '전세'
+                                    : '월세'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {contract.startedAt
+                                  ? new Date(contract.startedAt).toLocaleDateString('ko-KR')
+                                  : '날짜 정보 없음'}
+                              </p>
+                            </div>
+                            <span
+                              className={`px-2 py-1 text-xs rounded-full ${
+                                contract.status === ContractStatus.COMPLETED
+                                  ? 'bg-green-100 text-green-800'
+                                  : contract.status === ContractStatus.IN_PROGRESS
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              {contract.status === ContractStatus.COMPLETED
+                                ? '완료'
+                                : contract.status === ContractStatus.IN_PROGRESS
+                                  ? '진행중'
+                                  : '취소'}
                             </span>
                           </div>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              contract.status === 'COMPLETED'
-                                ? 'bg-green-100 text-green-800'
-                                : contract.status === 'CANCELED'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-blue-100 text-blue-800'
-                            }`}
-                          >
-                            {contract.status === 'COMPLETED'
-                              ? '완료'
-                              : contract.status === 'CANCELED'
-                                ? '취소됨'
-                                : '진행중'}
-                          </span>
                         </div>
-                        <p className="mt-2 text-sm font-medium text-gray-700">
-                          {contract.propertyName || '매물명 없음'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {contract.propertyAddress || '주소 정보 없음'}
-                        </p>
-                        <p className="mt-1 text-sm font-bold text-blue-600">
-                          {contract.amount?.toLocaleString() || '0'}원
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                    <Pagination data={buyContracts} />
+                  </>
                 )}
               </div>
             )}
@@ -366,50 +382,53 @@ const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => 
             {activeTab === 2 && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-3">매도 계약 내역</h3>
-                {saleContracts.content.length === 0 ? (
+                {!sellContracts || sellContracts.content.length === 0 ? (
                   <NoDataDisplay message="매도 계약 내역이 없습니다" />
                 ) : (
-                  <div className="space-y-3">
-                    {saleContracts.content.map((contract) => (
-                      <div
-                        key={contract.id}
-                        className="border border-gray-200 rounded-md p-3 bg-white"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center">
-                            <Calendar size={16} className="text-gray-400 mr-2" />
-                            <span className="text-sm text-gray-600">
-                              {formatDate(contract.contractDate)}
+                  <>
+                    <div className="space-y-3">
+                      {sellContracts.content.map((contract) => (
+                        <div
+                          key={contract.id}
+                          className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                          onClick={() => navigate(`/contracts/${contract.id}`)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {contract.contractType === ContractType.SALE
+                                  ? '매매'
+                                  : contract.contractType === ContractType.JEONSE
+                                    ? '전세'
+                                    : '월세'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {contract.startedAt
+                                  ? new Date(contract.startedAt).toLocaleDateString('ko-KR')
+                                  : '날짜 정보 없음'}
+                              </p>
+                            </div>
+                            <span
+                              className={`px-2 py-1 text-xs rounded-full ${
+                                contract.status === ContractStatus.COMPLETED
+                                  ? 'bg-green-100 text-green-800'
+                                  : contract.status === ContractStatus.IN_PROGRESS
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              {contract.status === ContractStatus.COMPLETED
+                                ? '완료'
+                                : contract.status === ContractStatus.IN_PROGRESS
+                                  ? '진행중'
+                                  : '취소'}
                             </span>
                           </div>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              contract.status === 'COMPLETED'
-                                ? 'bg-green-100 text-green-800'
-                                : contract.status === 'CANCELED'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-blue-100 text-blue-800'
-                            }`}
-                          >
-                            {contract.status === 'COMPLETED'
-                              ? '완료'
-                              : contract.status === 'CANCELED'
-                                ? '취소됨'
-                                : '진행중'}
-                          </span>
                         </div>
-                        <p className="mt-2 text-sm font-medium text-gray-700">
-                          {contract.propertyName || '매물명 없음'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {contract.propertyAddress || '주소 정보 없음'}
-                        </p>
-                        <p className="mt-1 text-sm font-bold text-blue-600">
-                          {contract.amount?.toLocaleString() || '0'}원
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                    <Pagination data={sellContracts} />
+                  </>
                 )}
               </div>
             )}
@@ -418,39 +437,47 @@ const CustomerHistory = ({ customer, className = '' }: CustomerHistoryProps) => 
             {activeTab === 3 && (
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-3">문의 내역</h3>
-                {inquiries.content.length === 0 ? (
+                {!inquiries || inquiries.content.length === 0 ? (
                   <NoDataDisplay message="문의 내역이 없습니다" />
                 ) : (
-                  <div className="space-y-3">
-                    {inquiries.content.map((inquiry) => (
-                      <div
-                        key={inquiry.id}
-                        className="border border-gray-200 rounded-md p-3 bg-white"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex items-center">
-                            <Calendar size={16} className="text-gray-400 mr-2" />
-                            <span className="text-sm text-gray-600">
-                              {formatDate(inquiry.createdAt)}
+                  <>
+                    <div className="space-y-3">
+                      {inquiries.content.map((inquiry) => (
+                        <div
+                          key={inquiry.inquiryId}
+                          className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                          onClick={() => navigate(`/inquiries/${inquiry.inquiryId}/answers`)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {inquiry.name || '제목 없음'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {new Date(inquiry.createdAt).toLocaleDateString('ko-KR')}
+                              </p>
+                            </div>
+                            <span
+                              className={`px-2 py-1 text-xs rounded-full ${
+                                inquiry.customerType === CustomerType.CUSTOMER
+                                  ? 'bg-green-100 text-green-800'
+                                  : inquiry.customerType === CustomerType.CUSTOMER_CANDIDATE
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              {inquiry.customerType === CustomerType.CUSTOMER
+                                ? '고객'
+                                : inquiry.customerType === CustomerType.CUSTOMER_CANDIDATE
+                                  ? '예비고객'
+                                  : '기타'}
                             </span>
                           </div>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${
-                              inquiry.status === 'ANSWERED'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}
-                          >
-                            {inquiry.status === 'ANSWERED' ? '답변완료' : '대기중'}
-                          </span>
                         </div>
-                        <p className="mt-2 text-sm font-medium text-gray-700">
-                          {inquiry.title || '제목 없음'}
-                        </p>
-                        <p className="text-sm text-gray-600 line-clamp-2">{inquiry.content}</p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                    <Pagination data={inquiries} />
+                  </>
                 )}
               </div>
             )}

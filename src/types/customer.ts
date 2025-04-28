@@ -1,5 +1,5 @@
 import type { PaginationDto } from './pagination';
-import type { Consultation } from './consultation';
+import type { ConsultationResDto } from './consultation';
 
 export interface Customer {
   id: number;
@@ -9,7 +9,7 @@ export interface Customer {
   ageGroup?: number; // 선택적
   gender?: 'M' | 'F' | undefined; // 선택적
   memo?: string; // 선택적
-  consultations?: Consultation[]; // 선택적
+  consultations?: ConsultationResDto[]; // 선택적
   createdAt: string;
   updatedAt: string | null;
   deletedAt?: string | null;
