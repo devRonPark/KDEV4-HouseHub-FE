@@ -8,14 +8,12 @@ import Button from '../ui/Button';
 interface InquiryTemplatePreviewInfoProps {
   template: InquiryTemplate;
   onToggleView: () => void;
-  showForm: boolean;
   onShare?: () => void;
 }
 
 const InquiryTemplatePreviewInfo: React.FC<InquiryTemplatePreviewInfoProps> = ({
   template,
   onToggleView,
-  showForm,
   onShare,
 }) => {
   // 템플릿 유형 표시 포맷팅

@@ -154,7 +154,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSave, onCancel 
         />
       </div>
 
-      {/* 관심 지역 선택기 (질문 유형이 '관심 지역'인 경우에만 표시) */}
+      {/* 관심 지역 선택기 (질문 유형이 '지역 선택'인 경우에만 표시) */}
       {type === 'REGION' && (
         <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
           <RegionSelector error={errors.region} />

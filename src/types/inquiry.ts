@@ -10,6 +10,7 @@ export enum QuestionType {
   EMAIL = 'EMAIL',
   PHONE = 'PHONE',
   NUMBER = 'NUMBER',
+  REGION = 'REGION',
 }
 
 // 질문 인터페이스
@@ -45,9 +46,7 @@ export interface FormState {
 // 문의 등록 요청 타입
 export interface CreateInquiryRequest {
   templateToken: string; // 템플릿 공유 토큰
-  name: string; // 고객 이름 (첫 번째 질문 답변)
-  email: string; // 고객 이메일 (두 번째 질문 답변)
-  phone: string; // 고객 전화번호 (세 번째 질문 답변)
+  phone: string; // 고객 전화번호
   answers: InquiryAnswer[]; // 질문에 대한 답변 목록
 }
 

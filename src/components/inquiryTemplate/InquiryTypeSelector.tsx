@@ -17,6 +17,7 @@ interface InquiryTypeSelectorProps {
   onTransactionPurposeChange: (value: string) => void;
   onTypeSelected: (type: string, purpose: string) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
@@ -26,8 +27,11 @@ const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
   onTransactionPurposeChange,
   onTypeSelected,
   error,
+  disabled = false,
 }) => {
   const handlePropertyTypeChange = (event: SelectChangeEvent) => {
+    if (disabled) return;
+
     const newType = event.target.value;
     onPropertyTypeChange(newType);
 
@@ -38,6 +42,8 @@ const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
   };
 
   const handleTransactionPurposeChange = (event: SelectChangeEvent) => {
+    if (disabled) return;
+
     const newPurpose = event.target.value;
     onTransactionPurposeChange(newPurpose);
 
@@ -59,7 +65,8 @@ const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
             value={propertyType}
             onChange={handlePropertyTypeChange}
             label="매물 유형"
-            className="bg-white"
+            className={`bg-white ${disabled ? 'opacity-70' : ''}`}
+            disabled={disabled}
           >
             <MenuItem value="">선택해주세요</MenuItem>
             <MenuItem value="아파트">아파트</MenuItem>
@@ -79,7 +86,8 @@ const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
             value={transactionPurpose}
             onChange={handleTransactionPurposeChange}
             label="거래 목적"
-            className="bg-white"
+            className={`bg-white ${disabled ? 'opacity-70' : ''}`}
+            disabled={disabled}
           >
             <MenuItem value="">선택해주세요</MenuItem>
             <MenuItem value="매수">매수</MenuItem>
@@ -95,7 +103,9 @@ const InquiryTypeSelector: React.FC<InquiryTypeSelectorProps> = ({
 
       {/* 미리보기 */}
       {propertyType && transactionPurpose && (
-        <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+        <div
+          className={`mt-2 p-3 bg-gray-50 rounded-md border border-gray-200 ${disabled ? 'opacity-80' : ''}`}
+        >
           <p className="text-sm font-medium text-gray-700">유형 필드 미리보기:</p>
           <p className="text-sm font-bold text-blue-600 mt-1">{`${propertyType}_${transactionPurpose}`}</p>
         </div>

@@ -22,12 +22,10 @@ import {
   updateInquiryTemplate,
 } from '../../api/inquiryTemplate';
 import type {
-  InquiryTemplate,
   InquiryTemplateRequest,
   InquiryTemplateType,
   Question,
 } from '../../types/inquiryTemplate';
-import { getObjectDiff } from '../../utils/objectUtil';
 import { generateTypeBasedQuestions, createTypeField } from '../../utils/questionTemplates';
 import { defaultFormDescriptionByType } from '../../utils/defaultInquiryTemplateDescription';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
@@ -66,9 +64,6 @@ const InquiryTemplateCreate: React.FC = () => {
   const [pendingDescription, setPendingDescription] = useState('');
   const [pendingTypeKey, setPendingTypeKey] = useState('');
 
-  // 원본 템플릿 데이터 저장
-  const [originalTemplate, setOriginalTemplate] = useState<InquiryTemplate | null>(null);
-
   useEffect(() => {
     if (!id) return;
 
@@ -82,7 +77,6 @@ const InquiryTemplateCreate: React.FC = () => {
           setName(template.name);
           setDescription(template.description);
           setIsActive(template.isActive);
-          setOriginalTemplate(template);
 
           if (template.questions && template.questions.length > 0) {
             const sortedQuestions = [...template.questions].sort(
@@ -127,12 +121,14 @@ const InquiryTemplateCreate: React.FC = () => {
       setQuestions([]);
       setIsLoading(false);
       setLoadingError(null);
-      setOriginalTemplate(null);
     }
   }, []); // 빈 배열 → 최초 마운트 때만 실행
 
   // 유형이 선택되었을 때 기본 질문 세트 생성
   const handleTypeSelected = (type: string, purpose: string) => {
+    // 수정 모드에서는 유형 변경 불가
+    if (id) return;
+
     // 유형 키 생성
     const typeKey = `${type}_${purpose}`;
 
@@ -259,7 +255,6 @@ const InquiryTemplateCreate: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 유효성 검사
     const newErrors: {
       name?: string;
       description?: string;
@@ -267,33 +262,26 @@ const InquiryTemplateCreate: React.FC = () => {
       propertyType?: string;
     } = {};
 
-    if (!name.trim()) {
-      newErrors.name = '템플릿 이름을 입력해주세요.';
-    }
+    // 기본 유효성 검사
+    if (!name.trim()) newErrors.name = '템플릿 이름을 입력해주세요.';
+    if (!description.trim()) newErrors.description = '템플릿 설명을 입력해주세요.';
+    if (questions.length === 0) newErrors.questions = '최소 1개 이상의 질문을 추가해주세요.';
 
-    if (!description.trim()) {
-      newErrors.description = '템플릿 설명을 입력해주세요.';
-    }
-
-    if (questions.length === 0) {
-      newErrors.questions = '최소 1개 이상의 질문을 추가해주세요.';
-    }
-
-    // 매물 유형과 거래 목적 검증
+    // 매물 유형/거래 목적 체크
     if ((!propertyType || !transactionPurpose) && !typeFieldAdded) {
       newErrors.propertyType = '매물 유형과 거래 목적을 모두 선택해주세요.';
     }
 
-    // 필수 항목 검증 (연락처, 마케팅 수신 동의 여부, 연락 가능 시간)
+    // 필수 항목 누락 확인
     const requiredLabels = ['연락처', '마케팅 수신 동의 여부', '연락 가능 시간'];
     const missingRequiredFields = requiredLabels.filter(
       (label) => !questions.some((q) => q.label === label)
     );
-
     if (missingRequiredFields.length > 0) {
       newErrors.questions = `필수 항목(${missingRequiredFields.join(', ')})이 누락되었습니다. '필수 항목 자동 추가' 버튼을 클릭하세요.`;
     }
 
+    // 에러 처리
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -302,6 +290,7 @@ const InquiryTemplateCreate: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // 전체 템플릿 데이터 생성
       const templateData: InquiryTemplateRequest = {
         type: `${propertyType}_${transactionPurpose}` as unknown as InquiryTemplateType,
         name,
@@ -310,40 +299,9 @@ const InquiryTemplateCreate: React.FC = () => {
         questions: questions.map(({ id: _id, ...rest }) => rest), // id 제외
       };
 
-      let response;
-
-      if (id) {
-        // 템플릿 수정 - 변경된 필드만 전송
-        if (originalTemplate) {
-          // 원본 템플릿과 현재 템플릿 비교하여 변경된 필드만 추출
-          const originalData = {
-            type: originalTemplate.type,
-            name: originalTemplate.name,
-            description: originalTemplate.description,
-            isActive: originalTemplate.isActive,
-            questions: originalTemplate.questions.map(({ ...rest }) => rest),
-          };
-
-          // 변경된 필드만 포함하는 객체 생성
-          const changedData = getObjectDiff(originalData, templateData);
-
-          // 변경된 필드가 있는 경우에만 API 호출
-          if (Object.keys(changedData).length > 0) {
-            response = await updateInquiryTemplate(id, changedData);
-          } else {
-            // 변경된 필드가 없는 경우 성공으로 처리
-            showToast('변경된 내용이 없습니다.', 'info');
-            setIsSubmitting(false);
-            return;
-          }
-        } else {
-          // 원본 템플릿이 없는 경우 전체 데이터 전송
-          response = await updateInquiryTemplate(id, templateData);
-        }
-      } else {
-        // 템플릿 생성 - 전체 데이터 전송
-        response = await createInquiryTemplate(templateData);
-      }
+      const response = id
+        ? await updateInquiryTemplate(id, templateData)
+        : await createInquiryTemplate(templateData);
 
       if (response.success) {
         showToast(
@@ -422,6 +380,7 @@ const InquiryTemplateCreate: React.FC = () => {
                     className="block text-sm font-medium text-gray-700"
                   >
                     템플릿 이름 <span className="text-red-500">*</span>
+                    {id && <span className="ml-2 text-xs text-gray-500">(수정 불가)</span>}
                   </label>
                   <Input
                     id="template-name"
@@ -430,6 +389,8 @@ const InquiryTemplateCreate: React.FC = () => {
                     placeholder="템플릿 이름을 입력하세요"
                     error={errors.name}
                     required
+                    readOnly={!!id}
+                    className={id ? 'bg-gray-100 cursor-not-allowed' : ''}
                   />
                 </div>
 
@@ -473,7 +434,8 @@ const InquiryTemplateCreate: React.FC = () => {
             {/* 매물 유형 및 거래 목적 섹션 */}
             <Paper className="p-6 shadow-sm">
               <Typography variant="h6" className="mb-4 font-medium text-gray-900">
-                매물 유형 및 거래 목적
+                문의 유형 및 거래 목적
+                {id && <span className="ml-2 text-xs text-gray-500">(수정 불가)</span>}
               </Typography>
 
               <InquiryTypeSelector
@@ -483,13 +445,15 @@ const InquiryTemplateCreate: React.FC = () => {
                 onTransactionPurposeChange={setTransactionPurpose}
                 onTypeSelected={handleTypeSelected}
                 error={errors.propertyType}
+                disabled={!!id}
               />
 
               <Divider className="my-4" />
 
               <Typography variant="body2" className="text-gray-600">
-                매물 유형과 거래 목적을 선택하면 자동으로 '유형' 필드와 관련 기본 질문들이 생성되며,
-                템플릿 설명도 자동으로 채워집니다.
+                {id
+                  ? '문의 유형과 거래 목적은 템플릿 생성 후 변경할 수 없습니다.'
+                  : "문의 유형과 거래 목적을 선택하면 자동으로 '유형' 필드와 관련 기본 질문들이 생성되며, 템플릿 설명도 자동으로 채워집니다."}
               </Typography>
             </Paper>
 

@@ -3,8 +3,7 @@
 import type React from 'react';
 import { Paper, Typography, Divider } from '@mui/material';
 import type { Question } from '../../types/inquiryTemplate';
-import { RegionData } from '../../types/region';
-import { MapPin } from 'react-feather';
+import RegionSelector from '../region/RegionSelector';
 
 interface QuestionPreviewProps {
   questions: Question[];
@@ -135,25 +134,9 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ questions }) => {
           </div>
         );
       case 'REGION':
-        let regionData: RegionData | null = null;
-        if (question.regionData) {
-          try {
-            regionData = JSON.parse(question.regionData) as RegionData;
-          } catch (error) {
-            console.error('Error parsing region data:', error);
-          }
-        }
-
         return (
-          <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
-            {regionData ? (
-              <div className="flex items-center">
-                <MapPin className="text-blue-500 mr-2" size={18} />
-                <span>{regionData.name}</span>
-              </div>
-            ) : (
-              <div className="text-gray-400 italic">지역이 선택되지 않았습니다</div>
-            )}
+          <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+            <RegionSelector />
           </div>
         );
       default:

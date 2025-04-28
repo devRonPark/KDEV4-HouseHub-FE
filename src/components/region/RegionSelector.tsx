@@ -122,11 +122,12 @@ const RegionDropdown: FC<RegionDropdownProps> = ({ onChange = () => {}, initialV
         dong: selectedDongName,
         name: `${selectedProvinceName} ${selectedCityName} ${selectedDongName}`,
       };
+      console.log(regionData);
       onChange(regionData);
     } else {
       onChange(null);
     }
-  }, [selectedProvinceName, selectedCityName, selectedDongName, onChange]);
+  }, [selectedProvinceName, selectedCityName, selectedDongName]);
 
   // 도/특별시/광역시 선택 핸들러
   const handleProvinceChange = (value: string) => {
@@ -247,6 +248,14 @@ const RegionDropdown: FC<RegionDropdownProps> = ({ onChange = () => {}, initialV
           <p className="text-sm text-blue-700 mt-1">
             {selectedProvinceName} {selectedCityName} {selectedDongName}
           </p>
+        </div>
+      )}
+
+      {/* 에러 메시지 표시 */}
+      {apiError && (
+        <div className="mt-2 p-3 bg-red-50 rounded-md border border-red-200">
+          <p className="text-sm font-medium text-red-800">오류:</p>
+          <p className="text-sm text-red-700 mt-1">{apiError}</p>
         </div>
       )}
     </div>

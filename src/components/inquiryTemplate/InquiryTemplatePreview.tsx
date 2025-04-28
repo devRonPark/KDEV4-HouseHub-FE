@@ -370,7 +370,6 @@ const InquiryTemplatePreview: React.FC<InquiryTemplatePreviewProps> = ({
           <InquiryTemplatePreviewInfo
             template={template}
             onToggleView={() => setShowForm(!showForm)}
-            showForm={showForm}
             onShare={handleOpenShareDialog}
           />
         )}
