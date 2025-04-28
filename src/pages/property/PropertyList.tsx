@@ -3,18 +3,22 @@
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, RefreshCw, Home } from 'react-feather';
+import { Search, Plus, RefreshCw, Home, Filter } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Pagination from '../../components/ui/Pagination';
 import PropertyListItem from '../../components/property/PropertyListItem';
-import PropertyTypeFilter from '../../components/property/PropertyTypeFilter';
+import PropertyFilterModal from '../../components/property/PropertyFilterModal';
 import { useToast } from '../../context/useToast';
 import { getProperties } from '../../api/property';
 import type { PropertyType, FindPropertyResDto, PropertySearchFilter } from '../../types/property';
-import { PaginationDto } from '../../types/pagination';
-import ActiveStatusFilter from '../../components/property/ActiveStatusFilter';
+import type { PaginationDto } from '../../types/pagination';
+import { ContractType } from '../../types/contract';
+
+const DEFAULT_MAX_PRICE = 100000;
+const DEFAULT_MAX_MONTHLY_RENT = 300;
+const PRICE_UNIT = 10000;
 
 const PropertyList: React.FC = () => {
   const navigate = useNavigate();
@@ -27,70 +31,68 @@ const PropertyList: React.FC = () => {
     size: 10,
     currentPage: 1,
   });
-
-  // 검색 상태 및 필터 업데이트
-  const [filter, setFilter] = useState<PropertySearchFilter>({
-    province: '',
-    city: '',
-    dong: '',
-    customerName: '',
-    agentName: '',
-    propertyType: null,
-    active: undefined,
-    page: 1,
-    size: 10,
-  });
+  const [filter, setFilter] = useState<PropertySearchFilter>(getInitialFilter());
   const [searchBtnClicked, setSearchBtnClicked] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [filterModalValues, setFilterModalValues] = useState(getInitialFilterModalValues());
 
-  // 매물 목록 조회
+  function getInitialFilter(): PropertySearchFilter {
+    return {
+      province: '',
+      city: '',
+      dong: '',
+      customerName: '',
+      agentName: '',
+      propertyType: null,
+      contractType: undefined,
+      active: undefined,
+      page: 1,
+      size: 10,
+    };
+  }
+
+  function getInitialFilterModalValues() {
+    return {
+      propertyType: null as PropertyType | null,
+      contractType: null as ContractType | null,
+      active: undefined as boolean | undefined,
+      priceRanges: {
+        [ContractType.JEONSE]: { min: 0, max: DEFAULT_MAX_PRICE },
+        [ContractType.MONTHLY_RENT]: {
+          deposit: { min: 0, max: DEFAULT_MAX_PRICE },
+          monthlyRent: { min: 0, max: DEFAULT_MAX_MONTHLY_RENT },
+        },
+        [ContractType.SALE]: { min: 0, max: DEFAULT_MAX_PRICE },
+      },
+    };
+  }
+
   const fetchProperties = useCallback(async () => {
     setIsLoading(true);
-
     try {
       const response = await getProperties(filter);
-      // console.log('Response in component:', response);
-
-      if (response.success) {
-        // 응답 데이터가 있는지 확인
-        if (response.data) {
-          // console.log('Response data:', response.data);
-          // content 배열이 있는지 확인
-          const propertiesData = response.data.content || [];
-          setProperties(propertiesData);
-          setPagination(response.data.pagination);
-        } else {
-          // 데이터가 없는 경우 빈 배열로 설정
-          setProperties([]);
-          setPagination({
-            totalPages: 1,
-            totalElements: 0,
-            size: 10,
-            currentPage: 1,
-          });
-          console.warn('No data in response:', response);
-        }
+      if (response.success && response.data) {
+        setProperties(response.data.content || []);
+        setPagination(response.data.pagination);
       } else {
-        showToast(response.error || '매물 목록을 불러오는데 실패했습니다.', 'error');
-        // 오류 시 빈 배열로 설정
         setProperties([]);
+        setPagination({ totalPages: 1, totalElements: 0, size: 10, currentPage: 1 });
+        showToast(response.error || '매물 목록을 불러오는데 실패했습니다.', 'error');
       }
     } catch (error) {
       console.error('Error fetching properties:', error);
       showToast('매물 목록을 불러오는 중 오류가 발생했습니다.', 'error');
-      // 예외 발생 시 빈 배열로 설정
       setProperties([]);
     } finally {
       setIsLoading(false);
     }
   }, [filter, showToast]);
 
-  // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {
     setFilter((prev) => ({ ...prev, page }));
     setSearchBtnClicked(true);
   };
 
-  // 검색 핸들러 수정
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setFilter((prev) => ({
@@ -100,40 +102,118 @@ const PropertyList: React.FC = () => {
       dong: filter.dong,
       customerName: filter.customerName,
       agentName: filter.agentName,
-      active: filter.active,
       page: 1,
     }));
     setSearchBtnClicked(true);
   };
 
-  // 필터 변경 핸들러
-  const handlePropertyTypeChange = (type: PropertyType | null) => {
-    setFilter((prev) => ({ ...prev, propertyType: type, page: 1 }));
-    setSearchBtnClicked(true);
-  };
-
-  const handleActiveStatusChange = (status: boolean | undefined) => {
-    setFilter((prev) => ({ ...prev, active: status, page: 1 }));
-    setSearchBtnClicked(true);
-  };
-
-  // 필터 초기화 함수 수정
-  const resetFilters = () => {
-    setFilter({
-      province: '',
-      city: '',
-      dong: '',
-      customerName: '',
-      agentName: '',
-      propertyType: null,
-      page: 1,
-      size: 10,
+  const openFilterModal = () => {
+    const {
+      propertyType,
+      contractType,
+      active,
+      minPrice,
+      maxPrice,
+      minDeposit,
+      maxDeposit,
+      minMonthlyRent,
+      maxMonthlyRent,
+    } = filter;
+    setFilterModalValues({
+      propertyType,
+      contractType: contractType || null,
+      active,
+      priceRanges: {
+        [ContractType.JEONSE]: {
+          min: minPrice || 0,
+          max:
+            maxPrice === null
+              ? DEFAULT_MAX_PRICE
+              : maxPrice === undefined
+                ? DEFAULT_MAX_PRICE
+                : maxPrice / PRICE_UNIT,
+        },
+        [ContractType.MONTHLY_RENT]: {
+          deposit: {
+            min: minDeposit || 0,
+            max:
+              maxDeposit === null
+                ? DEFAULT_MAX_PRICE
+                : maxDeposit === undefined
+                  ? DEFAULT_MAX_PRICE
+                  : maxDeposit / PRICE_UNIT,
+          },
+          monthlyRent: {
+            min: minMonthlyRent || 0,
+            max:
+              maxMonthlyRent === null
+                ? DEFAULT_MAX_MONTHLY_RENT
+                : maxMonthlyRent === undefined
+                  ? DEFAULT_MAX_MONTHLY_RENT
+                  : maxMonthlyRent,
+          },
+        },
+        [ContractType.SALE]: {
+          min: minPrice || 0,
+          max:
+            maxPrice === null
+              ? DEFAULT_MAX_PRICE
+              : maxPrice === undefined
+                ? DEFAULT_MAX_PRICE
+                : maxPrice / PRICE_UNIT,
+        },
+      },
     });
-    setSearchBtnClicked(false);
+    setIsFilterModalOpen(true);
   };
 
-  // 초기 데이터 로딩 및 필터/페이지 변경 시 데이터 다시 로딩
-  // 최초 1회 로딩
+  const handleApplyFilters = (filterValues: typeof filterModalValues) => {
+    const newFilter: PropertySearchFilter = { ...filter, page: 1 };
+    newFilter.propertyType = filterValues.propertyType;
+    newFilter.contractType = filterValues.contractType || undefined;
+    newFilter.active = filterValues.active;
+
+    const jeonseRange = filterValues.priceRanges[ContractType.JEONSE];
+    const monthlyRentRange = filterValues.priceRanges[ContractType.MONTHLY_RENT];
+    const saleRange = filterValues.priceRanges[ContractType.SALE];
+
+    newFilter.minPrice = undefined;
+    newFilter.maxPrice = undefined;
+    newFilter.minDeposit = undefined;
+    newFilter.maxDeposit = undefined;
+    newFilter.minMonthlyRent = undefined;
+    newFilter.maxMonthlyRent = undefined;
+
+    if (filterValues.contractType === ContractType.JEONSE) {
+      newFilter.minPrice = jeonseRange.min * PRICE_UNIT;
+      newFilter.maxPrice =
+        jeonseRange.max === DEFAULT_MAX_PRICE ? undefined : jeonseRange.max * PRICE_UNIT;
+    } else if (filterValues.contractType === ContractType.MONTHLY_RENT) {
+      newFilter.minDeposit = monthlyRentRange.deposit.min * PRICE_UNIT;
+      newFilter.maxDeposit =
+        monthlyRentRange.deposit.max === DEFAULT_MAX_PRICE
+          ? undefined
+          : monthlyRentRange.deposit.max * PRICE_UNIT;
+      newFilter.minMonthlyRent = monthlyRentRange.monthlyRent.min;
+      newFilter.maxMonthlyRent =
+        monthlyRentRange.monthlyRent.max === DEFAULT_MAX_MONTHLY_RENT
+          ? undefined
+          : monthlyRentRange.monthlyRent.max;
+    } else if (filterValues.contractType === ContractType.SALE) {
+      newFilter.minPrice = saleRange.min * PRICE_UNIT;
+      newFilter.maxPrice =
+        saleRange.max === DEFAULT_MAX_PRICE ? undefined : saleRange.max * PRICE_UNIT;
+    }
+
+    setFilter(newFilter);
+    setSearchBtnClicked(true);
+  };
+
+  const resetFilters = () => {
+    setFilter(getInitialFilter());
+    setSearchBtnClicked(true);
+  };
+
   useEffect(() => {
     fetchProperties();
   }, []);
@@ -141,7 +221,7 @@ const PropertyList: React.FC = () => {
   useEffect(() => {
     if (searchBtnClicked) {
       fetchProperties();
-      setSearchBtnClicked(false); // 다시 false로 초기화
+      setSearchBtnClicked(false);
     }
   }, [fetchProperties, searchBtnClicked]);
 
@@ -160,7 +240,6 @@ const PropertyList: React.FC = () => {
         </div>
       </div>
 
-      {/* 검색 및 필터 */}
       <div className="mt-6 bg-white shadow rounded-lg p-4">
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -181,7 +260,6 @@ const PropertyList: React.FC = () => {
             />
           </div>
 
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> */}
           <div className="grid grid-cols-1 gap-4">
             <Input
               placeholder="고객 이름"
@@ -189,18 +267,22 @@ const PropertyList: React.FC = () => {
               onChange={(e) => setFilter({ ...filter, customerName: e.target.value })}
               leftIcon={<Search size={18} />}
             />
-            {/* <Input
-              placeholder="공인중개사 이름"
-              value={filter.agentName}
-              onChange={(e) => setFilter({ ...filter, agentName: e.target.value })}
-              leftIcon={<Search size={18} />}
-            /> */}
           </div>
 
           <div className="flex justify-between">
-            <Button type="submit" variant="primary">
-              검색
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" variant="primary">
+                검색
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={openFilterModal}
+                leftIcon={<Filter size={16} />}
+              >
+                상세 필터
+              </Button>
+            </div>
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={resetFilters}>
                 필터 초기화
@@ -216,17 +298,8 @@ const PropertyList: React.FC = () => {
             </div>
           </div>
         </form>
-
-        <div className="mt-4 flex flex-wrap gap-4 justify-between items-center">
-          <PropertyTypeFilter
-            selectedType={filter.propertyType}
-            onChange={handlePropertyTypeChange}
-          />
-          <ActiveStatusFilter selected={filter.active} onChange={handleActiveStatusChange} />
-        </div>
       </div>
 
-      {/* 매물 목록 */}
       <div className="mt-6">
         {isLoading ? (
           <div className="space-y-4">
@@ -242,7 +315,7 @@ const PropertyList: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : properties && properties.length > 0 ? (
+        ) : properties.length > 0 ? (
           <div className="space-y-4">
             {properties.map((property) => (
               <PropertyListItem key={property.id} property={property} />
@@ -253,12 +326,7 @@ const PropertyList: React.FC = () => {
             <Home className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">매물 없음</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {filter.province ||
-              filter.city ||
-              filter.dong ||
-              filter.customerName ||
-              filter.agentName ||
-              filter.propertyType
+              {Object.values(filter).some((value) => !!value)
                 ? '검색 조건에 맞는 매물이 없습니다.'
                 : '등록된 매물이 없습니다.'}
             </p>
@@ -275,8 +343,7 @@ const PropertyList: React.FC = () => {
         )}
       </div>
 
-      {/* 페이지네이션 - properties가 undefined일 경우 대비 */}
-      {!isLoading && properties && properties.length > 0 && (
+      {!isLoading && properties.length > 0 && (
         <div className="mt-6">
           <Pagination
             currentPage={pagination.currentPage}
@@ -285,6 +352,13 @@ const PropertyList: React.FC = () => {
           />
         </div>
       )}
+
+      <PropertyFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        initialValues={filterModalValues}
+        onApplyFilters={handleApplyFilters}
+      />
     </DashboardLayout>
   );
 };
