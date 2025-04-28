@@ -49,4 +49,5 @@ export interface CustomerSearchFilter {
   keyword?: string;
   page: number;
   size: number;
+  includeDeleted?: boolean;
 }

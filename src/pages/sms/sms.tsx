@@ -15,9 +15,12 @@ import Pagination from '../../components/ui/Pagination';
 import Badge from '../../components/ui/Badge';
 import { useToast } from '../../context/useToast';
 import { getAllSms, getSmsById } from '../../api/smsApi';
+import { getAllTemplates } from '../../api/smsApi';
 import type { SendSmsResDto } from '../../types/sms';
+import type { SmsTemplateListResDto } from '../../types/sms';
 
 import Input from '../../components/ui/Input';
+import Select from '../../components/ui/Select';
 
 const SmsListPage = () => {
   const navigate = useNavigate();
@@ -41,23 +44,31 @@ const SmsListPage = () => {
     keyword: '',
     page: 1,
     size: 10,
+    templateId: null as number | null,
+  });
+
+  const [templates, setTemplates] = useState<SmsTemplateListResDto>({
+    content: [],
+    pagination: {
+      totalPages: 0,
+      totalElements: 0,
+      size: 10,
+      currentPage: 1,
+    },
   });
 
   // 문자 목록 조회
   const fetchSmsList = async () => {
     setIsLoading(true);
     try {
-      // API 호출 시 페이지네이션 및 검색 파라미터 전달
       const response = await getAllSms({
         page: filter.page,
         size: filter.size,
         keyword: filter.keyword,
+        templateId: filter.templateId,
       });
-
       if (response.success && response.data) {
         setSmsList(response.data.content || []);
-
-        // 페이지네이션 정보 업데이트
         setPagination(response.data.pagination);
       } else {
         showToast(response.message || '문자 목록을 불러오는데 실패했습니다.', 'error');
@@ -86,9 +97,25 @@ const SmsListPage = () => {
     }
   };
 
+  // 템플릿 목록 조회
+  const fetchTemplates = async () => {
+    try {
+      const response = await getAllTemplates({
+        page: 1,
+        size: 100,
+      });
+      if (response.success && response.data) {
+        setTemplates(response.data);
+      }
+    } catch (error) {
+      console.error('템플릿 목록 조회 오류:', error);
+    }
+  };
+
   // 초기 데이터 로딩
   useEffect(() => {
     fetchSmsList();
+    fetchTemplates();
   }, []);
 
   // customer.tsx 방식으로 교체
@@ -179,6 +206,11 @@ const SmsListPage = () => {
       key: 'receiver',
       header: '수신자 전화번호',
       render: (sms: SendSmsResDto) => <div>{formatContact(sms.receiver)}</div>,
+    },
+    {
+      key: 'template',
+      header: '사용 템플릿',
+      render: (sms: SendSmsResDto) => <div>{sms.smsTemplate?.title || '템플릿 없음'}</div>,
     },
     {
       key: 'rdate',
@@ -300,6 +332,26 @@ const SmsListPage = () => {
               onChange={(e) => setFilter((prev) => ({ ...prev, keyword: e.target.value }))}
               onKeyDown={handleKeyPress}
               leftIcon={<Search size={16} />}
+            />
+          </div>
+          <div className="flex-grow">
+            <Select
+              label="템플릿 필터"
+              value={filter.templateId?.toString() || ''}
+              onChange={(value) => {
+                setFilter((prev) => ({
+                  ...prev,
+                  templateId: value ? Number(value) : null,
+                  page: 1, // 필터 변경 시 첫 페이지로
+                }));
+              }}
+              options={[
+                { value: '', label: '전체 템플릿' },
+                ...templates.content.map((template) => ({
+                  value: template.id.toString(),
+                  label: template.title,
+                })),
+              ]}
             />
           </div>
           <div>

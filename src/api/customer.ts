@@ -21,6 +21,9 @@ export const getMyCustomers = async (
     if (filter.keyword) {
       url += `&keyword=${encodeURIComponent(filter.keyword)}`;
     }
+    if (filter.includeDeleted !== undefined) {
+      url += `&includeDeleted=${filter.includeDeleted}`;
+    }
     const response = await apiClient.get<ApiResponse<CustomerListResDto>>(url);
     return response.data;
   } catch (error) {
@@ -229,6 +232,24 @@ export const getCustomerBuyContracts = async (
     return {
       success: false,
       error: '고객 매수 계약 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 고객 복구
+export const restoreCustomer = async (id: number): Promise<ApiResponse<CreateCustomerResDto>> => {
+  try {
+    const response = await apiClient.put<ApiResponse<CreateCustomerResDto>>(
+      `/customers/restore/${id}`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<CreateCustomerResDto>;
+    }
+    return {
+      success: false,
+      error: '고객 복구 중 오류가 발생했습니다.',
     };
   }
 };

@@ -40,6 +40,9 @@ export const getAllSms = async (filter: SmsSearchFilter): Promise<ApiResponse<Sm
     if (filter.keyword) {
       url += `&keyword=${encodeURIComponent(filter.keyword)}`;
     }
+    if (filter.templateId) {
+      url += `&templateId=${filter.templateId}`;
+    }
     const response = await apiClient.get<ApiResponse<SmsListResDto>>(url);
     return response.data;
   } catch (error) {

@@ -16,7 +16,7 @@ import ContractRegistration from './pages/contract/ContractRegistration';
 import ContractDetail from './pages/contract/ContractDetail';
 import ContractEdit from './pages/contract/ContractEdit';
 import LoadingScreen from './components/ui/LoadingScreen';
-import CustomersPage from './pages/customers/Customer';
+import CustomersPage from './pages/customers/customer';
 import CustomerDetailPage from './pages/customers/CustomerDetailPage';
 import InquiryTemplateManagement from './pages/inquiryTemplate/InquiryTemplateManagement';
 import InquiryTemplateCreate from './pages/inquiryTemplate/InquiryTemplateCreate';
@@ -288,7 +288,14 @@ function App() {
       <Route path="/inquiry/complete" element={<InquiryCompletePage />} />
 
       {/* 라우트 추가 */}
-      <Route path="/crawling-properties" element={<ProtectedRoute><CrawlingPropertyPage /></ProtectedRoute>} />
+      <Route
+        path="/crawling-properties"
+        element={
+          <ProtectedRoute>
+            <CrawlingPropertyPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* 기본 리다이렉트 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

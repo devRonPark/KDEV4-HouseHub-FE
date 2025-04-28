@@ -10,6 +10,7 @@ import {
   deleteMyCustomer,
   downloadExcelTemplate,
   uploadCustomersExcel,
+  restoreCustomer,
 } from '../../api/customer';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Plus, RefreshCw, Edit, Trash2, Download, Upload } from 'react-feather';
@@ -39,8 +40,10 @@ const CustomersPage = () => {
     keyword: '',
     page: 1,
     size: 10,
+    includeDeleted: false,
   });
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [includeDeletedTemp, setIncludeDeletedTemp] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -53,6 +56,11 @@ const CustomersPage = () => {
 
   const navigate = useNavigate();
 
+  // 컴포넌트 마운트 시 includeDeletedTemp 초기화
+  useEffect(() => {
+    setIncludeDeletedTemp(filter.includeDeleted);
+  }, []);
+
   // 고객 데이터 로드 함수
   const loadCustomers = useCallback(async () => {
     setIsLoading(true);
@@ -61,6 +69,7 @@ const CustomersPage = () => {
         keyword: filter.keyword,
         page: filter.page,
         size: filter.size,
+        includeDeleted: filter.includeDeleted,
       });
 
       if (response.success && response.data) {
@@ -87,6 +96,7 @@ const CustomersPage = () => {
     setFilter((prev) => ({
       ...prev,
       keyword: searchKeyword,
+      includeDeleted: includeDeletedTemp,
       page: 1,
     }));
   };
@@ -266,6 +276,22 @@ const CustomersPage = () => {
     }
   };
 
+  // 고객 복구
+  const handleRestoreCustomer = async (customer: Customer, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      const response = await restoreCustomer(customer.id);
+      if (response.success) {
+        showToast('고객이 성공적으로 복구되었습니다.', 'success');
+        loadCustomers();
+      } else {
+        showToast(response.message || '고객 복구에 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      showToast('고객 복구 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
   // 테이블 컬럼 정의
   const columns = [
     {
@@ -306,30 +332,43 @@ const CustomersPage = () => {
       header: '관리',
       render: (customer: Customer) => (
         <div className="flex justify-end space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Edit size={14} />}
-            onClick={(e) => {
-              e.stopPropagation(); // 행 클릭 이벤트 전파 방지
-              handleEditCustomer(customer);
-            }}
-            className="text-blue-600 border-blue-300 hover:bg-blue-50"
-          >
-            수정
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Trash2 size={14} />}
-            onClick={(e) => {
-              e.stopPropagation(); // 행 클릭 이벤트 전파 방지
-              handleDeleteCustomerClick(customer);
-            }}
-            className="text-red-600 border-red-300 hover:bg-red-50"
-          >
-            삭제
-          </Button>
+          {customer.deletedAt ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => handleRestoreCustomer(customer, e)}
+              className="text-green-600 border-green-300 hover:bg-green-50"
+            >
+              복구
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Edit size={14} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditCustomer(customer);
+                }}
+                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              >
+                수정
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Trash2 size={14} />}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteCustomerClick(customer);
+                }}
+                className="text-red-600 border-red-300 hover:bg-red-50"
+              >
+                삭제
+              </Button>
+            </>
+          )}
         </div>
       ),
       width: '200px',
@@ -400,6 +439,17 @@ const CustomersPage = () => {
                   }}
                   leftIcon={<Search size={16} />}
                 />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={includeDeletedTemp}
+                    onChange={(e) => setIncludeDeletedTemp(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-gray-700">삭제된 고객 포함</span>
+                </label>
               </div>
               <div>
                 <Button variant="primary" onClick={handleSearch} leftIcon={<Search size={16} />}>
