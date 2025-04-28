@@ -156,7 +156,7 @@ const CustomerDetailPage: React.FC = () => {
         name: data.name || customer.name,
         email: data.email || customer.email,
         contact: data.contact || customer.contact,
-        ageGroup: Number(data.ageGroup || customer.ageGroup),
+        birthDate: data.birthDate || customer.birthDate,
         gender: data.gender || customer.gender,
         memo: data.memo || '',
       };
@@ -293,9 +293,12 @@ const CustomerDetailPage: React.FC = () => {
                         <Calendar size={20} className="text-gray-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-500">연령대 / 성별</p>
+                        <p className="text-sm font-medium text-gray-500">생년월일 / 성별</p>
                         <p className="text-gray-900">
-                          {customer.ageGroup ? `${customer.ageGroup}대` : '-'} /{' '}
+                          {customer.birthDate
+                            ? new Date(customer.birthDate).toLocaleDateString()
+                            : '-'}{' '}
+                          /{' '}
                           {customer.gender === 'M'
                             ? '남성'
                             : customer.gender === 'F'
