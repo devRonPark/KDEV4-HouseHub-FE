@@ -8,6 +8,8 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import Checkbox from '../ui/Checkbox';
 import { Paperclip, X } from 'react-feather';
+import RegionSelector from '../region/RegionSelector';
+import { RegionData } from '../../types/region';
 
 interface QuestionFieldProps {
   question: Question;
@@ -245,6 +247,19 @@ const QuestionField: React.FC<QuestionFieldProps> = ({ question, control, error 
                   error={error?.message}
                   fullWidth
                 />
+              );
+
+            case QuestionType.REGION:
+              return (
+                <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+                  <RegionSelector
+                    error={error?.message}
+                    onChange={(regionData: RegionData | null) => {
+                      console.log(regionData);
+                      onChange(regionData);
+                    }}
+                  />
+                </div>
               );
 
             default:

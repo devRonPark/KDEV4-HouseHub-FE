@@ -165,6 +165,11 @@ const InquiryFormPage: React.FC = () => {
           <LogoWithText width={240} height={60} className="mx-auto" />
         </div>
 
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">{'문의하기'}</h1>
+        <p className="text-md text-gray-600 mb-6">
+          {template.description || '궁금한 점이나 요청 사항이 있다면 아래에 작성해 주세요.'}
+        </p>
+
         <div className="bg-white p-8 rounded-lg shadow-md">
           {formState.error && <ErrorMessage message={formState.error} />}
 
