@@ -3,9 +3,35 @@
 import type React from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Copy, Edit, Eye, Trash } from 'react-feather';
+import { Edit, Eye, Share2, Trash } from 'react-feather';
 import type { InquiryTemplate } from '../../types/inquiryTemplate';
-import { ToastVariant } from '../../hooks/useToast';
+import { useState } from 'react';
+import ShareTemplateDialog from './ShareTemplateDialog';
+import { Chip } from '@mui/material';
+
+// 💡 배지 스타일 매핑 유틸
+const typeBadgeStyles: Record<string, string> = {
+  아파트_매수: 'bg-blue-100 text-blue-800',
+  아파트_매도: 'bg-red-100 text-red-800',
+  아파트_임대: 'bg-green-100 text-green-800',
+  아파트_임차: 'bg-yellow-100 text-yellow-800',
+  오피스텔_매수: 'bg-blue-100 text-blue-800',
+  오피스텔_매도: 'bg-red-100 text-red-800',
+  오피스텔_임대: 'bg-green-100 text-green-800',
+  오피스텔_임차: 'bg-yellow-100 text-yellow-800',
+  상가_매수: 'bg-indigo-100 text-indigo-800',
+  상가_매도: 'bg-pink-100 text-pink-800',
+  상가_임대: 'bg-teal-100 text-teal-800',
+  상가_임차: 'bg-amber-100 text-amber-800',
+  사무실_매수: 'bg-cyan-100 text-cyan-800',
+  사무실_매도: 'bg-rose-100 text-rose-800',
+  사무실_임대: 'bg-lime-100 text-lime-800',
+  사무실_임차: 'bg-orange-100 text-orange-800',
+  원룸_매수: 'bg-fuchsia-100 text-fuchsia-800',
+  원룸_매도: 'bg-rose-100 text-rose-800',
+  원룸_임대: 'bg-emerald-100 text-emerald-800',
+  원룸_임차: 'bg-violet-100 text-violet-800',
+};
 
 interface InquiryTemplateListProps {
   inquiryTemplates: InquiryTemplate[];
@@ -13,7 +39,6 @@ interface InquiryTemplateListProps {
   onPreview: (inquiryTemplate: InquiryTemplate) => void;
   onDelete: (inquiryTemplate: InquiryTemplate) => void;
   isLoading: boolean;
-  showToast: (message: string, variant: ToastVariant, duration: number) => void;
 }
 
 const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
@@ -22,30 +47,41 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
   onPreview,
   onDelete,
   isLoading,
-  showToast,
 }) => {
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<InquiryTemplate | null>(null);
+
+  // 공유 다이얼로그 열기
+  const handleOpenShareDialog = (template: InquiryTemplate, e?: React.MouseEvent) => {
+    // 이벤트가 있으면 전파 방지
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    setSelectedTemplate(template);
+    setShareDialogOpen(true);
+  };
+
+  // 템플릿 유형 표시 포맷팅
+  const formatTemplateType = (type: string) => {
+    if (!type) return '-';
+
+    // 유형_목적 형태로 되어 있는 경우 분리
+    const parts = type.split('_');
+    if (parts.length === 2) {
+      return `${parts[0]} (${parts[1]})`;
+    }
+
+    return type;
+  };
+
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'yyyy년 MM월 dd일', { locale: ko });
     } catch {
       return '날짜 정보 없음';
     }
-  };
-
-  // 설명 텍스트 줄임 함수
-  const truncateDescription = (text: string, maxLength = 50) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
-  const handleCopyLink = (shareToken: string) => {
-    const link = `${window.location.origin}/inquiry/share/${shareToken}`;
-    navigator.clipboard
-      .writeText(link)
-      .then(() =>
-        showToast('고객이 접근 가능한 문의 폼 링크가 클립보드에 복사되었습니다.', 'success', 3000)
-      )
-      .catch(() => showToast('복사에 실패했습니다.', 'error', 3000));
   };
 
   if (isLoading) {
@@ -79,13 +115,13 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              이름
+              제목
             </th>
             <th
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              설명
+              유형
             </th>
             <th
               scope="col"
@@ -113,21 +149,19 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900">{inquiryTemplate.name}</div>
               </td>
-              <td className="px-6 py-4">
-                <div className="text-sm text-gray-500">
-                  {truncateDescription(inquiryTemplate.description)}
-                </div>
-              </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    inquiryTemplate.isActive
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${typeBadgeStyles[inquiryTemplate.type] || 'bg-gray-100 text-gray-800'}`}
                 >
-                  {inquiryTemplate.isActive ? '활성화' : '비활성화'}
+                  {formatTemplateType(inquiryTemplate.type.toString())}
                 </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {inquiryTemplate.isActive ? (
+                  <Chip label="활성화" size="small" className="bg-green-100 text-green-800" />
+                ) : (
+                  <Chip label="비활성화" size="small" className="bg-gray-100 text-gray-800" />
+                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {formatDate(inquiryTemplate.createdAt)}
@@ -142,9 +176,16 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
                     <Eye size={18} />
                   </button>
                   <button
+                    onClick={(e) => handleOpenShareDialog(inquiryTemplate, e)}
+                    className="text-green-600 hover:text-green-900 p-1 rounded-full hover:bg-green-50"
+                    title="공유"
+                  >
+                    <Share2 size={18} />
+                  </button>
+                  <button
                     onClick={() => onEdit(inquiryTemplate)}
                     className="text-indigo-600 hover:text-indigo-900 cursor-pointer"
-                    title="수정"
+                    title="편집"
                   >
                     <Edit size={18} />
                   </button>
@@ -155,19 +196,23 @@ const InquiryTemplateList: React.FC<InquiryTemplateListProps> = ({
                   >
                     <Trash size={18} />
                   </button>
-                  <button
-                    onClick={() => handleCopyLink(inquiryTemplate.shareToken)}
-                    className="text-gray-600 hover:text-gray-900 cursor-pointer"
-                    title="링크 복사"
-                  >
-                    <Copy size={18} />
-                  </button>
                 </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* 공유 다이얼로그 */}
+      {selectedTemplate && (
+        <ShareTemplateDialog
+          open={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+          templateId={selectedTemplate.id}
+          templateName={selectedTemplate.name}
+          shareToken={selectedTemplate.shareToken || selectedTemplate.id}
+        />
+      )}
     </div>
   );
 };

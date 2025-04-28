@@ -7,10 +7,10 @@ import type {
   CustomerSearchFilter,
   Customer,
 } from '../types/customer';
-import type { ConsultationListResDto } from '../types/consultation';
-import type { ContractListResDto } from '../types/contract';
-import type { InquiryListResponse } from '../types/inquiry';
 import axios from 'axios';
+import { ConsultationListResDto } from '../types/consultation';
+import { ContractListResDto } from '../types/contract';
+import { InquiryListResponse } from '../types/inquiry';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회 (상담 내역 제외)
 export const getMyCustomers = async (

@@ -51,8 +51,6 @@ const FormRenderer: React.FC<FormRendererProps> = ({
       const answers: InquiryAnswer[] = [];
 
       // 연락처 정보 변수 초기화
-      let name = '';
-      let email = '';
       let phone = '';
 
       // 질문별 답변 처리
@@ -66,20 +64,16 @@ const FormRenderer: React.FC<FormRendererProps> = ({
           });
 
           // 첫 세 질문(순서대로 name, email, phone)에 대한 답변 추출
-          if (index === 0) {
-            name = typeof answer === 'string' ? answer : JSON.stringify(answer);
-          } else if (index === 1) {
-            email = typeof answer === 'string' ? answer : JSON.stringify(answer);
-          } else if (index === 2) {
+          if (index === 1) {
             phone = typeof answer === 'string' ? answer : JSON.stringify(answer);
           }
         }
       });
 
       // 필수 정보 확인
-      if (!name || !email || !phone) {
-        showToast('이름, 이메일, 연락처는 필수 입력 항목입니다.', 'error');
-        onSubmitError('이름, 이메일, 연락처는 필수 입력 항목입니다.');
+      if (!phone) {
+        showToast('연락처는 필수 입력 항목입니다.', 'error');
+        onSubmitError('연락처는 필수 입력 항목입니다.');
         setIsSubmitting(false);
         return;
       }
@@ -87,8 +81,6 @@ const FormRenderer: React.FC<FormRendererProps> = ({
       // API 요청 데이터 구성
       const requestData: CreateInquiryRequest = {
         templateToken: shareToken,
-        name,
-        email,
         phone,
         answers,
       };
