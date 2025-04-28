@@ -124,3 +124,55 @@ export const uploadCustomersExcel = async (
     };
   }
 };
+
+// 고객 상담 내역 조회
+export const getCustomerConsultations = async (customerId: number) => {
+  try {
+    const response = await apiClient.get(`/customers/${customerId}/consultations`);
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || '고객 상담 내역을 불러오는데 실패했습니다.',
+    };
+  }
+};
+
+// 고객 매수 계약 내역 조회
+export const getCustomerPurchaseContracts = async (customerId: number) => {
+  try {
+    const response = await apiClient.get(`/customers/${customerId}/buy-contracts`);
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || '고객 매수 계약 내역을 불러오는데 실패했습니다.',
+    };
+  }
+};
+
+// 고객 매도 계약 내역 조회
+export const getCustomerSaleContracts = async (customerId: number) => {
+  try {
+    const response = await apiClient.get(`/customers/${customerId}/sell-contracts`);
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || '고객 매도 계약 내역을 불러오는데 실패했습니다.',
+    };
+  }
+};
+
+// 고객 문의 내역 조회
+export const getCustomerInquiries = async (customerId: number) => {
+  try {
+    const response = await apiClient.get(`/customers/${customerId}/inquiries`);
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.response?.data?.message || '고객 문의 내역을 불러오는데 실패했습니다.',
+    };
+  }
+};

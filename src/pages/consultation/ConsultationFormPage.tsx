@@ -26,6 +26,7 @@ import Textarea from '../../components/ui/Textarea';
 import Card from '../../components/ui/Card';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 import Alert from '../../components/ui/Alert';
+import CustomerHistory from '../../components/consultation/CustomerHistory';
 
 // 상담 유형 표시 레이블 매핑
 const consultationTypeLabels: Record<ConsultationType, string> = {
@@ -424,282 +425,299 @@ const ConsultationFormPage: React.FC = () => {
         />
       )}
 
-      <div className="mt-6">
-        <form onSubmit={handleSubmit}>
-          <Card className="mb-6">
-            <div className="space-y-6">
-              {/* 고객 정보 */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-sm font-medium text-gray-700 text-left">
-                    고객 정보 <span className="text-red-500">*</span>
-                  </label>
-                  {!isEditMode && (
-                    <div className="flex space-x-2">
-                      <Button
-                        type="button"
-                        variant={isNewCustomer ? 'outline' : 'primary'}
-                        size="sm"
-                        onClick={() => {
-                          setIsCustomerModalOpen(true);
-                          setIsNewCustomer(false);
-                        }}
-                        disabled={isEditMode} // 수정 모드에서는 고객 변경 불가
-                      >
-                        <Search size={14} className="mr-1" />
-                        고객 검색
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={isNewCustomer ? 'primary' : 'outline'}
-                        size="sm"
-                        onClick={handleToggleNewCustomer}
-                        disabled={isEditMode} // 수정 모드에서는 고객 변경 불가
-                      >
-                        <Plus size={14} className="mr-1" />
-                        신규 고객
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {isEditMode ? (
-                  // 수정 모드: 고객 정보 표시 (수정 불가)
-                  <div className="p-3 bg-gray-50 rounded-md text-left flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                      <User size={20} className="text-gray-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{selectedCustomer?.name}</p>
-                      <p className="text-sm text-gray-500">{selectedCustomer?.contact}</p>
-                      {selectedCustomer?.email && (
-                        <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 왼쪽: 상담 등록 폼 */}
+        <div className="lg:col-span-2">
+          <div className="bg-white shadow rounded-lg p-6">
+            <form onSubmit={handleSubmit}>
+              <Card className="mb-6">
+                <div className="space-y-6">
+                  {/* 고객 정보 */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-sm font-medium text-gray-700 text-left">
+                        고객 정보 <span className="text-red-500">*</span>
+                      </label>
+                      {!isEditMode && (
+                        <div className="flex space-x-2">
+                          <Button
+                            type="button"
+                            variant={isNewCustomer ? 'outline' : 'primary'}
+                            size="sm"
+                            onClick={() => {
+                              setIsCustomerModalOpen(true);
+                              setIsNewCustomer(false);
+                            }}
+                            disabled={isEditMode} // 수정 모드에서는 고객 변경 불가
+                          >
+                            <Search size={14} className="mr-1" />
+                            고객 검색
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={isNewCustomer ? 'primary' : 'outline'}
+                            size="sm"
+                            onClick={handleToggleNewCustomer}
+                            disabled={isEditMode} // 수정 모드에서는 고객 변경 불가
+                          >
+                            <Plus size={14} className="mr-1" />
+                            신규 고객
+                          </Button>
+                        </div>
                       )}
                     </div>
-                    <div className="ml-auto">
-                      <span className="text-xs text-gray-500 italic">
-                        상담 등록 후에는 고객 정보를 변경할 수 없습니다.
-                      </span>
-                    </div>
+
+                    {isEditMode ? (
+                      // 수정 모드: 고객 정보 표시 (수정 불가)
+                      <div className="p-3 bg-gray-50 rounded-md text-left flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                          <User size={20} className="text-gray-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{selectedCustomer?.name}</p>
+                          <p className="text-sm text-gray-500">{selectedCustomer?.contact}</p>
+                          {selectedCustomer?.email && (
+                            <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                          )}
+                        </div>
+                        <div className="ml-auto">
+                          <span className="text-xs text-gray-500 italic">
+                            상담 등록 후에는 고객 정보를 변경할 수 없습니다.
+                          </span>
+                        </div>
+                      </div>
+                    ) : isNewCustomer ? (
+                      // 신규 고객 입력 폼
+                      <div className="p-4 bg-white rounded-md border border-gray-200">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                              고객명
+                            </label>
+                            <Input
+                              name="name"
+                              value={newCustomerData.name}
+                              onChange={handleNewCustomerChange}
+                              placeholder="고객 이름 입력"
+                              leftIcon={<User size={18} />}
+                              error={errors['newCustomer.name']}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                              연락처 <span className="text-red-500">*</span>
+                            </label>
+                            <Input
+                              name="contact"
+                              value={newCustomerData.contact}
+                              onChange={handleNewCustomerChange}
+                              placeholder="010-0000-0000"
+                              leftIcon={<Phone size={18} />}
+                              error={errors['newCustomer.contact']}
+                              required
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                              이메일
+                            </label>
+                            <Input
+                              name="email"
+                              value={newCustomerData.email}
+                              onChange={handleNewCustomerChange}
+                              placeholder="example@example.com"
+                              type="email"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : selectedCustomer ? (
+                      // 선택된 고객 정보 표시
+                      <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                          <User size={20} className="text-gray-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
+                          <p className="text-sm text-gray-500">{selectedCustomer.contact}</p>
+                          {selectedCustomer.email && (
+                            <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                          )}
+                        </div>
+                        <div className="ml-auto">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleChangeCustomer}
+                            leftIcon={<Edit size={14} />}
+                          >
+                            고객 변경
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // 고객 선택 안내
+                      <div className="p-3 bg-gray-50 rounded-md text-left flex flex-col justify-center items-start">
+                        <div className="flex flex-col items-start justify-start">
+                          <User className="h-8 w-8 text-gray-400 mb-2" />
+                          <p className="text-gray-500">
+                            고객을 선택하거나 신규 고객을 등록해주세요.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {errors.customerId && (
+                      <p className="mt-1 text-sm text-red-600">{errors.customerId}</p>
+                    )}
                   </div>
-                ) : isNewCustomer ? (
-                  // 신규 고객 입력 폼
-                  <div className="p-4 bg-white rounded-md border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                          고객명
-                        </label>
-                        <Input
-                          name="name"
-                          value={newCustomerData.name}
-                          onChange={handleNewCustomerChange}
-                          placeholder="고객 이름 입력"
-                          leftIcon={<User size={18} />}
-                          error={errors['newCustomer.name']}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                          연락처 <span className="text-red-500">*</span>
-                        </label>
-                        <Input
-                          name="contact"
-                          value={newCustomerData.contact}
-                          onChange={handleNewCustomerChange}
-                          placeholder="010-0000-0000"
-                          leftIcon={<Phone size={18} />}
-                          error={errors['newCustomer.contact']}
-                          required
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                          이메일
-                        </label>
-                        <Input
-                          name="email"
-                          value={newCustomerData.email}
-                          onChange={handleNewCustomerChange}
-                          placeholder="example@example.com"
-                          type="email"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : selectedCustomer ? (
-                  // 선택된 고객 정보 표시
-                  <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                      <User size={20} className="text-gray-500" />
-                    </div>
+
+                  {/* 상담 유형과 상담 상태를 같은 행에 배치 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* 상담 유형 */}
                     <div>
-                      <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
-                      <p className="text-sm text-gray-500">{selectedCustomer.contact}</p>
-                      {selectedCustomer.email && (
-                        <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                        상담 유형 <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="consultationType"
+                        name="consultationType"
+                        value={formData.consultationType}
+                        onChange={handleChange}
+                        className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        {Object.entries(consultationTypeLabels).map(([type, label]) => (
+                          <option key={type} value={type}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 상담 상태 */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                        상담 상태 <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        id="status"
+                        name="status"
+                        value={formData.status}
+                        onChange={handleChange}
+                        className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        disabled={isStatusChangeRestricted && formData.status !== originalStatus}
+                      >
+                        <option value={ConsultationStatus.RESERVED}>
+                          {consultationStatusLabels[ConsultationStatus.RESERVED]}
+                        </option>
+                        <option
+                          value={ConsultationStatus.COMPLETED}
+                          disabled={
+                            isStatusChangeRestricted &&
+                            (originalStatus as ConsultationStatus) !==
+                              ConsultationStatus.RESERVED &&
+                            formData.status !== ConsultationStatus.COMPLETED
+                          }
+                        >
+                          {consultationStatusLabels[ConsultationStatus.COMPLETED]}
+                        </option>
+                        <option
+                          value={ConsultationStatus.CANCELED}
+                          disabled={
+                            isStatusChangeRestricted &&
+                            (originalStatus as ConsultationStatus) !==
+                              ConsultationStatus.RESERVED &&
+                            formData.status !== ConsultationStatus.CANCELED
+                          }
+                        >
+                          {consultationStatusLabels[ConsultationStatus.CANCELED]}
+                        </option>
+                      </select>
+                      {isStatusChangeRestricted && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          예약 상태에서만 상태를 변경할 수 있습니다.
+                        </p>
                       )}
                     </div>
-                    <div className="ml-auto">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleChangeCustomer}
-                        leftIcon={<Edit size={14} />}
-                      >
-                        고객 변경
-                      </Button>
-                    </div>
                   </div>
-                ) : (
-                  // 고객 선택 안내
-                  <div className="p-3 bg-gray-50 rounded-md text-left flex flex-col justify-center items-start">
-                    <div className="flex flex-col items-start justify-start">
-                      <User className="h-8 w-8 text-gray-400 mb-2" />
-                      <p className="text-gray-500">고객을 선택하거나 신규 고객을 등록해주세요.</p>
-                    </div>
+
+                  {/* 상담 일자 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                      상담 일자 <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      name="consultationDate"
+                      value={
+                        formData.consultationDate
+                          ? new Date(formData.consultationDate)
+                              .toLocaleString('sv-SE', {
+                                timeZone: 'Asia/Seoul',
+                              })
+                              .replace(' ', 'T') // 'YYYY-MM-DDTHH:mm' 포맷 유지
+                              .slice(0, 16) // 초 이하 잘라냄: YYYY-MM-DDTHH:mm
+                          : ''
+                      }
+                      onChange={handleChange}
+                      error={errors.consultationDate}
+                      leftIcon={<Calendar size={18} />}
+                      required
+                      disabled={isDateFieldDisabled}
+                    />
+                    {isDateFieldDisabled && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        예약 상태의 상담만 일자를 수정할 수 있습니다.
+                      </p>
+                    )}
                   </div>
-                )}
-                {errors.customerId && (
-                  <p className="mt-1 text-sm text-red-600">{errors.customerId}</p>
-                )}
-              </div>
 
-              {/* 상담 유형과 상담 상태를 같은 행에 배치 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 상담 유형 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                    상담 유형 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="consultationType"
-                    name="consultationType"
-                    value={formData.consultationType}
-                    onChange={handleChange}
-                    className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    {Object.entries(consultationTypeLabels).map(([type, label]) => (
-                      <option key={type} value={type}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
+                  {/* 상담 내용 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                      상담 내용 <span className="text-red-500">*</span>
+                    </label>
+                    <Textarea
+                      name="content"
+                      value={formData.content || ''}
+                      onChange={handleChange}
+                      placeholder="상담 내용을 입력하세요"
+                      className="min-h-[100px]"
+                      error={errors.content}
+                    />
+                  </div>
                 </div>
+              </Card>
 
-                {/* 상담 상태 */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                    상담 상태 <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="status"
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    disabled={isStatusChangeRestricted && formData.status !== originalStatus}
-                  >
-                    <option value={ConsultationStatus.RESERVED}>
-                      {consultationStatusLabels[ConsultationStatus.RESERVED]}
-                    </option>
-                    <option
-                      value={ConsultationStatus.COMPLETED}
-                      disabled={
-                        isStatusChangeRestricted &&
-                        (originalStatus as ConsultationStatus) !== ConsultationStatus.RESERVED &&
-                        formData.status !== ConsultationStatus.COMPLETED
-                      }
-                    >
-                      {consultationStatusLabels[ConsultationStatus.COMPLETED]}
-                    </option>
-                    <option
-                      value={ConsultationStatus.CANCELED}
-                      disabled={
-                        isStatusChangeRestricted &&
-                        (originalStatus as ConsultationStatus) !== ConsultationStatus.RESERVED &&
-                        formData.status !== ConsultationStatus.CANCELED
-                      }
-                    >
-                      {consultationStatusLabels[ConsultationStatus.CANCELED]}
-                    </option>
-                  </select>
-                  {isStatusChangeRestricted && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      예약 상태에서만 상태를 변경할 수 있습니다.
-                    </p>
-                  )}
-                </div>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/consultations')}
+                  disabled={isSubmitting}
+                >
+                  취소
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={isSubmitting}
+                  leftIcon={<FileText size={16} />}
+                >
+                  {isEditMode ? '수정하기' : '등록하기'}
+                </Button>
               </div>
-
-              {/* 상담 일자 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                  상담 일자 <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  type="datetime-local"
-                  name="consultationDate"
-                  value={
-                    formData.consultationDate
-                      ? new Date(formData.consultationDate)
-                          .toLocaleString('sv-SE', {
-                            timeZone: 'Asia/Seoul',
-                          })
-                          .replace(' ', 'T') // 'YYYY-MM-DDTHH:mm' 포맷 유지
-                          .slice(0, 16) // 초 이하 잘라냄: YYYY-MM-DDTHH:mm
-                      : ''
-                  }
-                  onChange={handleChange}
-                  error={errors.consultationDate}
-                  leftIcon={<Calendar size={18} />}
-                  required
-                  disabled={isDateFieldDisabled}
-                />
-                {isDateFieldDisabled && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    예약 상태의 상담만 일자를 수정할 수 있습니다.
-                  </p>
-                )}
-              </div>
-
-              {/* 상담 내용 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                  상담 내용 <span className="text-red-500">*</span>
-                </label>
-                <Textarea
-                  name="content"
-                  value={formData.content || ''}
-                  onChange={handleChange}
-                  placeholder="상담 내용을 입력하세요"
-                  className="min-h-[100px]"
-                  error={errors.content}
-                />
-              </div>
-            </div>
-          </Card>
-
-          <div className="flex justify-end space-x-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/consultations')}
-              disabled={isSubmitting}
-            >
-              취소
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              isLoading={isSubmitting}
-              leftIcon={<FileText size={16} />}
-            >
-              {isEditMode ? '수정하기' : '등록하기'}
-            </Button>
+            </form>
           </div>
-        </form>
+        </div>
+
+        {/* 오른쪽: 고객 히스토리 */}
+        <div className="lg:col-span-1">
+          <CustomerHistory
+            customer={selectedCustomer}
+            className="bg-white shadow rounded-lg h-full"
+          />
+        </div>
       </div>
 
       {/* 고객 선택 모달 */}
