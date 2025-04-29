@@ -114,7 +114,7 @@ interface ContractFormState {
   expiredAt: string;
   memo: string;
   completedAt: string | null;
-  active: boolean;
+  // active: boolean;
 }
 
 const ContractEdit: React.FC = () => {
@@ -141,7 +141,7 @@ const ContractEdit: React.FC = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
   const [completedDate, setCompletedDate] = useState<string>('');
-  const [active, setActive] = useState<boolean>(true);
+  // const [active, setActive] = useState<boolean>(true);
 
   // 원본 계약 데이터 저장용 상태
   const [originalContract, setOriginalContract] = useState<ContractResDto | null>(null);
@@ -178,7 +178,7 @@ const ContractEdit: React.FC = () => {
           setEndDate(contract.expiredAt || '');
           setMemo(contract.memo || '');
           setCompletedDate(contract.completedAt || '');
-          setActive(contract.active ?? true);
+          // setActive(contract.active ?? true);
         } else {
           showToast(response.error || '계약 정보를 불러오는데 실패했습니다.', 'error');
           navigate('/contracts');
@@ -317,7 +317,7 @@ const ContractEdit: React.FC = () => {
         expiredAt: endDate,
         memo,
         completedAt: showCompletedDate ? completedDate : null,
-        active,
+        // active,
       };
 
       const originalData: ContractFormState = {
@@ -333,7 +333,7 @@ const ContractEdit: React.FC = () => {
         expiredAt: originalContract.expiredAt || '',
         memo: originalContract.memo || '',
         completedAt: originalContract.completedAt || '',
-        active: originalContract.active ?? true,
+        // active: originalContract.active ?? true,
       };
 
       const changedFields = getObjectDiff(originalData, currentData) as Partial<ContractReqDto>;
