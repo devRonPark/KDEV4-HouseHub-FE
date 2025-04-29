@@ -20,9 +20,10 @@ import {
 } from '../../types/contract';
 import { PropertyType, PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
-import type { CreateCustomerResDto } from '../../types/customer';
+import type { CustomerResDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 import { getPropertyById } from '../../api/property';
+import { Tooltip } from '@mui/material';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -83,7 +84,8 @@ const ContractRegistration: React.FC = () => {
 
   // 폼 상태 관리
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedCustomer, setSelectedCustomer] = useState<CreateCustomerResDto | null>(null);
+  const [selectedLandlord, setSelectedLandlord] = useState<CustomerResDto | null>(null); // 집주인
+  const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null); // 계약자
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
@@ -101,7 +103,7 @@ const ContractRegistration: React.FC = () => {
   // 계약 상태 변경 시 고객 정보 초기화
   useEffect(() => {
     if (contractStatus === ContractStatus.AVAILABLE) {
-      setSelectedCustomer(null);
+      setSelectedTenant(null);
     }
   }, [contractStatus]);
 
@@ -118,6 +120,7 @@ const ContractRegistration: React.FC = () => {
             ...response.data,
             propertyType: response.data.propertyType as PropertyType,
           } as unknown as FindPropertyResDto);
+          setSelectedLandlord(response.data.customer || null);
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
         }
@@ -127,18 +130,26 @@ const ContractRegistration: React.FC = () => {
     };
 
     loadPropertyData();
-  }, [propertyIdParam, showToast]);
+  }, [propertyIdParam]);
 
   const handlePropertySelect = async (property: FindPropertyResDto) => {
     // 선택된 매물 정보를 바로 사용
     setSelectedProperty(property);
+    setSelectedLandlord(property.customer || null);
+    if (selectedTenant) {
+      setSelectedTenant(null);
+    }
     showToast('매물이 성공적으로 선택되었습니다.', 'success');
   };
 
   // 고객 선택 모달에서 고객 선택 시 호출되는 함수
-  const handleCustomerSelect = (customer: CreateCustomerResDto) => {
+  const handleCustomerSelect = (customer: CustomerResDto) => {
+    if (selectedLandlord && selectedLandlord.id === customer.id) {
+      showToast('집주인은 계약 대상이 될 수 없습니다.');
+      return;
+    }
     // 선택된 고객 정보를 바로 사용
-    setSelectedCustomer(customer);
+    setSelectedTenant(customer);
     showToast('고객이 성공적으로 선택되었습니다.', 'success');
   };
 
@@ -149,10 +160,10 @@ const ContractRegistration: React.FC = () => {
 
   // 고객 변경 버튼 클릭 핸들러
   const handleChangeCustomer = () => {
-    // if (contractStatus === ContractStatus.IN_PROGRESS) {
-    //   showToast('계약 진행 중 상태에서는 고객을 선택할 수 없습니다.', 'error');
-    //   return;
-    // }
+    if (!selectedProperty) {
+      showToast('고객을 선택하려면 먼저 매물을 선택해주세요.', 'error');
+      return;
+    }
     setIsCustomerModalOpen(true);
   };
 
@@ -187,7 +198,7 @@ const ContractRegistration: React.FC = () => {
     }
 
     // 계약 상태에 따른 고객 필드 검증
-    if (isCustomerRequired && !selectedCustomer) {
+    if (isCustomerRequired && !selectedTenant) {
       showToast('계약 중 또는 계약 완료 상태일 경우, 고객 선택은 필수입니다.', 'error');
       return;
     }
@@ -227,7 +238,10 @@ const ContractRegistration: React.FC = () => {
 
       // 계약 기간 검증 (시작일이 종료일보다 늦으면 안 됨)
       if (new Date(startDate) > new Date(endDate)) {
-        showToast('계약 기간이 올바르지 않습니다. 시작일이 종료일보다 늦을 수 없습니다.', 'error');
+        showToast(
+          '계약 종료일이 계약 시작일보다 빠를 수 없습니다. 날짜를 다시 확인해주세요.',
+          'error'
+        );
         return;
       }
     }
@@ -243,7 +257,7 @@ const ContractRegistration: React.FC = () => {
     try {
       const contractData: ContractReqDto = {
         propertyId: selectedProperty.id,
-        customerId: selectedCustomer?.id ?? null,
+        customerId: selectedTenant?.id ?? null,
         contractType,
         contractStatus,
         memo: memo || null,
@@ -257,8 +271,8 @@ const ContractRegistration: React.FC = () => {
       };
 
       // 계약 상태에 따라 고객 ID 추가
-      if (isCustomerRequired && selectedCustomer) {
-        contractData.customerId = selectedCustomer.id;
+      if (isCustomerRequired && selectedTenant) {
+        contractData.customerId = selectedTenant.id;
       }
 
       // 계약 진행 중일 때만 계약 기간 추가
@@ -369,9 +383,9 @@ const ContractRegistration: React.FC = () => {
                 <div className="h-full">
                   <div className="flex justify-between items-center mb-1">
                     <label className="block text-sm font-medium text-gray-700 text-left">
-                      고객 정보 {isCustomerRequired && <span className="text-red-500">*</span>}
+                      계약자 정보 {isCustomerRequired && <span className="text-red-500">*</span>}
                     </label>
-                    {selectedCustomer && isCustomerRequired && (
+                    {selectedTenant && isCustomerRequired && (
                       <Button
                         type="button"
                         variant="outline"
@@ -396,15 +410,17 @@ const ContractRegistration: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                  ) : selectedCustomer ? (
+                  ) : selectedTenant ? (
                     <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
                       <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
                         <User size={20} className="text-gray-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
-                        <p className="text-sm text-gray-500">{selectedCustomer.contact}</p>
-                        <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedTenant.name ?? '미입력'}
+                        </p>
+                        <p className="text-sm text-gray-500">{selectedTenant.contact}</p>
+                        <p className="text-sm text-gray-500">{selectedTenant.email ?? '미입력'}</p>
                       </div>
                     </div>
                   ) : (
@@ -413,15 +429,20 @@ const ContractRegistration: React.FC = () => {
                         <User className="h-10 w-10 text-gray-400 mt-1" />
                         <div className="flex flex-col">
                           <p className="text-gray-500 mb-2">고객을 선택해주세요.</p>
-                          <Button
-                            type="button"
-                            variant="primary"
-                            size="sm"
-                            className="mt-2"
-                            onClick={handleChangeCustomer}
-                          >
-                            고객 선택하기
-                          </Button>
+                          <Tooltip title={!selectedProperty ? '먼저 매물을 선택해주세요.' : ''}>
+                            <span>
+                              <Button
+                                type="button"
+                                variant="primary"
+                                size="sm"
+                                className="mt-2"
+                                onClick={handleChangeCustomer}
+                                disabled={!selectedProperty}
+                              >
+                                고객 선택하기
+                              </Button>
+                            </span>
+                          </Tooltip>
                         </div>
                       </div>
                     </div>
@@ -607,7 +628,7 @@ const ContractRegistration: React.FC = () => {
           isOpen={isCustomerModalOpen}
           onClose={() => setIsCustomerModalOpen(false)}
           onSelectCustomer={handleCustomerSelect}
-          selectedCustomerId={selectedCustomer?.id || null}
+          selectedCustomerId={selectedTenant?.id || null}
         />
       )}
     </DashboardLayout>

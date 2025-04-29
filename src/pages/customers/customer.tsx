@@ -111,6 +111,10 @@ const CustomersPage = () => {
 
   // 고객 상세 정보 모달 열기
   const handleViewCustomer = (customer: Customer) => {
+    if (customer.deletedAt) {
+      showToast('삭제된 고객의 상세 정보는 볼 수 없습니다.', 'error');
+      return;
+    }
     navigate(`/customers/${customer.id}`);
   };
 
@@ -158,8 +162,14 @@ const CustomersPage = () => {
         // 목록 새로고침
         loadCustomers();
       } else {
-        // 실패 시 에러 메시지 표시
-        showToast(response.message || '고객 정보 수정에 실패했습니다.', 'error');
+        if (response.errors && response.errors.length > 0) {
+          // 각 에러 메시지를 토스트로 표시
+          response.errors.forEach((error) => {
+            showToast(error.message, 'error');
+          });
+        } else {
+          showToast(response.message || '고객 정보 수정에 실패했습니다.', 'error');
+        }
       }
     } catch (error) {
       console.error('고객 정보 수정 중 오류 발생:', error);
@@ -179,11 +189,15 @@ const CustomersPage = () => {
 
       if (response.success && response.data) {
         showToast('고객 정보가 성공적으로 삭제되었습니다.', 'success');
-
-        // 목록 새로고침
         loadCustomers();
       } else {
-        showToast(response.message || '고객 정보 삭제에 실패했습니다.', 'error');
+        if (response.errors && response.errors.length > 0) {
+          response.errors.forEach((error) => {
+            showToast(error.message, 'error');
+          });
+        } else {
+          showToast(response.message || '고객 정보 삭제에 실패했습니다.', 'error');
+        }
       }
     } catch (error) {
       console.error('고객 정보 삭제 중 오류 발생:', error);
@@ -200,12 +214,16 @@ const CustomersPage = () => {
 
       if (response.success && response.data) {
         showToast('고객 등록 성공', 'success');
-
-        // 목록 새로고침
         loadCustomers();
         setIsAddModalOpen(false);
       } else {
-        showToast(response.message || '등록 실패', 'error');
+        if (response.errors && response.errors.length > 0) {
+          response.errors.forEach((error) => {
+            showToast(error.message, 'error');
+          });
+        } else {
+          showToast(response.message || '등록 실패', 'error');
+        }
       }
     } catch (error) {
       console.error('API Error:', error);
@@ -285,9 +303,16 @@ const CustomersPage = () => {
         showToast('고객이 성공적으로 복구되었습니다.', 'success');
         loadCustomers();
       } else {
-        showToast(response.message || '고객 복구에 실패했습니다.', 'error');
+        if (response.errors && response.errors.length > 0) {
+          response.errors.forEach((error) => {
+            showToast(error.message, 'error');
+          });
+        } else {
+          showToast(response.message || '고객 복구에 실패했습니다.', 'error');
+        }
       }
     } catch (error) {
+      console.error('고객 복구 중 오류 발생:', error);
       showToast('고객 복구 중 오류가 발생했습니다.', 'error');
     }
   };
@@ -422,10 +447,10 @@ const CustomersPage = () => {
         <div className="bg-white p-4 rounded-lg shadow mb-6">
           <div className="space-y-4">
             {/* 기본 검색 필드 */}
-            <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex flex-col md:flex-row gap-4 items-center">
               <div className="flex-grow">
                 <Input
-                  label="키워드 검색"
+                  label=""
                   id="keyword-search"
                   placeholder="이름, 이메일, 연락처로 검색"
                   value={searchKeyword}
@@ -436,21 +461,30 @@ const CustomersPage = () => {
                     }
                   }}
                   leftIcon={<Search size={16} />}
+                  className="h-10"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={includeDeletedTemp}
-                    onChange={(e) => setIncludeDeletedTemp(e.target.checked)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-700">삭제된 고객 포함</span>
-                </label>
-              </div>
-              <div>
-                <Button variant="primary" onClick={handleSearch} leftIcon={<Search size={16} />}>
+                <Button
+                  variant={includeDeletedTemp ? 'primary' : 'outline'}
+                  size="md"
+                  onClick={() => {
+                    setIncludeDeletedTemp(!includeDeletedTemp);
+                    setFilter((prev) => ({
+                      ...prev,
+                      includeDeleted: !includeDeletedTemp,
+                      page: 1,
+                    }));
+                  }}
+                >
+                  {includeDeletedTemp ? '삭제된 고객만' : '삭제된 고객 제외'}
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleSearch}
+                  leftIcon={<Search size={16} />}
+                >
                   검색
                 </Button>
               </div>
@@ -498,12 +532,12 @@ const CustomersPage = () => {
           onSubmit={(data: Partial<Customer>) => {
             // Partial<Customer> → CreateCustomerReqDto로 변환
             const requestData: CreateCustomerReqDto = {
-              name: data.name || '',
-              email: data.email || '',
+              name: data.name || undefined,
+              email: data.email || undefined,
               contact: data.contact || '',
-              birthDate: data.birthDate,
-              gender: data.gender,
-              memo: data.memo,
+              birthDate: data.birthDate || undefined,
+              gender: data.gender || undefined,
+              memo: data.memo || undefined,
             };
 
             handleAddCustomer(requestData); // 변환된 데이터를 전달
@@ -525,12 +559,14 @@ const CustomersPage = () => {
             onSubmit={(data: Partial<Customer>) => {
               // 타입 변환 및 필수 필드 보장
               const requestData: CreateCustomerReqDto = {
-                name: data.name || selectedCustomer.name,
-                email: data.email || selectedCustomer.email,
+                name: data.name === '' ? undefined : data.name || selectedCustomer.name,
+                email: data.email === '' ? undefined : data.email || selectedCustomer.email,
                 contact: data.contact || selectedCustomer.contact,
-                birthDate: data.birthDate || selectedCustomer.birthDate,
-                gender: data.gender !== undefined ? data.gender : undefined,
-                memo: data.memo !== undefined && data.memo !== '' ? data.memo : undefined,
+                birthDate:
+                  data.birthDate === '' ? undefined : data.birthDate || selectedCustomer.birthDate,
+                gender:
+                  data.gender === undefined ? undefined : data.gender || selectedCustomer.gender,
+                memo: data.memo === '' ? undefined : data.memo || selectedCustomer.memo,
               };
 
               handleUpdateCustomer(requestData);
