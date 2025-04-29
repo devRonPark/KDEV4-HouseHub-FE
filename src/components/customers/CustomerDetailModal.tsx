@@ -84,7 +84,7 @@ const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDe
           <div className="space-y-4">
             <div>
               <h4 className="text-sm font-medium text-gray-500">이름</h4>
-              <p className="mt-1 text-gray-900">{customer.name || '선택 안 함'}</p>
+              <p className="mt-1 text-gray-900">{customer.name || '미등록'}</p>
             </div>
 
             <div>
@@ -94,14 +94,14 @@ const CustomerDetailModal = ({ isOpen, onClose, customer, onUpdate }: CustomerDe
 
             <div>
               <h4 className="text-sm font-medium text-gray-500">이메일</h4>
-              <p className="mt-1">{customer.email || '선택 안 함'}</p>
+              <p className="mt-1">{customer.email || '미등록'}</p>
             </div>
 
             <div>
               <h4 className="text-sm font-medium text-gray-500">연령대 / 성별</h4>
               <p className="mt-1">
-                {customer.ageGroup ? `${customer.ageGroup}대` : '선택 안 함'} /{' '}
-                {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '선택 안 함'}
+                {customer.ageGroup ? `${customer.ageGroup}대` : '미등록'} /{' '}
+                {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '미등록'}
               </p>
             </div>
 
