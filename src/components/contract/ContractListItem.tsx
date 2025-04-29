@@ -24,20 +24,20 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
     }
   };
 
-  const formatCurrency = (amount?: number) => {
-    if (amount === undefined) return '-';
-    return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
-  };
+  // const formatCurrency = (amount?: number) => {
+  //   if (amount === undefined) return '-';
+  //   return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
+  // };
 
   // 계약 유형에 따른 금액 표시
   const getPriceDisplay = () => {
     switch (contract.contractType) {
       case 'SALE':
-        return `매매가: ${formatCurrency(contract.salePrice)}`;
+        return `매매가: ${contract.salePrice}`;
       case 'JEONSE':
-        return `전세가: ${formatCurrency(contract.jeonsePrice)}`;
+        return `전세가: ${contract.jeonsePrice}`;
       case 'MONTHLY_RENT':
-        return `보증금: ${formatCurrency(contract.monthlyRentDeposit)}, 월세: ${formatCurrency(contract.monthlyRentFee)}`;
+        return `보증금: ${contract.monthlyRentDeposit}, 월세: ${contract.monthlyRentFee}`;
       default:
         return '';
     }

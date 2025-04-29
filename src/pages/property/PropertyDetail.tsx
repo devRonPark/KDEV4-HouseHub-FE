@@ -90,11 +90,6 @@ const PropertyDetail: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount?: number) => {
-    if (amount === undefined) return '-';
-    return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
-  };
-
   const displayValue = (value: any, unit?: string) => {
     return value !== undefined && value !== null ? `${value}${unit || ''}` : '미입력';
   };
@@ -315,23 +310,17 @@ const PropertyDetail: React.FC = () => {
                           : contract.contractType}
                   </p>
                   {contract.contractType === 'SALE' && contract.salePrice && (
-                    <p className="text-gray-700 text-left">
-                      매매가: {formatCurrency(contract.salePrice)}
-                    </p>
+                    <p className="text-gray-700 text-left">매매가: {contract.salePrice}</p>
                   )}
                   {contract.contractType === 'JEONSE' && contract.jeonsePrice && (
-                    <p className="text-gray-700 text-left">
-                      전세가: {formatCurrency(contract.jeonsePrice)}
-                    </p>
+                    <p className="text-gray-700 text-left">전세가: {contract.jeonsePrice}</p>
                   )}
                   {contract.contractType === 'MONTHLY_RENT' && (
                     <>
                       <p className="text-gray-700 text-left">
-                        보증금: {formatCurrency(contract.monthlyRentDeposit)}
+                        보증금: {contract.monthlyRentDeposit}
                       </p>
-                      <p className="text-gray-700 text-left">
-                        월세: {formatCurrency(contract.monthlyRentFee)}
-                      </p>
+                      <p className="text-gray-700 text-left">월세: {contract.monthlyRentFee}</p>
                     </>
                   )}
                   {contract.startedAt && contract.expiredAt && (
