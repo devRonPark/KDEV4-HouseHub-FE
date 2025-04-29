@@ -15,6 +15,7 @@ import {
   ContractTypeColors,
   ContractStatusColors,
   type ContractResDto,
+  ContractStatus,
 } from '../../types/contract';
 
 const ContractDetail: React.FC = () => {
@@ -118,7 +119,12 @@ const ContractDetail: React.FC = () => {
               }
             }}
             leftIcon={<Edit2 size={16} />}
-            disabled={isSubmitting || !id}
+            disabled={
+              isSubmitting ||
+              !id ||
+              contract.status === ContractStatus.CANCELED ||
+              contract.status === ContractStatus.COMPLETED
+            }
           >
             수정
           </Button>
@@ -156,39 +162,20 @@ const ContractDetail: React.FC = () => {
                   {contract.salePrice && (
                     <div className="flex items-center">
                       <span className="text-gray-700">매매가:</span>
-                      <span className="ml-2 font-medium">
-                        {new Intl.NumberFormat('ko-KR', {
-                          style: 'currency',
-                          currency: 'KRW',
-                        }).format(contract.salePrice)}
-                      </span>
+                      <span className="ml-2 font-medium">{contract.salePrice}</span>
                     </div>
                   )}
                   {contract.jeonsePrice && (
                     <div className="flex items-center">
                       <span className="text-gray-700">전세가:</span>
-                      <span className="ml-2 font-medium">
-                        {new Intl.NumberFormat('ko-KR', {
-                          style: 'currency',
-                          currency: 'KRW',
-                        }).format(contract.jeonsePrice)}
-                      </span>
+                      <span className="ml-2 font-medium">{contract.jeonsePrice}</span>
                     </div>
                   )}
                   {(contract.monthlyRentDeposit || contract.monthlyRentFee) && (
                     <div className="flex items-center">
                       <span className="text-gray-700">월세:</span>
                       <span className="ml-2 font-medium">
-                        {contract.monthlyRentDeposit &&
-                          new Intl.NumberFormat('ko-KR', {
-                            style: 'currency',
-                            currency: 'KRW',
-                          }).format(contract.monthlyRentDeposit)}
-                        {contract.monthlyRentFee &&
-                          ` / ${new Intl.NumberFormat('ko-KR', {
-                            style: 'currency',
-                            currency: 'KRW',
-                          }).format(contract.monthlyRentFee)}`}
+                        {`${contract.monthlyRentDeposit} / ${contract.monthlyRentFee}`}
                       </span>
                     </div>
                   )}
@@ -211,9 +198,16 @@ const ContractDetail: React.FC = () => {
                     <div className="flex items-center">
                       <Calendar className="h-5 w-5 text-gray-400 mr-2" />
                       <span className="text-gray-700">
+                        계약 기간:
                         {new Date(contract.startedAt).toLocaleDateString()} ~{' '}
                         {new Date(contract.expiredAt).toLocaleDateString()}
                       </span>
+                    </div>
+                  )}
+                  {contract.completedAt && (
+                    <div className="flex items-center">
+                      <Calendar className="h-5 w-5 text-gray-400 mr-2" />
+                      <span className="text-gray-700">계약 완료일: {contract.completedAt}</span>
                     </div>
                   )}
                 </div>
@@ -229,7 +223,6 @@ const ContractDetail: React.FC = () => {
               <div>
                 <h2 className="text-lg font-medium text-gray-900 mb-4">매물 정보</h2>
                 <div
-                  // className="p-4 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer transition"
                   className="p-4 rounded-md hover:bg-gray-50 cursor-pointer transition"
                   onClick={() => navigate(`/properties/${contract.property.id}`)}
                 >
@@ -265,7 +258,18 @@ const ContractDetail: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <p className="text-gray-500">고객 정보가 없습니다.</p>
+                  <div>
+                    <p className="text-gray-500">고객 정보가 없습니다.</p>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => navigate(`/contracts/edit/${id}`)}
+                    >
+                      계약자 등록하기
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
