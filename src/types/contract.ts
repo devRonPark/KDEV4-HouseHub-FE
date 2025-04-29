@@ -73,10 +73,10 @@ export interface ContractResDto {
   customer?: CreateCustomerResDto | null;
   contractType: ContractType;
   status: ContractStatus;
-  salePrice?: string;
-  jeonsePrice?: string;
-  monthlyRentFee?: string;
-  monthlyRentDeposit?: string;
+  salePrice?: string | null;
+  jeonsePrice?: string | null;
+  monthlyRentFee?: string | null;
+  monthlyRentDeposit?: string | null;
   memo?: string;
   startedAt?: string;
   expiredAt?: string;

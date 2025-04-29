@@ -25,11 +25,6 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
     }
   };
 
-  // const formatCurrency = (amount?: number) => {
-  //   if (amount === undefined) return '-';
-  //   return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
-  // };
-
   // 계약 유형에 따른 금액 표시
   const getPriceDisplay = () => {
     switch (contract.contractType) {
