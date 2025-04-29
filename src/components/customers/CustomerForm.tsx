@@ -4,15 +4,14 @@ import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Mail, Phone } from 'react-feather';
+import { User, Mail, Phone, Calendar } from 'react-feather';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
+import DatePicker from '../../components/ui/DatePicker';
 import type { CreateCustomerReqDto } from '../../types/customer';
 
-// Select 박스 옵션 생성
-const ageOptions = Array.from({ length: 10 }, (_, i) => (i + 1) * 10); // [10, 20, ..., 100]
 interface Option {
   value: string;
   label: string;
@@ -37,12 +36,7 @@ const customerSchema = z.object({
     .string()
     .regex(/^\d{2,3}-\d{3,4}-\d{4}$/, '유효한 전화번호 형식을 입력해주세요. (예: 010-1234-5678)'),
   memo: z.preprocess((val) => (val === '' ? null : val), z.string().nullable()).optional(),
-  ageGroup: z
-    .union([
-      z.number().min(10).max(100), // 숫자 범위 검증
-      z.null(), // null 값 허용
-    ])
-    .optional(),
+  birthDate: z.string().optional(),
   gender: z.preprocess((val) => (val === '' ? undefined : val), z.enum(['M', 'F']).optional()),
 });
 
@@ -62,15 +56,13 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
     formState: { errors, isSubmitting },
   } = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
-    // 수정 후 (ageGroup, gender 초기화)
     defaultValues: {
       name: initialData?.name || '',
       email: initialData?.email || '',
       contact: initialData?.contact || '',
       memo: initialData?.memo,
-      // 초기값이 없으면 undefined로 설정 (중요: null이 아님)
-      ageGroup: initialData?.ageGroup || undefined, // null 대신 undefined 사용
-      gender: initialData?.gender || undefined, // 빈 문자열 처리
+      birthDate: initialData?.birthDate || '',
+      gender: initialData?.gender || undefined,
     },
   });
 
@@ -81,7 +73,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
       email: initialData?.email || '',
       contact: initialData?.contact || '',
       memo: initialData?.memo,
-      ageGroup: initialData?.ageGroup || undefined,
+      birthDate: initialData?.birthDate || '',
       gender: initialData?.gender || undefined,
     });
   }, [initialData, reset]);
@@ -102,8 +94,8 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
       customerData.email = data.email;
     }
 
-    if (data.ageGroup !== undefined) {
-      customerData.ageGroup = Number(data.ageGroup);
+    if (data.birthDate) {
+      customerData.birthDate = data.birthDate;
     }
 
     if (data.gender !== undefined) {
@@ -170,24 +162,15 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Controller
-              name="ageGroup"
+              name="birthDate"
               control={control}
               render={({ field }) => (
-                <Select
-                  name={field.name}
-                  onBlur={field.onBlur}
-                  ref={field.ref}
-                  value={field.value === null ? '' : field.value?.toString()} // null 처리 및 문자열 변환
-                  label="연령대"
-                  options={[
-                    { value: '', label: '선택 안 함' },
-                    ...ageOptions.map((age) => ({
-                      value: age.toString(),
-                      label: `${age}`,
-                    })),
-                  ]}
-                  error={errors.ageGroup?.message}
-                  onChange={(value) => field.onChange(value === '' ? null : Number(value))}
+                <DatePicker
+                  {...field}
+                  label="생년월일"
+                  placeholder="YYYY-MM-DD"
+                  error={errors.birthDate?.message}
+                  leftIcon={<Calendar size={18} />}
                 />
               )}
             />
@@ -197,7 +180,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
               render={({ field }) => (
                 <Select
                   {...field}
-                  value={field.value ?? ''} // 단순 값만 전달
+                  value={field.value ?? ''}
                   label="성별"
                   options={genderOptions}
                   error={errors.gender?.message}

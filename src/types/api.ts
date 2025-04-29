@@ -5,4 +5,8 @@ export interface ApiResponse<T = Record<string, unknown>> {
   code?: string;
   data?: T;
   error?: string;
+  errors?: Array<{
+    field: string;
+    message: string;
+  }>;
 }

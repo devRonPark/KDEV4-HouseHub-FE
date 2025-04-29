@@ -12,9 +12,12 @@ export const getInquiryTemplates = async (
   filter: InquiryTemplateFilter
 ): Promise<ApiResponse<InquiryTemplateListResponse>> => {
   try {
+    console.log('filter', filter);
     const params = new URLSearchParams();
     if (filter.isActive !== undefined) params.append('isActive', filter.isActive.toString());
     if (filter.keyword !== undefined) params.append('keyword', filter.keyword);
+    if (filter.type !== undefined && filter.type !== '')
+      params.append('type', filter.type.toString());
     params.append('page', filter.page.toString());
 
     const response = await apiClient.get<ApiResponse<InquiryTemplateListResponse>>(

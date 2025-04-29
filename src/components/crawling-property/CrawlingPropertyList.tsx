@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getCrawlingProperties } from '../../api/crawling-property';
-import type { CrawlingPropertySearchParams, CrawlingPropertyItem } from '../../types/crawling-property';
+import type {
+  CrawlingPropertySearchParams,
+  CrawlingPropertyItem,
+} from '../../types/crawling-property';
 import LoadingScreen from '../ui/LoadingScreen';
 import { CrawlingPropertyCard } from './CrawlingPropertyCard';
 import { CrawlingPropertyModal } from './CrawlingPropertyModal';
@@ -13,7 +16,11 @@ interface CrawlingPropertyListProps {
   onPageChange: (page: number) => void;
 }
 
-export const CrawlingPropertyList = ({ searchParams, page, onPageChange }: CrawlingPropertyListProps) => {
+export const CrawlingPropertyList = ({
+  searchParams,
+  page,
+  onPageChange,
+}: CrawlingPropertyListProps) => {
   const [selectedProperty, setSelectedProperty] = useState<CrawlingPropertyItem | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -27,11 +34,7 @@ export const CrawlingPropertyList = ({ searchParams, page, onPageChange }: Crawl
   const pagination = data?.data?.pagination;
 
   if (!properties.length) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        검색 결과가 없습니다.
-      </div>
-    );
+    return <div className="text-center py-8 text-gray-500">검색 결과가 없습니다.</div>;
   }
 
   return (
@@ -45,7 +48,7 @@ export const CrawlingPropertyList = ({ searchParams, page, onPageChange }: Crawl
           />
         ))}
       </div>
-      
+
       {pagination && pagination.totalPages > 1 && (
         <div className="mt-6">
           <Pagination
@@ -64,4 +67,4 @@ export const CrawlingPropertyList = ({ searchParams, page, onPageChange }: Crawl
       )}
     </div>
   );
-}; 
+};

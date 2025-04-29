@@ -7,10 +7,10 @@ import type {
   CustomerSearchFilter,
   Customer,
 } from '../types/customer';
-import type { ConsultationListResDto } from '../types/consultation';
-import type { ContractListResDto } from '../types/contract';
-import type { InquiryListResponse } from '../types/inquiry';
 import axios from 'axios';
+import { ConsultationListResDto } from '../types/consultation';
+import { ContractListResDto } from '../types/contract';
+import { InquiryListResponse } from '../types/inquiry';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회 (상담 내역 제외)
 export const getMyCustomers = async (
@@ -20,6 +20,9 @@ export const getMyCustomers = async (
     let url = `/customers?page=${filter.page}&size=${filter.size}`;
     if (filter.keyword) {
       url += `&keyword=${encodeURIComponent(filter.keyword)}`;
+    }
+    if (filter.includeDeleted !== undefined) {
+      url += `&includeDeleted=${filter.includeDeleted}`;
     }
     const response = await apiClient.get<ApiResponse<CustomerListResDto>>(url);
     return response.data;
@@ -169,28 +172,6 @@ export const getCustomerConsultations = async (
   }
 };
 
-// 고객 계약 목록 조회 API
-export const getCustomerContracts = async (
-  id: number,
-  page: number,
-  size: number
-): Promise<ApiResponse<ContractListResDto>> => {
-  try {
-    const response = await apiClient.get<ApiResponse<ContractListResDto>>(
-      `/customers/${id}/contracts?page=${page}&size=${size}`
-    );
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<ContractListResDto>;
-    }
-    return {
-      success: false,
-      error: '고객 계약 목록을 불러오는 중 오류가 발생했습니다.',
-    };
-  }
-};
-
 // 고객 문의 목록 조회 API
 export const getCustomerInquiries = async (
   id: number,
@@ -251,6 +232,24 @@ export const getCustomerBuyContracts = async (
     return {
       success: false,
       error: '고객 매수 계약 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 고객 복구
+export const restoreCustomer = async (id: number): Promise<ApiResponse<CreateCustomerResDto>> => {
+  try {
+    const response = await apiClient.put<ApiResponse<CreateCustomerResDto>>(
+      `/customers/restore/${id}`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<CreateCustomerResDto>;
+    }
+    return {
+      success: false,
+      error: '고객 복구 중 오류가 발생했습니다.',
     };
   }
 };

@@ -46,11 +46,19 @@ export interface SendSmsResDto {
   msgType: 'SMS' | 'LMS' | 'MMS'; // 메시지 유형
   title?: string; // 제목
   status: 'SUCCESS' | 'FAIL' | 'PERMANENT_FAIL';
-  rtime: string; // 예약 발송 시간
-  rdate: string; // 예약 발송 일자
+  rdate: string | null;
+  rtime: string | null;
+  smsTemplate?: {
+    id: number;
+    title: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+  };
   createdAt: string;
   updatedAt: string;
-  deletedAt: string;
+  deletedAt: string | null;
 }
 
 // 템플릿 생성/수정 요청 DTO
@@ -77,6 +85,7 @@ export interface SmsSearchFilter {
   keyword?: string;
   page: number;
   size: number;
+  templateId?: number | null;
 }
 
 export interface SmsTemplateListResDto {

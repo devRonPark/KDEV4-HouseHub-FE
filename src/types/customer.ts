@@ -1,15 +1,16 @@
 import type { PaginationDto } from './pagination';
-import type { Consultation } from './consultation';
+import type { ConsultationResDto } from './consultation';
 
 export interface Customer {
   id: number;
   name: string;
-  email: string;
+  email?: string;
   contact: string;
-  ageGroup?: number; // 선택적
-  gender?: 'M' | 'F' | undefined; // 선택적
+  birthDate?: string; // 선택적
+  gender?: 'M' | 'F'; // 선택적
   memo?: string; // 선택적
-  consultations?: Consultation[]; // 선택적
+  ageGroup?: number;
+  consultations?: ConsultationResDto[]; // 선택적
   createdAt: string;
   updatedAt: string | null;
   deletedAt?: string | null;
@@ -20,9 +21,10 @@ export interface CreateCustomerReqDto {
   name?: string;
   email?: string;
   contact: string;
-  ageGroup?: number;
-  gender?: 'M' | 'F' | undefined;
+  birthDate?: string;
+  gender?: 'M' | 'F';
   memo?: string;
+  ageGroup?: number;
 }
 
 export interface CreateCustomerResDto {
@@ -30,12 +32,11 @@ export interface CreateCustomerResDto {
   name: string;
   email: string;
   contact: string;
-  ageGroup: number;
+  birthDate: string;
   gender?: 'M' | 'F' | undefined;
   memo?: string;
   createdAt: string;
   updatedAt: string;
-  deletedAt?: string;
 }
 
 export interface CustomerListResDto {
@@ -48,4 +49,5 @@ export interface CustomerSearchFilter {
   keyword?: string;
   page: number;
   size: number;
+  includeDeleted?: boolean;
 }

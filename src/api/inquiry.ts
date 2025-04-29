@@ -82,7 +82,7 @@ export const getInquiryById = async (inquiryId: number): Promise<ApiResponse<Inq
   try {
     const response = await apiClient.get<ApiResponse<InquiryDetail>>(`/inquiries/${inquiryId}`);
     return response.data;
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '문의 상세 정보를 불러오는 중 오류가 발생했습니다.',
