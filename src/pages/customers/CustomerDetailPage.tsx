@@ -276,7 +276,7 @@ const CustomerDetailPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-500">이름</p>
-                        <p className="text-gray-900">{customer.name || '선택 안 함'}</p>
+                        <p className="text-gray-900">{customer.name || '미등록'}</p>
                       </div>
                     </div>
 
@@ -296,7 +296,7 @@ const CustomerDetailPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-500">이메일</p>
-                        <p className="text-gray-900">{customer.email || '선택 안 함'}</p>
+                        <p className="text-gray-900">{customer.email || '미등록'}</p>
                       </div>
                     </div>
 
@@ -309,13 +309,13 @@ const CustomerDetailPage: React.FC = () => {
                         <p className="text-gray-900">
                           {customer.birthDate
                             ? new Date(customer.birthDate).toLocaleDateString()
-                            : '선택 안 함'}{' '}
+                            : '미등록'}{' '}
                           /{' '}
                           {customer.gender === 'M'
                             ? '남성'
                             : customer.gender === 'F'
                               ? '여성'
-                              : '선택 안 함'}
+                              : '미등록'}
                         </p>
                       </div>
                     </div>

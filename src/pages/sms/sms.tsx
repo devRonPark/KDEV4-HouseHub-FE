@@ -14,7 +14,7 @@ import Modal from '../../components/ui/Modal';
 import Pagination from '../../components/ui/Pagination';
 import Badge from '../../components/ui/Badge';
 import { useToast } from '../../context/useToast';
-import { getAllSms, getSmsById } from '../../api/smsApi';
+import { getAllSms, getSmsById, getSmsCost } from '../../api/smsApi';
 import { getAllTemplates } from '../../api/smsApi';
 import type { SendSmsResDto } from '../../types/sms';
 import type { SmsTemplateListResDto } from '../../types/sms';
@@ -30,6 +30,7 @@ const SmsListPage = () => {
   const [selectedSms, setSelectedSms] = useState<SendSmsResDto | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [searchBtnClicked, setSearchBtnClicked] = useState(false);
+  const [smsCost, setSmsCost] = useState<number>(0);
 
   // 페이지네이션 상태 관리
   const [pagination, setPagination] = useState({
@@ -112,10 +113,23 @@ const SmsListPage = () => {
     }
   };
 
+  // 문자 서비스 사용 금액 조회
+  const fetchSmsCost = async () => {
+    try {
+      const response = await getSmsCost();
+      if (response.success && response.data) {
+        setSmsCost(response.data);
+      }
+    } catch (error) {
+      console.error('문자 서비스 사용 금액 조회 오류:', error);
+    }
+  };
+
   // 초기 데이터 로딩
   useEffect(() => {
     fetchSmsList();
     fetchTemplates();
+    fetchSmsCost();
   }, []);
 
   // customer.tsx 방식으로 교체
@@ -274,7 +288,7 @@ const SmsListPage = () => {
     total: pagination.totalElements,
     success: smsList.filter((sms) => sms.status === 'SUCCESS').length,
     fail: smsList.filter((sms) => sms.status === 'FAIL').length,
-    permanentFail: smsList.filter((sms) => sms.status === 'PERMANENT_FAIL').length,
+    cost: smsCost,
   };
 
   return (
@@ -314,8 +328,10 @@ const SmsListPage = () => {
         </Card>
         <Card className="bg-white-50">
           <div className="p-5">
-            <h3 className="text-lg font-medium text-gray-900">현재 페이지 영구 실패</h3>
-            <div className="mt-1 text-3xl font-semibold text-yellow-600">{stats.permanentFail}</div>
+            <h3 className="text-lg font-medium text-gray-900">이번달 문자 발송 금액</h3>
+            <div className="mt-1 text-3xl font-semibold text-yellow-600">
+              {stats.cost.toLocaleString()}원
+            </div>
           </div>
         </Card>
       </div>

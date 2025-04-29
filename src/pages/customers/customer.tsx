@@ -322,7 +322,7 @@ const CustomersPage = () => {
     {
       key: 'name',
       header: '이름',
-      render: (customer: Customer) => <div>{customer.name || '선택 안 함'}</div>,
+      render: (customer: Customer) => <div>{customer.name || '미등록'}</div>,
     },
     {
       key: 'contact',
@@ -330,7 +330,7 @@ const CustomersPage = () => {
       render: (customer: Customer) => (
         <div>
           <div>{formatPhoneNumber(customer.contact)}</div>
-          <div className="text-gray-500 text-xs">{customer.email || '선택 안 함'}</div>
+          <div className="text-gray-500 text-xs">{customer.email || '미등록'}</div>
         </div>
       ),
     },
@@ -340,12 +340,10 @@ const CustomersPage = () => {
       render: (customer: Customer) => (
         <div>
           <div>
-            {customer.birthDate
-              ? `${new Date(customer.birthDate).getFullYear()}년생`
-              : '선택 안 함'}
+            {customer.birthDate ? `${new Date(customer.birthDate).getFullYear()}년생` : '미등록'}
           </div>
           <div className="text-gray-500 text-xs">
-            {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '선택 안 함'}
+            {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '미등록'}
           </div>
         </div>
       ),
