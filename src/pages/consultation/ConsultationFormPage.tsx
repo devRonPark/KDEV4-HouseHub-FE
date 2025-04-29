@@ -8,10 +8,9 @@ import {
   ConsultationType,
   ConsultationStatus,
   type UpdateConsultationReqDto,
-  CustomerResDto,
   ConsultationReqDto,
 } from '../../types/consultation';
-import type { CreateCustomerResDto } from '../../types/customer';
+import type { CustomerResDto } from '../../types/customer';
 import {
   getConsultationById,
   createConsultation,
@@ -209,7 +208,7 @@ const ConsultationFormPage: React.FC = () => {
   };
 
   // 고객 선택 모달에서 고객 선택 시 호출되는 함수
-  const handleCustomerSelect = (customer: CreateCustomerResDto) => {
+  const handleCustomerSelect = (customer: CustomerResDto) => {
     setSelectedCustomer(customer);
     setFormData((prev) => ({
       ...prev,

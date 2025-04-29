@@ -16,7 +16,7 @@ import { useToast } from '../../context/useToast';
 import { sendSms, getAllTemplates } from '../../api/smsApi';
 import { getMyCustomers } from '../../api/customer';
 import type { SendSmsReqDto, SmsTemplateListResDto } from '../../types/sms';
-import type { CreateCustomerResDto, CustomerListResDto } from '../../types/customer';
+import type { CustomerResDto, CustomerListResDto } from '../../types/customer';
 import { useAuth } from '../../context/useAuth';
 import Pagination from '../../components/ui/Pagination';
 
@@ -30,7 +30,7 @@ const SmsSendPage = () => {
   const [customers, setCustomers] = useState<CustomerListResDto>();
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   // 단일 고객 선택에서 다중 고객 선택으로 변경
-  const [selectedCustomers, setSelectedCustomers] = useState<CreateCustomerResDto[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<CustomerResDto[]>([]);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'SMS' | 'LMS' | 'MMS'>('SMS');
   const [isReservation, setIsReservation] = useState(false);
@@ -46,7 +46,7 @@ const SmsSendPage = () => {
     },
   });
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
-  const [filteredCustomers, setFilteredCustomers] = useState<CreateCustomerResDto[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<CustomerResDto[]>([]);
   const { user } = useAuth();
 
   // 필터 상태로 페이지네이션 관리
@@ -196,7 +196,7 @@ const SmsSendPage = () => {
   };
 
   // 고객 선택 토글 (다중 선택)
-  const toggleCustomerSelection = (customer: CreateCustomerResDto) => {
+  const toggleCustomerSelection = (customer: CustomerResDto) => {
     setSelectedCustomers((prev) => {
       // 이미 선택된 고객인지 확인
       const isSelected = prev.some((c) => c.id === customer.id);

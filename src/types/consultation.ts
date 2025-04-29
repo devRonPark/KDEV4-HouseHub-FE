@@ -1,4 +1,5 @@
 import { PaginationInfo } from './inquiry';
+import type { CustomerResDto } from './customer';
 
 export enum ConsultationType {
   PHONE = 'PHONE',
@@ -11,13 +12,6 @@ export enum ConsultationStatus {
   RESERVED = 'RESERVED',
   COMPLETED = 'COMPLETED',
   CANCELED = 'CANCELED',
-}
-
-export interface CustomerResDto {
-  id: number;
-  name: string;
-  contact: string;
-  email?: string;
 }
 
 // 문의 목록 응답 타입

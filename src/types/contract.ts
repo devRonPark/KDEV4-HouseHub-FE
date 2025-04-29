@@ -1,4 +1,4 @@
-import type { CreateCustomerResDto } from './customer';
+import type { CustomerResDto } from './customer';
 import type { FindPropertyResDto } from './property';
 import type { Agent } from './agent';
 import type { PaginationDto } from './pagination';
@@ -70,7 +70,7 @@ export interface ContractResDto {
   id: number;
   agent: Agent;
   property: FindPropertyResDto;
-  customer?: CreateCustomerResDto | null;
+  customer?: CustomerResDto | null;
   contractType: ContractType;
   status: ContractStatus;
   salePrice?: string | null;
