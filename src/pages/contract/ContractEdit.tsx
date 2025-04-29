@@ -643,20 +643,6 @@ const ContractEdit: React.FC = () => {
                   className="min-h-[100px]"
                 />
               </div>
-
-              {/* 활성화 여부 */}
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="active"
-                  checked={active}
-                  onChange={(e) => setActive(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
-                  계약 활성화
-                </label>
-              </div>
             </div>
           </Card>
 
