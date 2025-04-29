@@ -269,11 +269,11 @@ const ContractRegistration: React.FC = () => {
     // 계약 상태에 따른 날짜 필드 검증
     if (showContractPeriod) {
       if (!startDate) {
-        showToast('계약 진행 중 상태일 경우, 계약 시작일은 필수입니다.', 'error');
+        showToast('계약 시작일은 필수입니다.', 'error');
         return;
       }
       if (!endDate) {
-        showToast('계약 진행 중 상태일 경우, 계약 종료일은 필수입니다.', 'error');
+        showToast('계약 종료일은 필수입니다.', 'error');
         return;
       }
 

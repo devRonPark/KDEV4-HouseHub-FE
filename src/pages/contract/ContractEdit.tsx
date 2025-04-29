@@ -149,10 +149,10 @@ const ContractEdit: React.FC = () => {
   // 계약 상태에 따른 고객 선택 필요 여부
   const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
 
-  // '만'을 제거하는 함수
-  const removeMan = (price: string | null | undefined): string => {
+  // 가격 문자열에서 '만', '억' 단위를 제거하는 함수
+  const removePriceUnits = (price: string | null | undefined): string => {
     if (!price) return '';
-    return price.replace('만', '');
+    return price.replace(/(억|만)/g, '');
   };
 
   // 계약 상세 정보 조회
@@ -170,10 +170,10 @@ const ContractEdit: React.FC = () => {
           setSelectedTenant(contract.customer || null);
           setContractType(contract.contractType);
           setContractStatus(contract.status);
-          setSalePrice(removeMan(contract.salePrice));
-          setJeonsePrice(removeMan(contract.jeonsePrice));
-          setMonthlyRentDeposit(removeMan(contract.monthlyRentDeposit));
-          setMonthlyRentFee(removeMan(contract.monthlyRentFee));
+          setSalePrice(removePriceUnits(contract.salePrice));
+          setJeonsePrice(removePriceUnits(contract.jeonsePrice));
+          setMonthlyRentDeposit(removePriceUnits(contract.monthlyRentDeposit));
+          setMonthlyRentFee(removePriceUnits(contract.monthlyRentFee));
           setStartDate(contract.startedAt || '');
           setEndDate(contract.expiredAt || '');
           setMemo(contract.memo || '');
@@ -233,22 +233,22 @@ const ContractEdit: React.FC = () => {
     if (originalContract) {
       setSalePrice(
         originalContract.contractType === ContractType.SALE
-          ? removeMan(originalContract.salePrice)
+          ? removePriceUnits(originalContract.salePrice)
           : ''
       );
       setJeonsePrice(
         originalContract.contractType === ContractType.JEONSE
-          ? removeMan(originalContract.jeonsePrice)
+          ? removePriceUnits(originalContract.jeonsePrice)
           : ''
       );
       setMonthlyRentDeposit(
         originalContract.contractType === ContractType.MONTHLY_RENT
-          ? removeMan(originalContract.monthlyRentDeposit)
+          ? removePriceUnits(originalContract.monthlyRentDeposit)
           : ''
       );
       setMonthlyRentFee(
         originalContract.contractType === ContractType.MONTHLY_RENT
-          ? removeMan(originalContract.monthlyRentFee)
+          ? removePriceUnits(originalContract.monthlyRentFee)
           : ''
       );
     } else {

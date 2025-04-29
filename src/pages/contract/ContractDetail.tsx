@@ -198,9 +198,16 @@ const ContractDetail: React.FC = () => {
                     <div className="flex items-center">
                       <Calendar className="h-5 w-5 text-gray-400 mr-2" />
                       <span className="text-gray-700">
+                        계약 기간:
                         {new Date(contract.startedAt).toLocaleDateString()} ~{' '}
                         {new Date(contract.expiredAt).toLocaleDateString()}
                       </span>
+                    </div>
+                  )}
+                  {contract.completedAt && (
+                    <div className="flex items-center">
+                      <Calendar className="h-5 w-5 text-gray-400 mr-2" />
+                      <span className="text-gray-700">계약 완료일: {contract.completedAt}</span>
                     </div>
                   )}
                 </div>
