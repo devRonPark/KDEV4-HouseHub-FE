@@ -96,7 +96,8 @@ const ContractEdit: React.FC = () => {
 
   // 폼 상태 관리
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerResDto | null>(null);
+  const [selectedLandlord, setSelectedLandlord] = useState<CustomerResDto | null>(null); // 집주인
+  const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null); // 계약자
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
@@ -125,7 +126,8 @@ const ContractEdit: React.FC = () => {
           const contract = response.data;
           setOriginalContract(contract);
           setSelectedProperty(contract.property);
-          setSelectedCustomer(contract.customer || null);
+          setSelectedLandlord(contract.property.customer || null);
+          setSelectedTenant(contract.customer || null);
           setContractType(contract.contractType);
           setContractStatus(contract.status);
           setSalePrice(contract.salePrice?.toString() || '');
@@ -149,7 +151,7 @@ const ContractEdit: React.FC = () => {
     };
 
     fetchContract();
-  }, [id, navigate, showToast]);
+  }, [id]);
 
   const handlePropertySelect = async (property: FindPropertyResDto) => {
     setSelectedProperty(property);
@@ -158,11 +160,16 @@ const ContractEdit: React.FC = () => {
 
   const handleCustomerSelect = useCallback(
     (customer: CustomerResDto) => {
-      setSelectedCustomer(customer);
+      if (selectedLandlord && selectedLandlord.id === customer.id) {
+        showToast('집주인은 계약 대상이 될 수 없습니다.');
+        return;
+      }
+      console.log('고객 선택');
+      setSelectedTenant(customer);
       setIsCustomerModalOpen(false);
       showToast('고객이 성공적으로 선택되었습니다.', 'success');
     },
-    [showToast]
+    [showToast, selectedLandlord]
   );
 
   const handleChangeCustomer = () => {
@@ -224,22 +231,25 @@ const ContractEdit: React.FC = () => {
 
     // 계약 기간 검증
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-      showToast('계약 기간이 올바르지 않습니다.', 'error');
+      showToast(
+        '계약 종료일이 계약 시작일보다 빠를 수 없습니다. 날짜를 다시 확인해주세요.',
+        'error'
+      );
       return;
     }
 
     // 계약 유형에 따른 가격 필드 검증
-    if (showSalePrice && !salePrice) {
+    if (showSalePrice && !!salePrice) {
       showToast('매매 계약의 경우 매매가는 필수입니다.', 'error');
       return;
     }
 
-    if (showJeonsePrice && !jeonsePrice) {
+    if (showJeonsePrice && !!jeonsePrice) {
       showToast('전세 계약의 경우 전세가는 필수입니다.', 'error');
       return;
     }
 
-    if (showMonthlyRent && (!monthlyRentDeposit || !monthlyRentFee)) {
+    if (showMonthlyRent && (!!monthlyRentDeposit || !!monthlyRentFee)) {
       showToast('월세 계약의 경우 보증금과 월세는 필수입니다.', 'error');
       return;
     }
@@ -249,7 +259,7 @@ const ContractEdit: React.FC = () => {
     try {
       const currentData: ContractFormState = {
         propertyId: selectedProperty?.id || null,
-        customerId: selectedCustomer?.id || null,
+        customerId: selectedTenant?.id || null,
         contractType,
         contractStatus,
         salePrice: showSalePrice ? Number(salePrice) : null,
@@ -283,8 +293,8 @@ const ContractEdit: React.FC = () => {
       if (selectedProperty?.id !== originalContract.property?.id) {
         changedFields.propertyId = selectedProperty?.id || 0;
       }
-      if (selectedCustomer?.id !== originalContract.customer?.id) {
-        changedFields.customerId = selectedCustomer?.id || null;
+      if (selectedTenant?.id !== originalContract.customer?.id) {
+        changedFields.customerId = selectedTenant?.id || null;
       }
 
       // 변경된 필드가 없는 경우
@@ -382,7 +392,7 @@ const ContractEdit: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 text-left">
                       계약자 정보 {isCustomerRequired && <span className="text-red-500">*</span>}
                     </label>
-                    {selectedCustomer && isCustomerRequired && (
+                    {selectedTenant && isCustomerRequired && (
                       <Button
                         type="button"
                         variant="outline"
@@ -407,16 +417,16 @@ const ContractEdit: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                  ) : selectedCustomer ? (
+                  ) : selectedTenant ? (
                     <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
                       <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
                         <User size={20} className="text-gray-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
-                        <p className="text-sm text-gray-500">{selectedCustomer.contact}</p>
-                        {selectedCustomer.email && (
-                          <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                        <p className="font-medium text-gray-900">{selectedTenant.name}</p>
+                        <p className="text-sm text-gray-500">{selectedTenant.contact}</p>
+                        {selectedTenant.email && (
+                          <p className="text-sm text-gray-500">{selectedTenant.email}</p>
                         )}
                       </div>
                     </div>
@@ -628,7 +638,7 @@ const ContractEdit: React.FC = () => {
           isOpen={isCustomerModalOpen}
           onClose={() => setIsCustomerModalOpen(false)}
           onSelectCustomer={handleCustomerSelect}
-          selectedCustomerId={selectedCustomer?.id || null}
+          selectedCustomerId={selectedTenant?.id || null}
         />
       )}
     </DashboardLayout>
