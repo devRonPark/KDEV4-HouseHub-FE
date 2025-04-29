@@ -1,6 +1,6 @@
 import type React from 'react';
 import { FileText, User } from 'react-feather';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
   ContractResDto,
@@ -15,6 +15,7 @@ interface ContractListItemProps {
 }
 
 const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
+  const navigate = useNavigate();
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
@@ -44,8 +45,8 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
   };
 
   return (
-    <Link
-      to={`/contracts/${contract.id}`}
+    <div
+      onClick={() => navigate(`/contracts/${contract.id}`)}
       className="block border rounded-lg hover:shadow-md transition-shadow duration-200 bg-white overflow-hidden mb-4"
     >
       <div className="p-4">
@@ -92,7 +93,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 
