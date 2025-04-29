@@ -20,7 +20,6 @@ import {
   Toolbar,
   Typography,
   Collapse,
-  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import {
@@ -29,7 +28,6 @@ import {
   ChevronRightIcon,
   ExpandIcon as ExpandLess,
   ExpandIcon as ExpandMore,
-  CircleIcon as AccountCircle,
   Home,
   Users,
   FileText,
@@ -99,7 +97,6 @@ const menuItems: MenuItem[] = [
 
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
