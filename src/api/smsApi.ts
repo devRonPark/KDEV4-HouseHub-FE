@@ -116,3 +116,14 @@ export const getAllTemplates = async (
     throw error;
   }
 };
+
+// 문자 서비스 사용 금액 조회 API
+export const getSmsCost = async (): Promise<ApiResponse<number>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<number>>('/sms/cost');
+    return response.data;
+  } catch (error) {
+    console.error('문자 서비스 사용 금액 조회 오류:', error);
+    throw error;
+  }
+};
