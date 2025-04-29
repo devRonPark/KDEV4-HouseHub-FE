@@ -128,7 +128,7 @@ const ContractRegistration: React.FC = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [completedDate, setCompletedDate] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
-  const [active, setActive] = useState<boolean>(true);
+  // const [active, setActive] = useState<boolean>(true);
 
   // 계약 상태에 따른 고객 선택 필요 여부
   const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
@@ -309,7 +309,7 @@ const ContractRegistration: React.FC = () => {
         monthlyRentDeposit: showMonthlyRent ? convertToWon(monthlyRentDeposit) : null,
         monthlyRentFee: showMonthlyRent ? convertToWon(monthlyRentFee) : null,
         completedAt: showCompletedDate ? completedDate : null,
-        active,
+        // active,
       };
 
       // 계약 상태에 따라 고객 ID 추가
