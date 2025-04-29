@@ -81,7 +81,7 @@ export interface FindPropertyResDto {
   jibunAddress: string;
   active: boolean;
   contractTypes: ContractType[];
-  customer: CreateCustomerResDto | null;
+  customer: CustomerResDto | null;
 }
 
 // 매물 목록 응답 LIST DTO
