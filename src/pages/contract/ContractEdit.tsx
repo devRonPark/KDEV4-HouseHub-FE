@@ -106,10 +106,10 @@ interface ContractFormState {
   customerId: number | null;
   contractType: ContractType;
   contractStatus: ContractStatus;
-  salePrice: number | null;
-  jeonsePrice: number | null;
-  monthlyRentDeposit: number | null;
-  monthlyRentFee: number | null;
+  salePrice: string | null;
+  jeonsePrice: string | null;
+  monthlyRentDeposit: string | null;
+  monthlyRentFee: string | null;
   startedAt: string;
   expiredAt: string;
   memo: string;
@@ -133,10 +133,10 @@ const ContractEdit: React.FC = () => {
   const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null); // 계약자
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
-  const [salePrice, setSalePrice] = useState<number | null>(null);
-  const [jeonsePrice, setJeonsePrice] = useState<number | null>(null);
-  const [monthlyRentDeposit, setMonthlyRentDeposit] = useState<number | null>(null);
-  const [monthlyRentFee, setMonthlyRentFee] = useState<number | null>(null);
+  const [salePrice, setSalePrice] = useState<string>('');
+  const [jeonsePrice, setJeonsePrice] = useState<string>('');
+  const [monthlyRentDeposit, setMonthlyRentDeposit] = useState<string>('');
+  const [monthlyRentFee, setMonthlyRentFee] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
@@ -148,6 +148,12 @@ const ContractEdit: React.FC = () => {
 
   // 계약 상태에 따른 고객 선택 필요 여부
   const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
+
+  // '만'을 제거하는 함수
+  const removeMan = (price: string | null | undefined): string => {
+    if (!price) return '';
+    return price.replace('만', '');
+  };
 
   // 계약 상세 정보 조회
   useEffect(() => {
@@ -164,12 +170,10 @@ const ContractEdit: React.FC = () => {
           setSelectedTenant(contract.customer || null);
           setContractType(contract.contractType);
           setContractStatus(contract.status);
-          setSalePrice(contract.salePrice ? Number(contract.salePrice) : null);
-          setJeonsePrice(contract.jeonsePrice ? Number(contract.jeonsePrice) : null);
-          setMonthlyRentDeposit(
-            contract.monthlyRentDeposit ? Number(contract.monthlyRentDeposit) : null
-          );
-          setMonthlyRentFee(contract.monthlyRentFee ? Number(contract.monthlyRentFee) : null);
+          setSalePrice(removeMan(contract.salePrice));
+          setJeonsePrice(removeMan(contract.jeonsePrice));
+          setMonthlyRentDeposit(removeMan(contract.monthlyRentDeposit));
+          setMonthlyRentFee(removeMan(contract.monthlyRentFee));
           setStartDate(contract.startedAt || '');
           setEndDate(contract.expiredAt || '');
           setMemo(contract.memo || '');
@@ -229,44 +233,36 @@ const ContractEdit: React.FC = () => {
     if (originalContract) {
       setSalePrice(
         originalContract.contractType === ContractType.SALE
-          ? originalContract.salePrice
-            ? Number(originalContract.salePrice)
-            : null
-          : null
+          ? removeMan(originalContract.salePrice)
+          : ''
       );
       setJeonsePrice(
         originalContract.contractType === ContractType.JEONSE
-          ? originalContract.jeonsePrice
-            ? Number(originalContract.jeonsePrice)
-            : null
-          : null
+          ? removeMan(originalContract.jeonsePrice)
+          : ''
       );
       setMonthlyRentDeposit(
         originalContract.contractType === ContractType.MONTHLY_RENT
-          ? originalContract.monthlyRentDeposit
-            ? Number(originalContract.monthlyRentDeposit)
-            : null
-          : null
+          ? removeMan(originalContract.monthlyRentDeposit)
+          : ''
       );
       setMonthlyRentFee(
         originalContract.contractType === ContractType.MONTHLY_RENT
-          ? originalContract.monthlyRentFee
-            ? Number(originalContract.monthlyRentFee)
-            : null
-          : null
+          ? removeMan(originalContract.monthlyRentFee)
+          : ''
       );
     } else {
-      setSalePrice(null);
-      setJeonsePrice(null);
-      setMonthlyRentDeposit(null);
-      setMonthlyRentFee(null);
+      setSalePrice('');
+      setJeonsePrice('');
+      setMonthlyRentDeposit('');
+      setMonthlyRentFee('');
     }
   }, [contractType, originalContract]);
 
   // 만원 단위 가격을 원화 단위로 변환하는 함수
-  const convertToWon = (manwonValue: string): number | null => {
+  const convertToWon = (manwonValue: string): string | null => {
     if (!manwonValue || manwonValue.trim() === '') return null;
-    return parseInt(manwonValue, 10) * 10000;
+    return (parseInt(manwonValue, 10) * 10000).toString();
   };
 
   // 폼 제출 핸들러
@@ -313,12 +309,10 @@ const ContractEdit: React.FC = () => {
         customerId: selectedTenant?.id || null,
         contractType,
         contractStatus,
-        salePrice: showSalePrice ? convertToWon(salePrice?.toString() || '') : null,
-        jeonsePrice: showJeonsePrice ? convertToWon(jeonsePrice?.toString() || '') : null,
-        monthlyRentDeposit: showMonthlyRent
-          ? convertToWon(monthlyRentDeposit?.toString() || '')
-          : null,
-        monthlyRentFee: showMonthlyRent ? convertToWon(monthlyRentFee?.toString() || '') : null,
+        salePrice: showSalePrice ? convertToWon(salePrice) : null,
+        jeonsePrice: showJeonsePrice ? convertToWon(jeonsePrice) : null,
+        monthlyRentDeposit: showMonthlyRent ? convertToWon(monthlyRentDeposit) : null,
+        monthlyRentFee: showMonthlyRent ? convertToWon(monthlyRentFee) : null,
         startedAt: startDate,
         expiredAt: endDate,
         memo,
@@ -331,14 +325,10 @@ const ContractEdit: React.FC = () => {
         customerId: originalContract.customer?.id || null,
         contractType: originalContract.contractType,
         contractStatus: originalContract.status,
-        salePrice: originalContract.salePrice ? Number(originalContract.salePrice) : null,
-        jeonsePrice: originalContract.jeonsePrice ? Number(originalContract.jeonsePrice) : null,
-        monthlyRentDeposit: originalContract.monthlyRentDeposit
-          ? Number(originalContract.monthlyRentDeposit)
-          : null,
-        monthlyRentFee: originalContract.monthlyRentFee
-          ? Number(originalContract.monthlyRentFee)
-          : null,
+        salePrice: originalContract.salePrice || null,
+        jeonsePrice: originalContract.jeonsePrice || null,
+        monthlyRentDeposit: originalContract.monthlyRentDeposit || null,
+        monthlyRentFee: originalContract.monthlyRentFee || null,
         startedAt: originalContract.startedAt || '',
         expiredAt: originalContract.expiredAt || '',
         memo: originalContract.memo || '',
@@ -554,8 +544,8 @@ const ContractEdit: React.FC = () => {
                     매매가 <span className="text-red-500">*</span>
                   </label>
                   <PriceInput
-                    value={salePrice?.toString() || ''}
-                    onChange={(value) => setSalePrice(value ? Number(value) : null)}
+                    value={salePrice}
+                    onChange={(value) => setSalePrice(value)}
                     placeholder="매매가 입력 (만원 단위)"
                     required
                   />
@@ -568,8 +558,8 @@ const ContractEdit: React.FC = () => {
                     전세가 <span className="text-red-500">*</span>
                   </label>
                   <PriceInput
-                    value={jeonsePrice?.toString() || ''}
-                    onChange={(value) => setJeonsePrice(value ? Number(value) : null)}
+                    value={jeonsePrice}
+                    onChange={(value) => setJeonsePrice(value)}
                     placeholder="전세가 입력 (만원 단위)"
                     required
                   />
@@ -583,14 +573,14 @@ const ContractEdit: React.FC = () => {
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <PriceInput
-                      value={monthlyRentDeposit?.toString() || ''}
-                      onChange={(value) => setMonthlyRentDeposit(value ? Number(value) : null)}
+                      value={monthlyRentDeposit}
+                      onChange={(value) => setMonthlyRentDeposit(value)}
                       placeholder="보증금 입력 (만원 단위)"
                       required
                     />
                     <PriceInput
-                      value={monthlyRentFee?.toString() || ''}
-                      onChange={(value) => setMonthlyRentFee(value ? Number(value) : null)}
+                      value={monthlyRentFee}
+                      onChange={(value) => setMonthlyRentFee(value)}
                       placeholder="월세 입력 (만원 단위)"
                       required
                     />

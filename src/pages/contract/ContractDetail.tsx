@@ -15,6 +15,7 @@ import {
   ContractTypeColors,
   ContractStatusColors,
   type ContractResDto,
+  ContractStatus,
 } from '../../types/contract';
 
 const ContractDetail: React.FC = () => {
@@ -118,7 +119,12 @@ const ContractDetail: React.FC = () => {
               }
             }}
             leftIcon={<Edit2 size={16} />}
-            disabled={isSubmitting || !id}
+            disabled={
+              isSubmitting ||
+              !id ||
+              contract.status === ContractStatus.CANCELED ||
+              contract.status === ContractStatus.COMPLETED
+            }
           >
             수정
           </Button>
