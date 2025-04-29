@@ -33,7 +33,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
       case 'JEONSE':
         return `전세가: ${contract.jeonsePrice}`;
       case 'MONTHLY_RENT':
-        return `보증금: ${contract.monthlyRentDeposit}, 월세: ${contract.monthlyRentFee}`;
+        return `보증금: ${contract.monthlyRentDeposit} / 월세: ${contract.monthlyRentFee}`;
       default:
         return '';
     }
