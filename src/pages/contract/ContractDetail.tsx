@@ -258,7 +258,18 @@ const ContractDetail: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <p className="text-gray-500">고객 정보가 없습니다.</p>
+                  <div>
+                    <p className="text-gray-500">고객 정보가 없습니다.</p>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => navigate(`/contracts/edit/${id}`)}
+                    >
+                      계약자 등록하기
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
