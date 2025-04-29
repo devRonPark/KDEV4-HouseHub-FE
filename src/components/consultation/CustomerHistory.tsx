@@ -20,7 +20,8 @@ import {
   getCustomerInquiries,
 } from '../../api/customer';
 import type { ApiResponse } from '../../types/api';
-import type { ConsultationListResDto, CustomerResDto } from '../../types/consultation';
+import type { ConsultationListResDto } from '../../types/consultation';
+import type { CustomerResDto } from '../../types/customer';
 import { ContractStatus, ContractType, type ContractListResDto } from '../../types/contract';
 import { CustomerType, type InquiryListResponse } from '../../types/inquiry';
 import { PaginationDto } from '../../types/pagination';

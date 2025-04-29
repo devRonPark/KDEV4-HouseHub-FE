@@ -25,7 +25,7 @@ export interface CreateCustomerReqDto {
   ageGroup?: number;
 }
 
-export interface CreateCustomerResDto {
+export interface CustomerResDto {
   id: number;
   name?: string;
   email?: string;
@@ -35,10 +35,11 @@ export interface CreateCustomerResDto {
   memo?: string;
   createdAt?: string;
   updatedAt?: string;
+  deletedAt?: string;
 }
 
 export interface CustomerListResDto {
-  content: CreateCustomerResDto[];
+  content: CustomerResDto[];
   pagination: PaginationDto;
 }
 

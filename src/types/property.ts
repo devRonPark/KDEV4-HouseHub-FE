@@ -1,4 +1,4 @@
-import type { CreateCustomerResDto } from './customer';
+import type { CustomerResDto } from './customer';
 import type { ContractResDto, ContractType } from './contract';
 import type { PaginationDto } from './pagination';
 
@@ -113,7 +113,7 @@ export interface PropertySearchFilter {
 export interface FindPropertyDetailResDto {
   id: number;
   propertyType: PropertyType;
-  customer: CreateCustomerResDto;
+  customer: CustomerResDto;
   memo?: string;
   detailAddress: string;
   roadAddress: string;

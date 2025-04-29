@@ -20,7 +20,7 @@ import {
 } from '../../types/contract';
 import { PropertyType, PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
-import type { CreateCustomerResDto } from '../../types/customer';
+import type { CustomerResDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 import { getPropertyById } from '../../api/property';
 
@@ -83,7 +83,7 @@ const ContractRegistration: React.FC = () => {
 
   // 폼 상태 관리
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedCustomer, setSelectedCustomer] = useState<CreateCustomerResDto | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerResDto | null>(null);
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
@@ -136,7 +136,7 @@ const ContractRegistration: React.FC = () => {
   };
 
   // 고객 선택 모달에서 고객 선택 시 호출되는 함수
-  const handleCustomerSelect = (customer: CreateCustomerResDto) => {
+  const handleCustomerSelect = (customer: CustomerResDto) => {
     // 선택된 고객 정보를 바로 사용
     setSelectedCustomer(customer);
     showToast('고객이 성공적으로 선택되었습니다.', 'success');

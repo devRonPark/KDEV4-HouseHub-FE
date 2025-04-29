@@ -20,7 +20,7 @@ import {
 } from '../../types/contract';
 import { PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
-import type { CreateCustomerResDto } from '../../types/customer';
+import type { CustomerResDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 import { getObjectDiff } from '../../utils/objectUtil';
 import type { ContractResDto } from '../../types/contract';
@@ -96,7 +96,7 @@ const ContractEdit: React.FC = () => {
 
   // 폼 상태 관리
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedCustomer, setSelectedCustomer] = useState<CreateCustomerResDto | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerResDto | null>(null);
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
@@ -157,7 +157,7 @@ const ContractEdit: React.FC = () => {
   };
 
   const handleCustomerSelect = useCallback(
-    (customer: CreateCustomerResDto) => {
+    (customer: CustomerResDto) => {
       setSelectedCustomer(customer);
       setIsCustomerModalOpen(false);
       showToast('고객이 성공적으로 선택되었습니다.', 'success');
