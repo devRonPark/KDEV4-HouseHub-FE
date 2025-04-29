@@ -68,6 +68,38 @@ const ContractStatusButton: React.FC<{
   </button>
 );
 
+// 가격 입력 필드 컴포넌트 (만원 단위 입력 지원)
+const PriceInput: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  required?: boolean;
+}> = ({ value, onChange, placeholder, required = false }) => {
+  // 입력값을 숫자만 허용하고 변경 이벤트 처리
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    // 숫자만 허용 (소수점 없이)
+    if (/^[0-9]*$/.test(inputValue) || inputValue === '') {
+      onChange(inputValue);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <Input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={handleChange}
+        required={required}
+      />
+      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+        <span className="text-gray-500">만원</span>
+      </div>
+    </div>
+  );
+};
+
 const ContractRegistration: React.FC = () => {
   const navigate = useNavigate();
   // const location = useLocation();
@@ -177,6 +209,14 @@ const ContractRegistration: React.FC = () => {
     setMonthlyRentFee('');
   }, [contractType]);
 
+  // 만원 단위 가격을 원화 단위로 변환하는 함수
+  const convertToWon = (manwonValue: string): number | null => {
+    if (!manwonValue || manwonValue.trim() === '') return null;
+
+    // 변환: 만원 -> 원 (× 10000)
+    return parseInt(manwonValue, 10) * 10000;
+  };
+
   // 폼 제출 핸들러
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,10 +290,10 @@ const ContractRegistration: React.FC = () => {
         memo: memo || null,
         startedAt: startDate || null,
         expiredAt: endDate || null,
-        salePrice: showSalePrice ? Number(salePrice) : null,
-        jeonsePrice: showJeonsePrice ? Number(jeonsePrice) : null,
-        monthlyRentDeposit: showMonthlyRent ? Number(monthlyRentDeposit) : null,
-        monthlyRentFee: showMonthlyRent ? Number(monthlyRentFee) : null,
+        salePrice: showSalePrice ? convertToWon(salePrice) : null,
+        jeonsePrice: showJeonsePrice ? convertToWon(jeonsePrice) : null,
+        monthlyRentDeposit: showMonthlyRent ? convertToWon(monthlyRentDeposit) : null,
+        monthlyRentFee: showMonthlyRent ? convertToWon(monthlyRentFee) : null,
         completedAt: showCompletedDate ? completedDate : null,
         active,
       };
@@ -276,12 +316,12 @@ const ContractRegistration: React.FC = () => {
 
       // 계약 유형에 따라 가격 정보 추가
       if (showSalePrice) {
-        contractData.salePrice = Number(salePrice);
+        contractData.salePrice = convertToWon(salePrice);
       } else if (showJeonsePrice) {
-        contractData.jeonsePrice = Number(jeonsePrice);
+        contractData.jeonsePrice = convertToWon(jeonsePrice);
       } else if (showMonthlyRent) {
-        contractData.monthlyRentDeposit = Number(monthlyRentDeposit);
-        contractData.monthlyRentFee = Number(monthlyRentFee);
+        contractData.monthlyRentDeposit = convertToWon(monthlyRentDeposit);
+        contractData.monthlyRentFee = convertToWon(monthlyRentFee);
       }
 
       const response = await registerContract(contractData);
@@ -474,12 +514,18 @@ const ContractRegistration: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                     매매가 <span className="text-red-500">*</span>
                   </label>
-                  <Input
+                  <PriceInput
+                    value={salePrice}
+                    onChange={setSalePrice}
+                    placeholder="매매가 입력 (만원 단위)"
+                    required
+                  />
+                  {/* <Input
                     type="number"
                     placeholder="매매가 입력"
                     value={salePrice}
                     onChange={(e) => setSalePrice(e.target.value)}
-                  />
+                  /> */}
                 </div>
               )}
 
@@ -488,11 +534,11 @@ const ContractRegistration: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
                     전세가 <span className="text-red-500">*</span>
                   </label>
-                  <Input
-                    type="number"
-                    placeholder="전세가 입력"
+                  <PriceInput
                     value={jeonsePrice}
-                    onChange={(e) => setJeonsePrice(e.target.value)}
+                    onChange={setJeonsePrice}
+                    placeholder="전세가 입력 (만원 단위)"
+                    required
                   />
                 </div>
               )}
@@ -503,17 +549,17 @@ const ContractRegistration: React.FC = () => {
                     보증금/월세 <span className="text-red-500">*</span>
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      type="number"
-                      placeholder="보증금 입력"
+                    <PriceInput
                       value={monthlyRentDeposit}
-                      onChange={(e) => setMonthlyRentDeposit(e.target.value)}
+                      onChange={setMonthlyRentDeposit}
+                      placeholder="보증금 입력 (만원 단위)"
+                      required
                     />
-                    <Input
-                      type="number"
-                      placeholder="월세 입력"
+                    <PriceInput
                       value={monthlyRentFee}
-                      onChange={(e) => setMonthlyRentFee(e.target.value)}
+                      onChange={setMonthlyRentFee}
+                      placeholder="월세 입력 (만원 단위)"
+                      required
                     />
                   </div>
                 </div>
