@@ -82,6 +82,7 @@ interface ContractFormState {
   expiredAt: string;
   memo: string;
   completedAt: string | null;
+  active: boolean;
 }
 
 const ContractEdit: React.FC = () => {
@@ -107,6 +108,7 @@ const ContractEdit: React.FC = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
   const [completedDate, setCompletedDate] = useState<string>('');
+  const [active, setActive] = useState<boolean>(true);
 
   // 원본 계약 데이터 저장용 상태
   const [originalContract, setOriginalContract] = useState<ContractResDto | null>(null);
@@ -136,6 +138,7 @@ const ContractEdit: React.FC = () => {
           setEndDate(contract.expiredAt || '');
           setMemo(contract.memo || '');
           setCompletedDate(contract.completedAt || '');
+          setActive(contract.active ?? true);
         } else {
           showToast(response.error || '계약 정보를 불러오는데 실패했습니다.', 'error');
           navigate('/contracts');
@@ -260,6 +263,7 @@ const ContractEdit: React.FC = () => {
         expiredAt: endDate,
         memo,
         completedAt: showCompletedDate ? completedDate : null,
+        active,
       };
 
       const originalData: ContractFormState = {
@@ -275,6 +279,7 @@ const ContractEdit: React.FC = () => {
         expiredAt: originalContract.expiredAt || '',
         memo: originalContract.memo || '',
         completedAt: originalContract.completedAt || '',
+        active: originalContract.active ?? true,
       };
 
       const changedFields = getObjectDiff(originalData, currentData) as Partial<ContractReqDto>;
@@ -589,6 +594,20 @@ const ContractEdit: React.FC = () => {
                   onChange={(e) => setMemo(e.target.value)}
                   className="min-h-[100px]"
                 />
+              </div>
+
+              {/* 활성화 여부 */}
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="active"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
+                  계약 활성화
+                </label>
               </div>
             </div>
           </Card>

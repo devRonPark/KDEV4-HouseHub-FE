@@ -94,6 +94,7 @@ const ContractRegistration: React.FC = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [completedDate, setCompletedDate] = useState<string>('');
   const [memo, setMemo] = useState<string>('');
+  const [active, setActive] = useState<boolean>(true);
 
   // 계약 상태에 따른 고객 선택 필요 여부
   const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
@@ -254,6 +255,7 @@ const ContractRegistration: React.FC = () => {
         monthlyRentDeposit: showMonthlyRent ? Number(monthlyRentDeposit) : null,
         monthlyRentFee: showMonthlyRent ? Number(monthlyRentFee) : null,
         completedAt: showCompletedDate ? completedDate : null,
+        active,
       };
 
       // 계약 상태에 따라 고객 ID 추가
@@ -570,6 +572,20 @@ const ContractRegistration: React.FC = () => {
                   onChange={(e) => setMemo(e.target.value)}
                   className="min-h-[100px]"
                 />
+              </div>
+
+              {/* 활성화 여부 */}
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="active"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
+                  계약 활성화
+                </label>
               </div>
             </div>
           </Card>
