@@ -6,7 +6,7 @@ import { getMyCustomers } from '../../api/customer';
 import type {
   CustomerSearchFilter,
   CustomerListResDto,
-  CreateCustomerResDto,
+  CustomerResDto,
 } from '../../types/customer';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -15,7 +15,7 @@ import { useToast } from '../../context/useToast';
 interface CustomerSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectCustomer: (customer: CreateCustomerResDto) => void;
+  onSelectCustomer: (customer: CustomerResDto) => void;
   selectedCustomerId?: number | null;
 }
 

@@ -20,7 +20,7 @@ import {
 } from '../../types/contract';
 import { PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
-import type { CreateCustomerResDto } from '../../types/customer';
+import type { CustomerResDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 import { getObjectDiff } from '../../utils/objectUtil';
 import type { ContractResDto } from '../../types/contract';
@@ -96,8 +96,8 @@ const ContractEdit: React.FC = () => {
 
   // 폼 상태 관리
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedLandlord, setSelectedLandlord] = useState<CreateCustomerResDto | null>(null); // 집주인
-  const [selectedTenant, setSelectedTenant] = useState<CreateCustomerResDto | null>(null); // 계약자
+  const [selectedLandlord, setSelectedLandlord] = useState<CustomerResDto | null>(null); // 집주인
+  const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null); // 계약자
   const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
   const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
   const [salePrice, setSalePrice] = useState<string>('');
@@ -159,7 +159,7 @@ const ContractEdit: React.FC = () => {
   };
 
   const handleCustomerSelect = useCallback(
-    (customer: CreateCustomerResDto) => {
+    (customer: CustomerResDto) => {
       if (selectedLandlord && selectedLandlord.id === customer.id) {
         showToast('집주인은 계약 대상이 될 수 없습니다.');
         return;
