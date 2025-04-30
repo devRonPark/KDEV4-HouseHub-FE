@@ -44,6 +44,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { name: '대시보드', icon: <Home size={18} />, href: '/dashboard' },
     { name: '고객 관리', icon: <Users size={18} />, href: '/customers' },
     { name: '매물 관리', icon: <FileText size={18} />, href: '/properties' },
+    { name: '크롤링 매물', icon: <FileText size={18} />, href: '/crawling-properties' },
     { name: '계약 관리', icon: <FileText size={18} />, href: '/contracts' },
     {
       name: '상담 관리',

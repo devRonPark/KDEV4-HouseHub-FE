@@ -278,6 +278,15 @@ function App() {
         }
       />
 
+      <Route
+        path="/crawling-properties"
+        element={
+          <ProtectedRoute>
+            <CrawlingPropertyPage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="/consultations" element={<ConsultationListPage />} />
       <Route path="/consultations/:id" element={<ConsultationDetailPage />} />
       <Route path="/consultations/new" element={<ConsultationFormPage />} />
@@ -286,9 +295,6 @@ function App() {
       {/* 공개 문의 페이지 (인증 불필요) */}
       <Route path="/inquiry/share/:shareToken" element={<InquiryFormPage />} />
       <Route path="/inquiry/complete" element={<InquiryCompletePage />} />
-
-      {/* 라우트 추가 */}
-      <Route path="/crawling-properties" element={<ProtectedRoute><CrawlingPropertyPage /></ProtectedRoute>} />
 
       {/* 기본 리다이렉트 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

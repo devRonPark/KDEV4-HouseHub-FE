@@ -39,7 +39,7 @@ export interface CrawlingPropertyListResponse {
 }
 
 export interface CrawlingPropertySearchParams {
-  propertyTypes?: CrawlingPropertyType;
+  propertyType?: CrawlingPropertyType;
   transactionType?: CrawlingTransactionType;
   province?: string;
   city?: string;
@@ -52,4 +52,5 @@ export interface CrawlingPropertySearchParams {
   maxMonthlyRentFee?: number;
   page?: number;
   size?: number;
+  tagIds?: number[];
 } 
