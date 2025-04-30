@@ -7,11 +7,13 @@ import { type Question, QuestionType } from '../../types/inquiryTemplate';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import Checkbox from '../ui/Checkbox';
+import RegionSelector from '../region/RegionSelector';
 
 interface QuestionFormProps {
   question?: Question;
   onSave: (question: Omit<Question, 'id' | 'questionOrder'>) => void;
   onCancel: () => void;
+  previewMode?: boolean;
 }
 
 const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSave, onCancel }) => {
@@ -19,7 +21,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSave, onCancel 
   const [type, setType] = useState<QuestionType>(question?.type || QuestionType.TEXT);
   const [isRequired, setIsRequired] = useState(question?.isRequired || false);
   const [options, setOptions] = useState<string[]>(question?.options || ['']);
-  const [errors, setErrors] = useState<{ label?: string; options?: string }>({});
+  const [errors, setErrors] = useState<{ label?: string; options?: string; region?: string }>({});
 
   // 옵션 추가
   const handleAddOption = () => {
@@ -45,7 +47,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSave, onCancel 
     e.preventDefault();
 
     // 유효성 검사
-    const newErrors: { label?: string; options?: string } = {};
+    const newErrors: { label?: string; options?: string; region?: string } = {};
 
     if (!label.trim()) {
       newErrors.label = '질문 레이블을 입력해주세요.';
@@ -67,16 +69,23 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSave, onCancel 
 
     // 옵션이 필요 없는 질문 유형인 경우 옵션 배열 비우기
     const finalOptions =
-      type === QuestionType.SELECT || type === QuestionType.RADIO || type === QuestionType.CHECKBOX
+      type === QuestionType.SELECT ||
+      type === QuestionType.RADIO ||
+      type === QuestionType.CHECKBOX ||
+      type === QuestionType.REGION
         ? options.filter((option) => option.trim())
         : undefined;
 
-    onSave({
+    // 질문 데이터 구성
+    const questionData: Omit<Question, 'id' | 'questionOrder'> = {
       label,
       type,
       isRequired,
       options: finalOptions,
-    });
+    };
+    console.log('질문 데이터:', questionData);
+
+    onSave(questionData);
   };
 
   // 질문 유형 변경 시 옵션 초기화
@@ -130,6 +139,7 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSave, onCancel 
           <option value={QuestionType.EMAIL}>이메일</option>
           <option value={QuestionType.PHONE}>전화번호</option>
           <option value={QuestionType.NUMBER}>숫자</option>
+          <option value={QuestionType.REGION}>지역 선택</option>
         </select>
       </div>
 
@@ -143,6 +153,13 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSave, onCancel 
           helperText="응답자가 이 질문에 반드시 답변해야 합니다."
         />
       </div>
+
+      {/* 관심 지역 선택기 (질문 유형이 '지역 선택'인 경우에만 표시) */}
+      {type === 'REGION' && (
+        <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
+          <RegionSelector error={errors.region} />
+        </div>
+      )}
 
       {/* 옵션 목록 (선택, 라디오, 체크박스 유형인 경우) */}
       {(type === QuestionType.SELECT ||

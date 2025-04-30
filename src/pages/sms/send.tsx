@@ -16,7 +16,7 @@ import { useToast } from '../../context/useToast';
 import { sendSms, getAllTemplates } from '../../api/smsApi';
 import { getMyCustomers } from '../../api/customer';
 import type { SendSmsReqDto, SmsTemplateListResDto } from '../../types/sms';
-import type { CreateCustomerResDto, CustomerListResDto } from '../../types/customer';
+import type { CustomerResDto, CustomerListResDto } from '../../types/customer';
 import { useAuth } from '../../context/useAuth';
 import Pagination from '../../components/ui/Pagination';
 
@@ -29,8 +29,9 @@ const SmsSendPage = () => {
   const [sender, setSender] = useState('');
   const [customers, setCustomers] = useState<CustomerListResDto>();
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [isTemplateAutoFill, setIsTemplateAutoFill] = useState(false);
   // 단일 고객 선택에서 다중 고객 선택으로 변경
-  const [selectedCustomers, setSelectedCustomers] = useState<CreateCustomerResDto[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<CustomerResDto[]>([]);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'SMS' | 'LMS' | 'MMS'>('SMS');
   const [isReservation, setIsReservation] = useState(false);
@@ -46,8 +47,9 @@ const SmsSendPage = () => {
     },
   });
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
-  const [filteredCustomers, setFilteredCustomers] = useState<CreateCustomerResDto[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<CustomerResDto[]>([]);
   const { user } = useAuth();
+  const [title, setTitle] = useState('');
 
   // 필터 상태로 페이지네이션 관리
   const [filter, setFilter] = useState({
@@ -133,13 +135,14 @@ const SmsSendPage = () => {
       const template = templates?.content.find((t) => t.id === selectedTemplateId);
       if (template) {
         setMessage(template.content);
-
+        setTitle(template.title || '');
         // 메시지 길이에 따라 메시지 타입 자동 설정
         if (template.content.length > 90) {
           setMessageType('LMS');
         } else {
           setMessageType('SMS');
         }
+        setIsTemplateAutoFill(true);
       }
     }
   }, [selectedTemplateId, templates]);
@@ -150,6 +153,24 @@ const SmsSendPage = () => {
       setMessageType('LMS');
     }
   }, [message, messageType]);
+
+  const handleMessageTypeChange = (type: 'SMS' | 'LMS' | 'MMS') => {
+    if (isTemplateAutoFill) setSelectedTemplateId(null);
+    setIsTemplateAutoFill(false);
+    setMessageType(type);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isTemplateAutoFill) setSelectedTemplateId(null);
+    setIsTemplateAutoFill(false);
+    setTitle(e.target.value);
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (isTemplateAutoFill) setSelectedTemplateId(null);
+    setIsTemplateAutoFill(false);
+    setMessage(e.target.value);
+  };
 
   // 검색어 변경 핸들러
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,7 +217,7 @@ const SmsSendPage = () => {
   };
 
   // 고객 선택 토글 (다중 선택)
-  const toggleCustomerSelection = (customer: CreateCustomerResDto) => {
+  const toggleCustomerSelection = (customer: CustomerResDto) => {
     setSelectedCustomers((prev) => {
       // 이미 선택된 고객인지 확인
       const isSelected = prev.some((c) => c.id === customer.id);
@@ -280,8 +301,7 @@ const SmsSendPage = () => {
           receiver: customer.contact,
           msg: message,
           msgType: messageType,
-          title:
-            messageType === 'LMS' || messageType === 'MMS' ? `${customer.name}님 안내` : undefined,
+          title: messageType === 'LMS' || messageType === 'MMS' ? title : undefined,
           rtime,
           rdate,
           templateId: selectedTemplateId || undefined,
@@ -422,7 +442,7 @@ const SmsSendPage = () => {
                             onClick={() => toggleCustomerSelection(customer)}
                           >
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {customer.name}
+                              {customer.name || '미등록'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {customer.contact}
@@ -534,7 +554,7 @@ const SmsSendPage = () => {
                       type="radio"
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                       checked={messageType === 'SMS'}
-                      onChange={() => setMessageType('SMS')}
+                      onChange={() => handleMessageTypeChange('SMS')}
                       disabled={message.length > 90}
                     />
                     <label htmlFor="sms" className="ml-2 block text-sm text-gray-700">
@@ -548,7 +568,7 @@ const SmsSendPage = () => {
                       type="radio"
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                       checked={messageType === 'LMS'}
-                      onChange={() => setMessageType('LMS')}
+                      onChange={() => handleMessageTypeChange('LMS')}
                     />
                     <label htmlFor="lms" className="ml-2 block text-sm text-gray-700">
                       LMS (2,000자 이내)
@@ -561,7 +581,7 @@ const SmsSendPage = () => {
                       type="radio"
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                       checked={messageType === 'MMS'}
-                      onChange={() => setMessageType('MMS')}
+                      onChange={() => handleMessageTypeChange('MMS')}
                     />
                     <label htmlFor="mms" className="ml-2 block text-sm text-gray-700">
                       MMS (이미지 포함)
@@ -569,6 +589,22 @@ const SmsSendPage = () => {
                   </div>
                 </div>
               </div>
+
+              {/* LMS/MMS 제목 입력 필드 */}
+              {(messageType === 'LMS' || messageType === 'MMS') && (
+                <div>
+                  <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                    제목
+                  </label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={handleTitleChange}
+                    placeholder="제목을 입력하세요"
+                    maxLength={30}
+                  />
+                </div>
+              )}
 
               {/* 메시지 내용 */}
               <div>
@@ -578,7 +614,7 @@ const SmsSendPage = () => {
                 <Textarea
                   id="message"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={handleMessageChange}
                   placeholder="메시지 내용을 입력하세요"
                   rows={6}
                   required
@@ -673,7 +709,7 @@ const SmsSendPage = () => {
                           className="flex items-center bg-white px-2 py-1 rounded-md border border-gray-300"
                         >
                           <span className="text-sm">
-                            {customer.name} ({customer.contact})
+                            {customer.name || '미등록'} ({customer.contact})
                           </span>
                           <button
                             type="button"

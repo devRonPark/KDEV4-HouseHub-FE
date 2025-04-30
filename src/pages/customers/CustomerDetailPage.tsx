@@ -78,6 +78,11 @@ const CustomerDetailPage: React.FC = () => {
       try {
         const response = await getCustomerById(Number(id));
         if (response.success && response.data) {
+          if (response.data.deletedAt) {
+            showToast('삭제된 고객의 상세 정보는 볼 수 없습니다.', 'error');
+            navigate('/customers');
+            return;
+          }
           setCustomer(response.data);
         } else {
           showToast(response.error || '고객 정보를 불러오는데 실패했습니다.', 'error');
@@ -153,12 +158,12 @@ const CustomerDetailPage: React.FC = () => {
 
     try {
       const requestData: CreateCustomerReqDto = {
-        name: data.name || customer.name,
-        email: data.email || customer.email,
+        name: data.name === '' ? undefined : data.name || customer.name,
+        email: data.email === '' ? undefined : data.email || customer.email,
         contact: data.contact || customer.contact,
-        ageGroup: Number(data.ageGroup || customer.ageGroup),
-        gender: data.gender || customer.gender,
-        memo: data.memo || '',
+        birthDate: data.birthDate === '' ? undefined : data.birthDate || customer.birthDate,
+        gender: data.gender === undefined ? undefined : data.gender || customer.gender,
+        memo: data.memo === '' ? undefined : data.memo || customer.memo,
       };
 
       const response = await updateMyCustomer(customer.id, requestData);
@@ -171,7 +176,14 @@ const CustomerDetailPage: React.FC = () => {
         }
         setIsEditing(false);
       } else {
-        showToast(response.error || '고객 정보 수정에 실패했습니다.', 'error');
+        if (response.errors && response.errors.length > 0) {
+          // 각 에러 메시지를 토스트로 표시
+          response.errors.forEach((error) => {
+            showToast(error.message, 'error');
+          });
+        } else {
+          showToast(response.message || '고객 정보 수정에 실패했습니다.', 'error');
+        }
       }
     } catch (error) {
       console.error('고객 정보 수정 중 오류가 발생했습니다:', error);
@@ -264,7 +276,7 @@ const CustomerDetailPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-500">이름</p>
-                        <p className="text-gray-900">{customer.name}</p>
+                        <p className="text-gray-900">{customer.name || '미등록'}</p>
                       </div>
                     </div>
 
@@ -284,7 +296,7 @@ const CustomerDetailPage: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-500">이메일</p>
-                        <p className="text-gray-900">{customer.email || '-'}</p>
+                        <p className="text-gray-900">{customer.email || '미등록'}</p>
                       </div>
                     </div>
 
@@ -293,14 +305,17 @@ const CustomerDetailPage: React.FC = () => {
                         <Calendar size={20} className="text-gray-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-500">연령대 / 성별</p>
+                        <p className="text-sm font-medium text-gray-500">생년월일 / 성별</p>
                         <p className="text-gray-900">
-                          {customer.ageGroup ? `${customer.ageGroup}대` : '-'} /{' '}
+                          {customer.birthDate
+                            ? new Date(customer.birthDate).toLocaleDateString()
+                            : '미등록'}{' '}
+                          /{' '}
                           {customer.gender === 'M'
                             ? '남성'
                             : customer.gender === 'F'
                               ? '여성'
-                              : '-'}
+                              : '미등록'}
                         </p>
                       </div>
                     </div>

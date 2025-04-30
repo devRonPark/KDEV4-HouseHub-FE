@@ -4,7 +4,7 @@ import type React from 'react';
 import { forwardRef } from 'react';
 
 interface SelectOption {
-  value: string;
+  value?: string;
   label: string;
 }
 

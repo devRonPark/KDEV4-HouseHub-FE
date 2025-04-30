@@ -1,4 +1,4 @@
-import type { CreateCustomerResDto } from './customer';
+import type { CustomerResDto } from './customer';
 import type { ContractResDto, ContractType } from './contract';
 import type { PaginationDto } from './pagination';
 
@@ -33,14 +33,14 @@ export const PropertyTypeColors: Record<PropertyType, { bg: string; text: string
 };
 
 export enum PropertyDirection {
-  NORTH = '북향',
-  SOUTH = '남향',
-  EAST = '동향',
-  WEST = '서향',
-  NORTHEAST = '북동향',
-  NORTHWEST = '북서향',
-  SOUTHEAST = '남동향',
-  SOUTHWEST = '남서향',
+  NORTH = 'NORTH',
+  SOUTH = 'SOUTH',
+  EAST = 'EAST',
+  WEST = 'WEST',
+  NORTHEAST = 'NORTHEAST',
+  NORTHWEST = 'NORTHWEST',
+  SOUTHEAST = 'SOUTHEAST',
+  SOUTHWEST = 'SOUTHWEST',
 }
 
 // 매물 방향 표시 텍스트
@@ -81,6 +81,7 @@ export interface FindPropertyResDto {
   jibunAddress: string;
   active: boolean;
   contractTypes: ContractType[];
+  customer: CustomerResDto;
 }
 
 // 매물 목록 응답 LIST DTO
@@ -100,13 +101,20 @@ export interface PropertySearchFilter {
   active?: boolean; // 계약 가능 여부
   page: number;
   size: number;
+  contractType?: ContractType; // 계약 유형
+  minPrice?: number; // 최소 가격
+  maxPrice?: number; // 최대 가격
+  minDeposit?: number; // 최소 보증금
+  maxDeposit?: number; // 최대 보증금
+  minMonthlyRent?: number; // 최소 월세
+  maxMonthlyRent?: number; // 최대 월세
 }
 
 // 매물 상세 정보 응답 DTO
 export interface FindPropertyDetailResDto {
   id: number;
   propertyType: PropertyType;
-  customer: CreateCustomerResDto;
+  customer: CustomerResDto;
   memo?: string;
   detailAddress: string;
   roadAddress: string;

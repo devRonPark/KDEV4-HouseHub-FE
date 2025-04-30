@@ -1,6 +1,6 @@
 import type React from 'react';
 import { FileText, User } from 'react-feather';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import {
   ContractResDto,
@@ -15,6 +15,7 @@ interface ContractListItemProps {
 }
 
 const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
+  const navigate = useNavigate();
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
@@ -24,28 +25,23 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
     }
   };
 
-  const formatCurrency = (amount?: number) => {
-    if (amount === undefined) return '-';
-    return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(amount);
-  };
-
   // 계약 유형에 따른 금액 표시
   const getPriceDisplay = () => {
     switch (contract.contractType) {
       case 'SALE':
-        return `매매가: ${formatCurrency(contract.salePrice)}`;
+        return `매매가: ${contract.salePrice}`;
       case 'JEONSE':
-        return `전세가: ${formatCurrency(contract.jeonsePrice)}`;
+        return `전세가: ${contract.jeonsePrice}`;
       case 'MONTHLY_RENT':
-        return `보증금: ${formatCurrency(contract.monthlyRentDeposit)}, 월세: ${formatCurrency(contract.monthlyRentFee)}`;
+        return `보증금: ${contract.monthlyRentDeposit} / 월세: ${contract.monthlyRentFee}`;
       default:
         return '';
     }
   };
 
   return (
-    <Link
-      to={`/contracts/${contract.id}`}
+    <div
+      onClick={() => navigate(`/contracts/${contract.id}`)}
       className="block border rounded-lg hover:shadow-md transition-shadow duration-200 bg-white overflow-hidden mb-4"
     >
       <div className="p-4">
@@ -92,7 +88,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 

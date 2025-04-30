@@ -9,11 +9,13 @@ import InquiryTemplateList from '../../components/inquiryTemplate/InquiryTemplat
 import InquiryTemplatePreview from '../../components/inquiryTemplate/InquiryTemplatePreview';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import Select from '../../components/ui/Select';
 import Modal from '../../components/ui/Modal';
 import { useToast } from '../../context/useToast';
 import { useAuth } from '../../context/useAuth';
 import { getInquiryTemplates, deleteInquiryTemplate } from '../../api/inquiryTemplate';
 import type { InquiryTemplate, InquiryTemplateFilter } from '../../types/inquiryTemplate';
+import { InquiryTemplateType } from '../../types/inquiryTemplate';
 
 const InquiryTemplateManagement: React.FC = () => {
   const { user } = useAuth();
@@ -30,6 +32,7 @@ const InquiryTemplateManagement: React.FC = () => {
   const [filter, setFilter] = useState<InquiryTemplateFilter>({
     keyword: '',
     isActive: undefined,
+    type: '',
     page: 1,
   });
   const [pagination, setPagination] = useState({
@@ -39,7 +42,8 @@ const InquiryTemplateManagement: React.FC = () => {
     size: 10,
   });
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [showActiveOnly, setShowActiveOnly] = useState<boolean | undefined>(undefined);
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<InquiryTemplateType | ''>();
 
   // 중개사 권한 확인
   const isAgent = user?.role === 'AGENT';
@@ -60,7 +64,7 @@ const InquiryTemplateManagement: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filter, showToast]);
+  }, [filter]);
 
   // 컴포넌트 마운트 시 문의 템플릿 목록 조회
   useEffect(() => {
@@ -84,14 +88,47 @@ const InquiryTemplateManagement: React.FC = () => {
     }));
   };
 
-  // 필터 핸들러
-  const handleFilterChange = (isActive: boolean | undefined) => {
-    setShowActiveOnly(isActive);
+  // 상태 필터 핸들러
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
+    let isActive: boolean | undefined = undefined;
+
+    if (value === 'active') {
+      isActive = true;
+    } else if (value === 'inactive') {
+      isActive = false;
+    }
+
     setFilter((prev) => ({
       ...prev,
       isActive,
       page: 1,
     }));
+  };
+
+  // 유형 필터 핸들러
+  const handleTypeChange = (value: string) => {
+    const templateType = value ? (value as unknown as InquiryTemplateType) : undefined;
+    console.log('templateType', templateType);
+    setSelectedType(templateType);
+    setFilter((prev) => ({
+      ...prev,
+      type: templateType,
+      page: 1,
+    }));
+  };
+
+  // 필터 초기화 핸들러
+  const handleResetFilters = () => {
+    setSearchKeyword('');
+    setSelectedStatus('');
+    setSelectedType('');
+    setFilter({
+      keyword: '',
+      isActive: undefined,
+      type: '',
+      page: 1,
+    });
   };
 
   // 페이지 변경 핸들러
@@ -135,6 +172,24 @@ const InquiryTemplateManagement: React.FC = () => {
     }
   };
 
+  // 유형 옵션 생성
+  const typeOptions = [
+    { value: '', label: '모든 유형' },
+    ...Object.keys(InquiryTemplateType)
+      .filter((key) => isNaN(Number(key)))
+      .map((key) => ({
+        value: key,
+        label: key.replace('_', ' - '),
+      })),
+  ];
+
+  // 상태 옵션 생성
+  const statusOptions = [
+    { value: '', label: '모든 상태' },
+    { value: 'active', label: '활성화' },
+    { value: 'inactive', label: '비활성화' },
+  ];
+
   return (
     <DashboardLayout>
       <div className="pb-5 mb-6 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
@@ -164,43 +219,28 @@ const InquiryTemplateManagement: React.FC = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
           </div>
-          <div className="flex items-end space-x-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">상태 필터</label>
-              <select
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                value={showActiveOnly === undefined ? '' : showActiveOnly ? 'active' : 'inactive'}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '') {
-                    handleFilterChange(undefined);
-                  } else {
-                    handleFilterChange(value === 'active');
-                  }
-                }}
-              >
-                <option value="">모든 상태</option>
-                <option value="active">활성화</option>
-                <option value="inactive">비활성화</option>
-              </select>
+          <div className="flex flex-col md:flex-row md:items-end space-y-4 md:space-y-0 md:space-x-2">
+            <div className="w-full md:w-40">
+              <Select
+                label="상태 필터"
+                options={statusOptions}
+                value={selectedStatus}
+                onChange={handleStatusChange}
+              />
+            </div>
+            <div className="w-full md:w-56">
+              <Select
+                label="유형 필터"
+                options={typeOptions}
+                value={selectedType}
+                onChange={handleTypeChange}
+              />
             </div>
             <Button variant="outline" onClick={handleSearch} className="h-10">
               <Filter className="h-4 w-4 mr-2" />
               필터 적용
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchKeyword('');
-                setShowActiveOnly(undefined);
-                setFilter({
-                  keyword: '',
-                  isActive: undefined,
-                  page: 1,
-                });
-              }}
-              className="h-10"
-            >
+            <Button variant="outline" onClick={handleResetFilters} className="h-10">
               <RefreshCw className="h-4 w-4 mr-2" />
               초기화
             </Button>
@@ -216,7 +256,6 @@ const InquiryTemplateManagement: React.FC = () => {
           onPreview={handleOpenPreviewModal}
           onDelete={handleOpenDeleteModal}
           isLoading={isLoading}
-          showToast={showToast}
         />
 
         {/* 페이지네이션 */}

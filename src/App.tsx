@@ -296,6 +296,15 @@ function App() {
       <Route path="/inquiry/share/:shareToken" element={<InquiryFormPage />} />
       <Route path="/inquiry/complete" element={<InquiryCompletePage />} />
 
+      {/* 라우트 추가 */}
+      <Route
+        path="/crawling-properties"
+        element={
+          <ProtectedRoute>
+            <CrawlingPropertyPage />
+          </ProtectedRoute>
+        }
+      />
       {/* 기본 리다이렉트 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

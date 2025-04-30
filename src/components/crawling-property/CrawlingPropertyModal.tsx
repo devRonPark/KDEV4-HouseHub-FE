@@ -8,11 +8,15 @@ interface CrawlingPropertyModalProps {
 }
 
 const propertyTypeMap = {
-  APARTMENT: '아파트',
-  OFFICETEL: '오피스텔',
+  MULTIFAMILY: '다세대',
+  SINGLEMULTIFAMILY: '단독/다가구',
   VILLA: '빌라',
-  ONEROOM: '원룸',
-  TWOROOM: '투룸'
+  COMMERCIAL: '상가주택',
+  APARTMENT: '아파트',
+  ROWHOUSE: '연립',
+  OFFICETEL: '오피스텔',
+  ONE_ROOM: '원룸',
+  COUNTRYHOUSE: '전원'
 };
 
 const transactionTypeMap = {

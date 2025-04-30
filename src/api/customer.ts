@@ -1,16 +1,16 @@
 import apiClient from './client';
 import type { ApiResponse } from '../types/api';
 import type {
-  CreateCustomerResDto,
+  CustomerResDto,
   CreateCustomerReqDto,
   CustomerListResDto,
   CustomerSearchFilter,
   Customer,
 } from '../types/customer';
-import type { ConsultationListResDto } from '../types/consultation';
-import type { ContractListResDto } from '../types/contract';
-import type { InquiryListResponse } from '../types/inquiry';
 import axios from 'axios';
+import { ConsultationListResDto } from '../types/consultation';
+import { ContractListResDto } from '../types/contract';
+import { InquiryListResponse } from '../types/inquiry';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회 (상담 내역 제외)
 export const getMyCustomers = async (
@@ -20,6 +20,9 @@ export const getMyCustomers = async (
     let url = `/customers?page=${filter.page}&size=${filter.size}`;
     if (filter.keyword) {
       url += `&keyword=${encodeURIComponent(filter.keyword)}`;
+    }
+    if (filter.includeDeleted !== undefined) {
+      url += `&includeDeleted=${filter.includeDeleted}`;
     }
     const response = await apiClient.get<ApiResponse<CustomerListResDto>>(url);
     return response.data;
@@ -38,16 +41,13 @@ export const getMyCustomers = async (
 // 현재 로그인한 에이전트의 신규 고객 추가
 export const createMyCustomer = async (
   customerData: CreateCustomerReqDto
-): Promise<ApiResponse<CreateCustomerResDto>> => {
+): Promise<ApiResponse<CustomerResDto>> => {
   try {
-    const response = await apiClient.post<ApiResponse<CreateCustomerResDto>>(
-      '/customers',
-      customerData
-    );
+    const response = await apiClient.post<ApiResponse<CustomerResDto>>('/customers', customerData);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<CreateCustomerResDto>;
+      return error.response.data as ApiResponse<CustomerResDto>;
     }
     return {
       success: false,
@@ -59,16 +59,16 @@ export const createMyCustomer = async (
 export const updateMyCustomer = async (
   id: number,
   customerData: CreateCustomerReqDto
-): Promise<ApiResponse<CreateCustomerReqDto>> => {
+): Promise<ApiResponse<CustomerResDto>> => {
   try {
-    const response = await apiClient.put<ApiResponse<CreateCustomerResDto>>(
+    const response = await apiClient.put<ApiResponse<CustomerResDto>>(
       `/customers/${id}`,
       customerData
     );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<CreateCustomerResDto>;
+      return error.response.data as ApiResponse<CustomerResDto>;
     }
     return {
       success: false,
@@ -77,13 +77,13 @@ export const updateMyCustomer = async (
   }
 };
 
-export const deleteMyCustomer = async (id: number): Promise<ApiResponse<CreateCustomerResDto>> => {
+export const deleteMyCustomer = async (id: number): Promise<ApiResponse<CustomerResDto>> => {
   try {
-    const response = await apiClient.delete<ApiResponse<CreateCustomerResDto>>(`/customers/${id}`);
+    const response = await apiClient.delete<ApiResponse<CustomerResDto>>(`/customers/${id}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<CreateCustomerResDto>;
+      return error.response.data as ApiResponse<CustomerResDto>;
     }
     return {
       success: false,
@@ -101,14 +101,12 @@ export const downloadExcelTemplate = async (): Promise<Blob> => {
 };
 
 // 엑셀 파일로 고객 정보 업로드
-export const uploadCustomersExcel = async (
-  file: File
-): Promise<ApiResponse<CreateCustomerResDto[]>> => {
+export const uploadCustomersExcel = async (file: File): Promise<ApiResponse<CustomerResDto[]>> => {
   try {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post<ApiResponse<CreateCustomerResDto[]>>(
+    const response = await apiClient.post<ApiResponse<CustomerResDto[]>>(
       '/customers/upload',
       formData,
       {
@@ -120,7 +118,7 @@ export const uploadCustomersExcel = async (
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<CreateCustomerResDto[]>;
+      return error.response.data as ApiResponse<CustomerResDto[]>;
     }
     return {
       success: false,
@@ -165,28 +163,6 @@ export const getCustomerConsultations = async (
     return {
       success: false,
       error: '고객 상담 목록을 불러오는 중 오류가 발생했습니다.',
-    };
-  }
-};
-
-// 고객 계약 목록 조회 API
-export const getCustomerContracts = async (
-  id: number,
-  page: number,
-  size: number
-): Promise<ApiResponse<ContractListResDto>> => {
-  try {
-    const response = await apiClient.get<ApiResponse<ContractListResDto>>(
-      `/customers/${id}/contracts?page=${page}&size=${size}`
-    );
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<ContractListResDto>;
-    }
-    return {
-      success: false,
-      error: '고객 계약 목록을 불러오는 중 오류가 발생했습니다.',
     };
   }
 };
@@ -251,6 +227,22 @@ export const getCustomerBuyContracts = async (
     return {
       success: false,
       error: '고객 매수 계약 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+// 고객 복구
+export const restoreCustomer = async (id: number): Promise<ApiResponse<CustomerResDto>> => {
+  try {
+    const response = await apiClient.put<ApiResponse<CustomerResDto>>(`/customers/restore/${id}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<CustomerResDto>;
+    }
+    return {
+      success: false,
+      error: '고객 복구 중 오류가 발생했습니다.',
     };
   }
 };

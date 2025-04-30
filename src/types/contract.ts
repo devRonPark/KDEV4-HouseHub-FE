@@ -1,4 +1,4 @@
-import type { CreateCustomerResDto } from './customer';
+import type { CustomerResDto } from './customer';
 import type { FindPropertyResDto } from './property';
 import type { Agent } from './agent';
 import type { PaginationDto } from './pagination';
@@ -62,6 +62,7 @@ export interface ContractReqDto {
   monthlyRentDeposit?: number | null;
   monthlyRentFee?: number | null;
   completedAt?: string | null; // 계약 완료일
+  // active?: boolean; // 계약 활성화 여부
 }
 
 // 계약 응답 DTO
@@ -69,17 +70,18 @@ export interface ContractResDto {
   id: number;
   agent: Agent;
   property: FindPropertyResDto;
-  customer?: CreateCustomerResDto | null;
+  customer?: CustomerResDto | null;
   contractType: ContractType;
   status: ContractStatus;
-  salePrice?: number;
-  jeonsePrice?: number;
-  monthlyRentFee?: number;
-  monthlyRentDeposit?: number;
+  salePrice?: string | null;
+  jeonsePrice?: string | null;
+  monthlyRentFee?: string | null;
+  monthlyRentDeposit?: string | null;
   memo?: string;
   startedAt?: string;
   expiredAt?: string;
   completedAt?: string;
+  // active?: boolean;
 }
 
 // 계약 목록 응답 DTO
@@ -94,6 +96,7 @@ export interface ContractSearchFilter {
   customerName?: string;
   contractType?: ContractType | null;
   status?: ContractStatus | null;
+  // active?: boolean | null;
   page: number;
   size: number;
 }

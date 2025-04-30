@@ -12,16 +12,16 @@ import {
   Filter,
   Plus,
 } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Modal from '../../components/ui/Modal';
 import { useToast } from '../../context/useToast';
 import { getConsultationList, deleteConsultation } from '../../api/consultation';
-import type {
-  ConsultationListResDto,
-  ConsultationResDto,
+import {
+  type ConsultationListResDto,
+  type ConsultationResDto,
   ConsultationType,
   ConsultationStatus,
 } from '../../types/consultation';
@@ -42,7 +42,6 @@ interface ConsultationFilter {
 
 const ConsultationListPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { showToast } = useToast();
 
   const [consultationData, setConsultationData] = useState<ConsultationListResDto | null>(null);
@@ -52,7 +51,21 @@ const ConsultationListPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [hasShownToast, setHasShownToast] = useState(false);
+
+  // 상담 유형 표시 레이블 매핑
+  const consultationTypeLabels: Record<ConsultationType, string> = {
+    [ConsultationType.PHONE]: '전화상담',
+    [ConsultationType.VISIT]: '방문상담',
+    [ConsultationType.EMAIL]: '이메일상담',
+    [ConsultationType.OTHER]: '기타',
+  };
+
+  // 상담 상태 표시 레이블 매핑
+  const consultationStatusLabels: Record<ConsultationStatus, string> = {
+    [ConsultationStatus.RESERVED]: '예약됨',
+    [ConsultationStatus.COMPLETED]: '완료',
+    [ConsultationStatus.CANCELED]: '취소됨',
+  };
 
   // 필터 상태
   const [filters, setFilters] = useState<ConsultationFilter>({
@@ -80,7 +93,7 @@ const ConsultationListPage: React.FC = () => {
           }
           return acc;
         },
-        {} as Record<string, string | number | ConsultationType | ConsultationStatus>
+        {} as Record<string, string | number>
       );
 
       const response = await getConsultationList(params);
@@ -102,15 +115,6 @@ const ConsultationListPage: React.FC = () => {
   useEffect(() => {
     fetchConsultations();
   }, [fetchConsultations]);
-
-  // 초기 로드 및 라우팅 메시지 처리
-  useEffect(() => {
-    if (location.state && location.state.message && !hasShownToast) {
-      showToast(location.state.message, location.state.type || 'success');
-      setHasShownToast(true);
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [location, navigate, showToast, hasShownToast]);
 
   // 검색 핸들러
   const handleSearch = (e: React.FormEvent) => {
@@ -193,40 +197,14 @@ const ConsultationListPage: React.FC = () => {
   // 상담 상태에 따른 스타일 클래스 반환
   const getStatusClass = (status: ConsultationStatus) => {
     switch (status) {
-      case 'COMPLETED':
+      case ConsultationStatus.COMPLETED:
         return 'bg-green-100 text-green-800';
-      case 'RESERVED':
+      case ConsultationStatus.RESERVED:
         return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELED':
+      case ConsultationStatus.CANCELED:
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // 상담 상태 텍스트 변환
-  const getStatusText = (status: ConsultationStatus) => {
-    switch (status) {
-      case 'COMPLETED':
-        return '완료';
-      case 'RESERVED':
-        return '예약됨';
-      case 'CANCELED':
-        return '취소됨';
-      default:
-        return status;
-    }
-  };
-
-  // 상담 유형 텍스트 변환
-  const getTypeText = (type: ConsultationType) => {
-    switch (type) {
-      case 'PHONE':
-        return '전화상담';
-      case 'VISIT':
-        return '방문상담';
-      default:
-        return type;
     }
   };
 
@@ -255,7 +233,7 @@ const ConsultationListPage: React.FC = () => {
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}
               leftIcon={<Search size={18} />}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
             />
           </div>
           <div className="flex items-end space-x-2">
@@ -334,8 +312,10 @@ const ConsultationListPage: React.FC = () => {
                   }
                 >
                   <option value="">전체</option>
-                  <option value="PHONE">전화상담</option>
-                  <option value="VISIT">방문상담</option>
+                  <option value={ConsultationType.PHONE}>전화상담</option>
+                  <option value={ConsultationType.VISIT}>방문상담</option>
+                  <option value={ConsultationType.EMAIL}>이메일상담</option>
+                  <option value={ConsultationType.OTHER}>기타</option>
                 </select>
               </div>
 
@@ -352,9 +332,9 @@ const ConsultationListPage: React.FC = () => {
                   }
                 >
                   <option value="">전체</option>
-                  <option value="RESERVED">예약됨</option>
-                  <option value="COMPLETED">완료</option>
-                  <option value="CANCELED">취소됨</option>
+                  <option value={ConsultationStatus.RESERVED}>예약됨</option>
+                  <option value={ConsultationStatus.COMPLETED}>완료</option>
+                  <option value={ConsultationStatus.CANCELED}>취소됨</option>
                 </select>
               </div>
             </div>
@@ -470,30 +450,35 @@ const ConsultationListPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {getTypeText(consultation.consultationType)}
+                        {consultationTypeLabels[
+                          consultation.consultationType as ConsultationType
+                        ] || consultation.consultationType}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(
-                          consultation.status
+                          consultation.status as ConsultationStatus
                         )}`}
                       >
-                        {getStatusText(consultation.status)}
+                        {consultationStatusLabels[consultation.status as ConsultationStatus] ||
+                          consultation.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/consultations/${consultation.id}/edit`);
-                          }}
-                        >
-                          수정
-                        </Button>
+                        {consultation.status === ConsultationStatus.RESERVED && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/consultations/${consultation.id}/edit`);
+                            }}
+                          >
+                            수정
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { searchCrawlingProperties, searchCrawlingPropertiesWithTags } from '../../api/crawling-property';
+import { searchCrawlingPropertiesWithTags } from '../../api/crawling-property';
 import { 
   CrawlingPropertyItem,
   PaginationDto,
@@ -53,7 +53,7 @@ export const CrawlingPropertyPage = () => {
     { id: 'MONTHLY', label: '월세', isSelected: false }
   ]);
 
-  const [propertyTypes, setPropertyTypes] = useState<ToggleOption[]>([
+  const [propertyTypes] = useState<ToggleOption[]>([
     { id: 'APARTMENT', label: '아파트', isSelected: false },
     { id: 'OFFICETEL', label: '오피스텔', isSelected: false },
     { id: 'VILLA', label: '빌라', isSelected: false },
