@@ -149,10 +149,18 @@ const ContractEdit: React.FC = () => {
   // 계약 상태에 따른 고객 선택 필요 여부
   const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
 
-  // 가격 문자열에서 '만', '억' 단위를 제거하는 함수
+  // 가격 문자열에서 '만', '억', ',' 단위를 제거하는 함수
   const removePriceUnits = (price: string | null | undefined): string => {
     if (!price) return '';
-    return price.replace(/(억|만|,)/g, '');
+
+    const trimmed = price.replace(/\s+/g, ''); // 공백 제거
+    const okMatch = trimmed.match(/(\d+(,\d+)*)(?=억)/); // 억 단위 추출
+    const manMatch = trimmed.match(/(\d+(,\d+)*)(?=만)/); // 만 단위 추출
+
+    const ok = okMatch ? parseInt(okMatch[0].replace(/,/g, '')) : 0;
+    const man = manMatch ? parseInt(manMatch[0].replace(/,/g, '')) : 0;
+
+    return (ok * 10000 + man).toString();
   };
 
   // 계약 상세 정보 조회
