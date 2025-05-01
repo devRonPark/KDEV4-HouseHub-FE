@@ -13,6 +13,7 @@ import {
   Clock,
   File,
   MessageSquare,
+  Tag,
 } from 'react-feather';
 import {
   getCustomerById,
@@ -164,6 +165,7 @@ const CustomerDetailPage: React.FC = () => {
         birthDate: data.birthDate === '' ? undefined : data.birthDate || customer.birthDate,
         gender: data.gender === undefined ? undefined : data.gender || customer.gender,
         memo: data.memo === '' ? undefined : data.memo || customer.memo,
+        tagIds: data.tagIds || [],
       };
 
       const response = await updateMyCustomer(customer.id, requestData);
@@ -307,10 +309,7 @@ const CustomerDetailPage: React.FC = () => {
                       <div>
                         <p className="text-sm font-medium text-gray-500">생년월일 / 성별</p>
                         <p className="text-gray-900">
-                          {customer.birthDate
-                            ? new Date(customer.birthDate).toLocaleDateString()
-                            : '미등록'}{' '}
-                          /{' '}
+                          {customer.birthDate || '미등록'} /{' '}
                           {customer.gender === 'M'
                             ? '남성'
                             : customer.gender === 'F'
@@ -319,21 +318,40 @@ const CustomerDetailPage: React.FC = () => {
                         </p>
                       </div>
                     </div>
+
+                    <div className="flex items-start space-x-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <FileText size={20} className="text-gray-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">메모</p>
+                        <p className="text-gray-900 whitespace-pre-line">
+                          {customer.memo || '미등록'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* 메모 */}
-                {customer.memo && (
-                  <div>
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">메모</h2>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mt-1">
-                        <FileText size={20} className="text-gray-500" />
-                      </div>
-                      <p className="text-gray-700 whitespace-pre-line flex-1">{customer.memo}</p>
+                {/* 태그 정보 */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-2">태그</h3>
+                  {customer.tags && customer.tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {customer.tags.map((tag) => (
+                        <span
+                          key={tag.tagId}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        >
+                          <Tag size={12} className="mr-1" />
+                          {tag.type}: {tag.value}
+                        </span>
+                      ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-gray-500">등록된 태그가 없습니다.</p>
+                  )}
+                </div>
               </div>
             </Card>
 
