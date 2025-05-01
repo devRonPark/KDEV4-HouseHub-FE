@@ -110,7 +110,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // SSE 연결 설정
   const { isConnected } = useSSE({
-    url: `http://localhost:8080/api/notifications/sse/connect`,
+    url: `https://api.house-hub.store:8443/api/notifications/sse/connect`,
     withCredentials: true, // 쿠키 기반 인증을 사용하는 경우
     onMessage: handleSSEMessage,
     onError: (error) => console.error('SSE 연결 오류:', error),

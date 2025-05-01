@@ -32,7 +32,7 @@ const ShareTemplateDialog: React.FC<ShareTemplateDialogProps> = ({
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
   // 공유 링크 생성
-  const shareUrl = `http://localhost:3000/inquiry/share/${shareToken}`;
+  const shareUrl = `https://www.house-hub.store/inquiry/share/${shareToken}`;
 
   // 링크 복사 핸들러
   const handleCopyLink = async (e: React.MouseEvent) => {
