@@ -13,7 +13,7 @@ import {
   restoreCustomer,
 } from '../../api/customer';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Plus, RefreshCw, Edit, Trash2, Download, Upload } from 'react-feather';
+import { Search, Plus, RefreshCw, Edit, Trash2, Download, Upload, Tag } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -144,7 +144,10 @@ const CustomersPage = () => {
 
     try {
       // API 호출
-      const response = await updateMyCustomer(selectedCustomer.id, customerData);
+      const response = await updateMyCustomer(selectedCustomer.id, {
+        ...customerData,
+        tagIds: customerData.tagIds || [],
+      });
 
       if (response.success && response.data) {
         // 상태 업데이트
@@ -349,6 +352,34 @@ const CustomersPage = () => {
       ),
     },
     {
+      key: 'tags',
+      header: '태그',
+      render: (customer: Customer) => (
+        <div className="flex flex-wrap gap-1">
+          {customer.tags && customer.tags.length > 0 ? (
+            <>
+              {customer.tags.slice(0, 5).map((tag) => (
+                <span
+                  key={tag.tagId}
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  <Tag size={12} className="mr-1" />
+                  {tag.type}: {tag.value}
+                </span>
+              ))}
+              {customer.tags.length > 5 && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                  +{customer.tags.length - 5}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-gray-500 text-xs">등록된 태그 없음</span>
+          )}
+        </div>
+      ),
+    },
+    {
       key: 'actions',
       header: '관리',
       render: (customer: Customer) => (
@@ -524,7 +555,7 @@ const CustomersPage = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="신규 고객 등록"
-        size="lg"
+        size="xl"
       >
         <CustomerForm
           onSubmit={(data: Partial<Customer>) => {
@@ -536,6 +567,7 @@ const CustomersPage = () => {
               birthDate: data.birthDate || undefined,
               gender: data.gender || undefined,
               memo: data.memo || undefined,
+              tagIds: data.tagIds || undefined,
             };
 
             handleAddCustomer(requestData); // 변환된 데이터를 전달
@@ -554,20 +586,17 @@ const CustomersPage = () => {
         {selectedCustomer && (
           <CustomerForm
             initialData={selectedCustomer}
-            onSubmit={(data: Partial<Customer>) => {
-              // 타입 변환 및 필수 필드 보장
-              const requestData: CreateCustomerReqDto = {
-                name: data.name === '' ? undefined : data.name || selectedCustomer.name,
-                email: data.email === '' ? undefined : data.email || selectedCustomer.email,
-                contact: data.contact || selectedCustomer.contact,
-                birthDate:
-                  data.birthDate === '' ? undefined : data.birthDate || selectedCustomer.birthDate,
-                gender:
-                  data.gender === undefined ? undefined : data.gender || selectedCustomer.gender,
-                memo: data.memo === '' ? undefined : data.memo || selectedCustomer.memo,
-              };
-
-              handleUpdateCustomer(requestData);
+            onSubmit={(data: CreateCustomerReqDto) => {
+              // CreateCustomerReqDto 타입의 데이터를 직접 사용
+              handleUpdateCustomer({
+                name: data.name,
+                email: data.email,
+                contact: data.contact,
+                birthDate: data.birthDate,
+                gender: data.gender,
+                memo: data.memo,
+                tagIds: data.tagIds || [], // tagIds가 없으면 빈 배열 사용
+              });
             }}
             onCancel={() => setIsEditModalOpen(false)}
           />
@@ -584,7 +613,7 @@ const CustomersPage = () => {
         <div className="space-y-4">
           <p className="text-gray-700">
             정말로 <span className="font-semibold">{selectedCustomer?.name}</span> 고객을
-            삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            삭제하시겠습니까?
           </p>
           <div className="flex justify-end space-x-3 pt-4">
             <Button type="button" variant="outline" onClick={() => setIsDeleteModalOpen(false)}>

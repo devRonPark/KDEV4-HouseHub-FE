@@ -30,7 +30,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         )}
         <input
           type="date"
-          className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
+          className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm h-[42px] ${
             leftIcon ? 'pl-10' : ''
           } ${error ? 'border-red-300' : ''}`}
           placeholder={placeholder}

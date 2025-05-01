@@ -56,9 +56,16 @@ type MenuItem = {
 const menuItems: MenuItem[] = [
   { name: '홈', icon: <Home size={18} />, href: '/dashboard' },
   { name: '고객명부', icon: <Users size={18} />, href: '/customers' },
-  { name: '내 매물', icon: <FileText size={18} />, href: '/properties' },
-  { name: '외부 매물', icon: <FileText size={18} />, href: '/crawling-properties' },
-  { name: '계약 현황', icon: <FileText size={18} />, href: '/contracts' },
+  {
+    name: '매물 관리',
+    icon: <FileText size={18} />,
+    href: '/properties',
+    subItems: [
+      { name: '내 매물', href: '/properties' },
+      { name: '매물 등록', href: '/properties/register' },
+      { name: '공개 매물', href: '/crawling-properties' },
+    ],
+  },
   {
     name: '상담 이력',
     icon: <MessageSquare size={18} />,
@@ -165,7 +172,6 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
   // 로그아웃 처리
   const handleSignOut = async () => {
     handleUserMenuClose();
-    alert('로그아웃 버튼 클릭');
     const success = await signOut();
     if (success) {
       showToast('로그아웃 되었습니다.', 'success');
@@ -177,7 +183,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   // 현재 경로가 메뉴 항목과 일치하는지 확인
   const isActive = (href: string) => {
-    return location.pathname === href || location.pathname.startsWith(`${href}/`);
+    return location.pathname === href;
   };
 
   // 드로어 내용 렌더링
