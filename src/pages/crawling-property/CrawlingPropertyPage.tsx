@@ -105,14 +105,19 @@ export const CrawlingPropertyPage = () => {
         if (res.success && res.data) {
           setTags(res.data);
         } else {
-          // 에러 처리
+          // API 호출은 성공했지만 데이터가 올바르지 않은 경우
+          showToast('태그 정보를 불러오는데 실패했습니다.', 'error');
+          setTags([]); // 태그 상태를 빈 배열로 초기화
         }
       } catch (e) {
-        // 에러 처리
+        // API 호출 자체가 실패한 경우
+        console.error('태그 조회 중 오류 발생:', e);
+        showToast('태그 정보를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+        setTags([]); // 태그 상태를 빈 배열로 초기화
       }
     };
     fetchTags();
-  }, []);
+  }, [showToast]); // showToast를 의존성 배열에 추가
 
   const handleContractTypeToggle = (id: string) => {
     setContractTypes(prev =>
