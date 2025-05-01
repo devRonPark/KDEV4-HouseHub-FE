@@ -1,5 +1,5 @@
 import type { CustomerResDto } from './customer';
-import type { ContractResDto, ContractType, ContractReqDto } from './contract';
+import type { ContractResDto, ContractReqDto, ContractType } from './contract';
 import type { PaginationDto } from './pagination';
 
 // 매물 유형 enum
@@ -131,4 +131,3 @@ export interface FindPropertyDetailResDto {
   roomCnt?: number; // 방 개수
 }
 
-export type ContractType = 'SALE' | 'JEONSE' | 'MONTHLY_RENT';
