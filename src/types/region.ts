@@ -1,6 +1,6 @@
 // 지역 관련 타입 정의
 export interface RegionItem {
-  code: number;
+  code: string;
   name: string;
 }
 

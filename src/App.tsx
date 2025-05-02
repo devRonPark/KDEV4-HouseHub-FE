@@ -34,6 +34,21 @@ import ConsultationListPage from './pages/consultation/ConsultationListPage';
 import InquiryDetailPage from './pages/inquiryManagement/InquiryDetail';
 import NotificationsPage from './pages/notification/NotificationPage';
 import { CrawlingPropertyPage } from './pages/crawling-property/CrawlingPropertyPage';
+import ThreeLevelSelect from './components/region/ThreeLevelSelect';
+
+const RegionDropdown = () => {
+  return (
+    <div>
+      <h1>Region Dropdown</h1>
+      {/* 여기에 지역 드롭다운 컴포넌트 구현 */}
+      <ThreeLevelSelect
+        onRegionSelect={(regionData) => {
+          console.log('Selected region:', regionData);
+        }}
+      />
+    </div>
+  );
+};
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -302,6 +317,14 @@ function App() {
         element={
           <ProtectedRoute>
             <CrawlingPropertyPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/region-dropdown"
+        element={
+          <ProtectedRoute>
+            <RegionDropdown />
           </ProtectedRoute>
         }
       />
