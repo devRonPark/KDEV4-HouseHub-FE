@@ -203,7 +203,7 @@ const ContractEdit: React.FC = () => {
   const showCompletedDate = contractStatus === ContractStatus.COMPLETED;
 
   // 계약 상태가 진행 중인 경우에만 계약 기간 필드 표시
-  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE;
+  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE && contractType !== ContractType.SALE;
 
   // 계약 유형 변경 시 가격 필드 초기화
   useEffect(() => {

@@ -130,5 +130,6 @@ export interface FindPropertyDetailResDto {
   direction?: PropertyDirection; // 방향
   bathroomCnt?: number; // 욕실 개수
   roomCnt?: number; // 방 개수
+  tagIds?: number[];
 }
 

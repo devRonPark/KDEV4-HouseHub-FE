@@ -101,6 +101,12 @@ const ContractRegistration: React.FC = () => {
   // 계약 상태에 따른 고객 선택 필요 여부
   const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
 
+  // 매매가 아닐 때만 계약 기간 필드 표시
+  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE && contractType !== ContractType.SALE;
+
+  // 계약 상태가 완료인 경우 완료일 필드 표시
+  const showCompletedDate = contractStatus === ContractStatus.COMPLETED;
+
   // 계약 상태 변경 시 고객 정보 초기화
   useEffect(() => {
     if (contractStatus === ContractStatus.AVAILABLE) {
@@ -172,12 +178,6 @@ const ContractRegistration: React.FC = () => {
   const showSalePrice = contractType === ContractType.SALE;
   const showJeonsePrice = contractType === ContractType.JEONSE;
   const showMonthlyRent = contractType === ContractType.MONTHLY_RENT;
-
-  // 계약 상태가 완료인 경우 완료일 필드 표시
-  const showCompletedDate = contractStatus === ContractStatus.COMPLETED;
-
-  // 계약 상태가 진행 중인 경우에만 계약 기간 필드 표시
-  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE;
 
   // 계약 유형 변경 시 가격 필드 초기화
   useEffect(() => {

@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Edit2, Trash2, Calendar, FileText, User, Home } from 'react-feather';
+import { ArrowLeft, Edit2, Trash2, Calendar, FileText, User, Home, AlertCircle } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -128,6 +128,7 @@ const ContractDetail: React.FC = () => {
           >
             수정
           </Button>
+                     
           <Button
             variant="danger"
             onClick={handleDelete}
@@ -138,6 +139,15 @@ const ContractDetail: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {(contract.status === ContractStatus.COMPLETED || contract.status === ContractStatus.CANCELED) && (
+        <div className="flex justify-end mt-1">
+          <span className="text-xs text-gray-500 flex items-center">
+            <AlertCircle size={12} className="mr-1" />
+            완료 또는 취소된 계약은 수정할 수 없습니다.
+          </span>
+        </div>
+      )}
 
       <div className="mt-6">
         <Card>
@@ -199,8 +209,8 @@ const ContractDetail: React.FC = () => {
                       <Calendar className="h-5 w-5 text-gray-400 mr-2" />
                       <span className="text-gray-700">
                         계약 기간:
-                        {new Date(contract.startedAt).toLocaleDateString()} ~{' '}
-                        {new Date(contract.expiredAt).toLocaleDateString()}
+                        {contract.startedAt} ~{' '}
+                        {contract.expiredAt}
                       </span>
                     </div>
                   )}
