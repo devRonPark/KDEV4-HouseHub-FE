@@ -33,9 +33,10 @@ const AddressInput: React.FC<AddressProps> = ({ onAddressSelect }) => {
           const roadAddr = data.roadAddress;
           const zip = data.zonecode;
 
-          setJibunAddress(jibunAddr);
           if (data.autoJibunAddress) {
             setJibunAddress(data.autoJibunAddress);
+          } else {
+            setJibunAddress(jibunAddr);
           }
           setRoadAddress(roadAddr);
           setZipCode(zip);
@@ -48,9 +49,7 @@ const AddressInput: React.FC<AddressProps> = ({ onAddressSelect }) => {
           });
         },
       }).open();
-      console.log(jibunAddress);
     } catch (error) {
-      console.error('주소 검색 오류:', error);
       // 사용자에게 오류 메시지 표시
       showToast('주소 검색에 실패했습니다.', 'error');
     }
