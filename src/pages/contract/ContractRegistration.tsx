@@ -9,6 +9,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Textarea from '../../components/ui/Textarea';
+import PriceInput from '../../components/contract/PriceInput';
 import { useToast } from '../../context/useToast';
 import { registerContract } from '../../api/contract';
 import {
@@ -69,41 +70,8 @@ const ContractStatusButton: React.FC<{
   </button>
 );
 
-// 가격 입력 필드 컴포넌트 (만원 단위 입력 지원)
-const PriceInput: React.FC<{
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  required?: boolean;
-}> = ({ value, onChange, placeholder, required = false }) => {
-  // 입력값을 숫자만 허용하고 변경 이벤트 처리
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    // 숫자만 허용 (소수점 없이)
-    if (/^[0-9]*$/.test(inputValue) || inputValue === '') {
-      onChange(inputValue);
-    }
-  };
-
-  return (
-    <div className="relative">
-      <Input
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={handleChange}
-        required={required}
-      />
-      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-        <span className="text-gray-500">만원</span>
-      </div>
-    </div>
-  );
-};
-
 const ContractRegistration: React.FC = () => {
   const navigate = useNavigate();
-  // const location = useLocation();
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);

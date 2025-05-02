@@ -13,43 +13,12 @@ import AddressInput from '../../components/ui/AddressInput';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
 import CustomerDropdown from '../../components/property/CustomerDropdown';
 import PropertyDirectionSelector from '../../components/property/PropertyDirectionSelector';
+import PriceInput from '../../components/contract/PriceInput';
 import { useToast } from '../../context/useToast';
 import { registerProperty } from '../../api/property';
 import type { PropertyType, PropertyDirection } from '../../types/property';
 import type { ContractReqDto } from '../../types/contract';
 import { ContractStatus, ContractType, ContractTypeLabels } from '../../types/contract';
-
-// 가격 입력 필드 컴포넌트 (만원 단위 입력 지원)
-const PriceInput: React.FC<{
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  required?: boolean;
-}> = ({ value, onChange, placeholder, required = false }) => {
-  // 입력값을 숫자만 허용하고 변경 이벤트 처리
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    // 숫자만 허용 (소수점 없이)
-    if (/^[0-9]*$/.test(inputValue) || inputValue === '') {
-      onChange(inputValue);
-    }
-  };
-
-  return (
-    <div className="relative">
-      <Input
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={handleChange}
-        required={required}
-      />
-      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-        <span className="text-gray-500">만원</span>
-      </div>
-    </div>
-  );
-};
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{

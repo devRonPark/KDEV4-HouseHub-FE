@@ -71,6 +71,7 @@ export interface PropertyRegistrationDTO {
   roomCnt?: number; // 방 개수
   active?: boolean; // 계약 가능 여부
   contract?: ContractReqDto;
+  tagIds?: number[];
 }
 
 // 매물 목록 응답 DTO
