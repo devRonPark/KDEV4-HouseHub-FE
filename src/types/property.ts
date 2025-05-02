@@ -1,5 +1,5 @@
 import type { CustomerResDto } from './customer';
-import type { ContractResDto, ContractReqDto, ContractType, BasicContractReqDto } from './contract';
+import type { ContractResDto, ContractType, BasicContractReqDto } from './contract';
 import type { PaginationDto } from './pagination';
 
 // 매물 유형 enum
