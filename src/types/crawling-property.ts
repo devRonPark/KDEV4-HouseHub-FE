@@ -1,4 +1,13 @@
-export type CrawlingPropertyType = 'APARTMENT' | 'OFFICETEL' | 'VILLA' | 'ONEROOM' | 'TWOROOM';
+export type CrawlingPropertyType = 
+  | 'APARTMENT' 
+  | 'OFFICETEL' 
+  | 'VILLA' 
+  | 'ONE_ROOM'
+  | 'MULTIFAMILY'
+  | 'SINGLEMULTIFAMILY'
+  | 'COMMERCIAL'
+  | 'ROWHOUSE'
+  | 'COUNTRYHOUSE';
 export type CrawlingTransactionType = 'SALE' | 'JEONSE' | 'MONTHLY';
 export type CrawlingDirection = 'EAST' | 'WEST' | 'SOUTH' | 'NORTH' | 'SOUTH_EAST' | 'SOUTH_WEST' | 'NORTH_EAST' | 'NORTH_WEST';
 
@@ -31,6 +40,7 @@ export interface CrawlingPropertyItem {
   realEstateAgentContact: string;
   realEstateOfficeName: string;
   realEstateOfficeAddress?: string;
+  tags: { tagId: number; value: string; type: string; }[];
 }
 
 export interface CrawlingPropertyListResponse {
@@ -39,7 +49,7 @@ export interface CrawlingPropertyListResponse {
 }
 
 export interface CrawlingPropertySearchParams {
-  propertyTypes?: CrawlingPropertyType;
+  propertyType?: CrawlingPropertyType;
   transactionType?: CrawlingTransactionType;
   province?: string;
   city?: string;
@@ -52,4 +62,5 @@ export interface CrawlingPropertySearchParams {
   maxMonthlyRentFee?: number;
   page?: number;
   size?: number;
+  tagIds?: number[];
 } 
