@@ -113,7 +113,6 @@ export const getPropertyById = async (
     const response = await apiClient.get<ApiResponse<FindPropertyDetailResDto>>(
       `/properties/${id}`
     );
-    console.log('Property detail response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching property details:', error);

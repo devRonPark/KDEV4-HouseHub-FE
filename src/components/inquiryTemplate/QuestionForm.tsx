@@ -83,7 +83,6 @@ const QuestionForm: React.FC<QuestionFormProps> = ({ question, onSave, onCancel 
       isRequired,
       options: finalOptions,
     };
-    console.log('질문 데이터:', questionData);
 
     onSave(questionData);
   };

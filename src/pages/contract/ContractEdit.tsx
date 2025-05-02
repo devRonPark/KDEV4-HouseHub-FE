@@ -182,7 +182,6 @@ const ContractEdit: React.FC = () => {
         showToast('집주인은 계약 대상이 될 수 없습니다.');
         return;
       }
-      console.log('고객 선택');
       setSelectedTenant(customer);
       setIsCustomerModalOpen(false);
       showToast('고객이 성공적으로 선택되었습니다.', 'success');

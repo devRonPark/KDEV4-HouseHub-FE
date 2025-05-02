@@ -94,7 +94,6 @@ export const getConsultationList = async (params: {
         page: params.page ? params.page - 1 : 0, // 백엔드는 0부터 시작하는 페이지 인덱스 사용
       },
     });
-    console.log(response);
     return {
       success: true,
       data: response.data.data,
