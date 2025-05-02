@@ -13,7 +13,7 @@ import {
   restoreCustomer,
 } from '../../api/customer';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Plus, RefreshCw, Edit, Trash2, Download, Upload, Tag } from 'react-feather';
+import { Search, Plus, Edit, Trash2, Download, Upload, Tag } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -436,24 +436,6 @@ const CustomersPage = () => {
       <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">고객 관리</h1>
         <div className="mt-3 sm:mt-0 sm:ml-4 flex flex-col sm:flex-row gap-2">
-          <Button
-            variant="outline"
-            leftIcon={<RefreshCw size={16} />}
-            onClick={async () => {
-              setIsLoading(true);
-              try {
-                await loadCustomers();
-                showToast('데이터가 성공적으로 새로고침되었습니다.', 'success');
-              } catch (error) {
-                console.error('새로고침 중 오류 발생:', error);
-                showToast('새로고침에 실패했습니다.', 'error');
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-          >
-            새로고침
-          </Button>
           <Button
             variant="outline"
             leftIcon={<Upload size={16} />}
