@@ -278,6 +278,15 @@ function App() {
         }
       />
 
+      <Route
+        path="/crawling-properties"
+        element={
+          <ProtectedRoute>
+            <CrawlingPropertyPage />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="/consultations" element={<ConsultationListPage />} />
       <Route path="/consultations/:id" element={<ConsultationDetailPage />} />
       <Route path="/consultations/new" element={<ConsultationFormPage />} />
@@ -296,7 +305,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
       {/* 기본 리다이렉트 */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
