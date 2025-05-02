@@ -13,9 +13,34 @@ import AddressInput from '../../components/ui/AddressInput';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
 import CustomerDropdown from '../../components/property/CustomerDropdown';
 import PropertyDirectionSelector from '../../components/property/PropertyDirectionSelector';
+import PriceInput from '../../components/contract/PriceInput';
 import { useToast } from '../../context/useToast';
 import { registerProperty } from '../../api/property';
 import type { PropertyType, PropertyDirection } from '../../types/property';
+import type { ContractReqDto } from '../../types/contract';
+import { ContractStatus, ContractType, ContractTypeLabels } from '../../types/contract';
+
+// 계약 유형 선택 버튼 컴포넌트
+const ContractTypeButton: React.FC<{
+  type: ContractType;
+  selected: boolean;
+  onClick: () => void;
+}> = ({ type, selected, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`
+      px-4 py-2 rounded-md text-sm font-medium transition-colors
+      ${
+        selected
+          ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
+          : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+      }
+    `}
+  >
+    {ContractTypeLabels[type]}
+  </button>
+);
 
 const PropertyRegistration: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +59,11 @@ const PropertyRegistration: React.FC = () => {
   const [direction, setDirection] = useState<PropertyDirection | null>(null);
   const [bathroomCnt, setBathroomCnt] = useState<string>('');
   const [roomCnt, setRoomCnt] = useState<string>('');
+  const [contractType, setContractType] = useState<ContractType | null>(null);
+  const [salePrice, setSalePrice] = useState<string>('');
+  const [jeonsePrice, setJeonsePrice] = useState<string>('');
+  const [monthlyRentDeposit, setMonthlyRentDeposit] = useState<string>('');
+  const [monthlyRentFee, setMonthlyRentFee] = useState<string>('');
 
   // 주소 선택 핸들러
   const handleAddressSelect = (address: {
@@ -91,6 +121,15 @@ const PropertyRegistration: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      const contractData: ContractReqDto | undefined = contractType ? {
+        contractType,
+        contractStatus: ContractStatus.AVAILABLE,
+        salePrice: salePrice ? Number.parseInt(salePrice, 10) * 10000 : undefined,
+        jeonsePrice: jeonsePrice ? Number.parseInt(jeonsePrice, 10) * 10000 : undefined,
+        monthlyRentDeposit: monthlyRentDeposit ? Number.parseInt(monthlyRentDeposit, 10) * 10000 : undefined,
+        monthlyRentFee: monthlyRentFee ? Number.parseInt(monthlyRentFee, 10) * 10000 : undefined,
+      } : undefined;
+
       const propertyData = {
         customerId: selectedCustomerId,
         propertyType,
@@ -105,6 +144,7 @@ const PropertyRegistration: React.FC = () => {
         direction: direction || undefined,
         bathroomCnt: bathroomCnt ? Number.parseInt(bathroomCnt, 10) : undefined,
         roomCnt: roomCnt ? Number.parseInt(roomCnt, 10) : undefined,
+        contract: contractData,
       };
 
       const response = await registerProperty(propertyData);
@@ -223,6 +263,80 @@ const PropertyRegistration: React.FC = () => {
                 onChange={(e) => setMemo(e.target.value)}
                 className="min-h-[100px]"
               />
+
+              {/* 계약 정보 */}
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">계약 정보</h3>
+                <div className="space-y-6">
+                  {/* 계약 유형 */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
+                      계약 유형 <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.values(ContractType).map((type) => (
+                        <ContractTypeButton
+                          key={type}
+                          type={type}
+                          selected={contractType === type}
+                          onClick={() => setContractType(type)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 가격 정보 */}
+                  {contractType === 'SALE' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                        매매가 <span className="text-red-500">*</span>
+                      </label>
+                      <PriceInput
+                        value={salePrice}
+                        onChange={setSalePrice}
+                        placeholder="매매가 입력 (만원 단위)"
+                        required
+                      />
+                    </div>
+                  )}
+
+                  {contractType === 'JEONSE' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                        전세가 <span className="text-red-500">*</span>
+                      </label>
+                      <PriceInput
+                        value={jeonsePrice}
+                        onChange={setJeonsePrice}
+                        placeholder="전세가 입력 (만원 단위)"
+                        required
+                      />
+                    </div>
+                  )}
+
+                  {contractType === 'MONTHLY_RENT' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
+                        보증금/월세 <span className="text-red-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <PriceInput
+                          value={monthlyRentDeposit}
+                          onChange={setMonthlyRentDeposit}
+                          placeholder="보증금 입력 (만원 단위)"
+                          required
+                        />
+                        <PriceInput
+                          value={monthlyRentFee}
+                          onChange={setMonthlyRentFee}
+                          placeholder="월세 입력 (만원 단위)"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </Card>
 

@@ -50,7 +50,7 @@ export const ContractStatusColors: Record<ContractStatus, { bg: string; text: st
 
 // 계약 등록 요청 DTO
 export interface ContractReqDto {
-  propertyId: number;
+  propertyId?: number;
   customerId?: number | null;
   contractType: ContractType;
   contractStatus: ContractStatus;

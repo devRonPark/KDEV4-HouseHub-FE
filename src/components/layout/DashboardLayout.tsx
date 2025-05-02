@@ -67,6 +67,15 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    name: '계약 관리',
+    icon: <FileText size={18} />,
+    href: '/contracts',
+    subItems: [
+      { name: '계약 목록', href: '/contracts' },
+      { name: '계약 등록', href: '/contracts/register' },
+    ],
+  },
+  {
     name: '상담 이력',
     icon: <MessageSquare size={18} />,
     href: '/consultations',
