@@ -120,7 +120,7 @@ const ContractEdit: React.FC = () => {
 
   // 가격 문자열에서 '만', '억', ',' 단위를 제거하는 함수
   const removePriceUnits = (price: string | null | undefined): string => {
-    if (!price) return '';
+    if (typeof price !== 'string') return '';
 
     const trimmed = price.replace(/\s+/g, ''); // 공백 제거
     const okMatch = trimmed.match(/(\d+(,\d+)*)(?=억)/); // 억 단위 추출

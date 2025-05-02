@@ -100,3 +100,13 @@ export interface ContractSearchFilter {
   page: number;
   size: number;
 }
+
+export interface ExpiringContract {
+  id: number;
+  propertyAddress: string;
+  customerName: string;
+  contractType: '매매' | '전세' | '월세';
+  expiredAt: string;
+  displayStatus: '임박' | '만료' | '정상';
+  dday: string;
+}
