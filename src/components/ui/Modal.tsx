@@ -76,6 +76,7 @@ const Modal: React.FC<ModalProps> = ({
         <div
           ref={modalRef}
           className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:w-full ${sizeClasses[size]}`}
+          style={{ position: 'relative', zIndex: 40, backgroundColor: 'white' }}
         >
           {title && (
             <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
