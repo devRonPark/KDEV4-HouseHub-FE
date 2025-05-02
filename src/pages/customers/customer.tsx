@@ -13,7 +13,7 @@ import {
   restoreCustomer,
 } from '../../api/customer';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Search, Plus, Edit, Trash2, Download, Upload, Tag } from 'react-feather';
+import { Search, Plus, Edit, Trash2, Download, Upload, User } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
@@ -21,6 +21,7 @@ import Input from '../../components/ui/Input';
 import Pagination from '../../components/ui/Pagination';
 import Modal from '../../components/ui/Modal';
 import CustomerForm from '../../components/customers/CustomerForm';
+import TagList from '../../components/tag/TagList';
 import { formatPhoneNumber } from '../../utils/format';
 import { useToast } from '../../context/useToast';
 import type { CreateCustomerReqDto, Customer } from '../../types/customer';
@@ -324,64 +325,49 @@ const CustomersPage = () => {
   const columns = [
     {
       key: 'name',
-      header: '이름',
-      render: (customer: Customer) => <div>{customer.name || '미등록'}</div>,
-    },
-    {
-      key: 'contact',
-      header: '연락처',
+      header: <div className="text-center">이름</div>,
       render: (customer: Customer) => (
-        <div>
-          <div>{formatPhoneNumber(customer.contact)}</div>
-          <div className="text-gray-500 text-xs">{customer.email || '미등록'}</div>
-        </div>
-      ),
-    },
-    {
-      key: 'demographic',
-      header: '생년월일',
-      render: (customer: Customer) => (
-        <div>
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+            <User size={20} className="text-gray-500" />
+          </div>
           <div>
-            {customer.birthDate ? `${new Date(customer.birthDate).getFullYear()}년생` : '미등록'}
-          </div>
-          <div className="text-gray-500 text-xs">
-            {customer.gender === 'M' ? '남성' : customer.gender === 'F' ? '여성' : '미등록'}
+            <p className="text-sm font-medium text-gray-900">{customer.name || '미등록'}</p>
+            <p className="text-sm text-gray-500">{formatPhoneNumber(customer.contact)}</p>
           </div>
         </div>
       ),
+      width: '300px',
+    },
+    {
+      key: 'email',
+      header: <div className="text-center">이메일</div>,
+      render: (customer: Customer) => (
+        <div className="text-center">{customer.email || '미등록'}</div>
+      ),
+      width: '200px',
     },
     {
       key: 'tags',
-      header: '태그',
+      header: <div className="text-center">태그</div>,
       render: (customer: Customer) => (
-        <div className="flex flex-wrap gap-1">
-          {customer.tags && customer.tags.length > 0 ? (
-            <>
-              {customer.tags.slice(0, 5).map((tag) => (
-                <span
-                  key={tag.tagId}
-                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                >
-                  <Tag size={12} className="mr-1" />
-                  {tag.type}: {tag.value}
-                </span>
-              ))}
-              {customer.tags.length > 5 && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                  +{customer.tags.length - 5}
-                </span>
-              )}
-            </>
-          ) : (
-            <span className="text-gray-500 text-xs">등록된 태그 없음</span>
-          )}
+        <div className="text-center">
+          <TagList tags={customer.tags || []} />
         </div>
       ),
+      width: '300px',
+    },
+    {
+      key: 'memo',
+      header: <div className="text-center">메모</div>,
+      render: (customer: Customer) => (
+        <div className="text-center">{customer.memo || '미등록'}</div>
+      ),
+      width: '200px',
     },
     {
       key: 'actions',
-      header: '관리',
+      header: <div className="text-center">관리</div>,
       render: (customer: Customer) => (
         <div className="flex justify-end space-x-2">
           {customer.deletedAt ? (
@@ -563,7 +549,7 @@ const CustomersPage = () => {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="고객 정보 수정"
-        size="lg"
+        size="xl"
       >
         {selectedCustomer && (
           <CustomerForm
