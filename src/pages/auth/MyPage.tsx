@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getMyProfile } from '../../api/agent';
 import type { AgentDetail } from '../../types/agent';
 import DashboardLayout from '../../components/layout/DashboardLayout';
