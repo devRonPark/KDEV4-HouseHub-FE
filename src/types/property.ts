@@ -1,5 +1,5 @@
 import type { CustomerResDto } from './customer';
-import type { ContractResDto, ContractReqDto, ContractType } from './contract';
+import type { ContractResDto, ContractReqDto, ContractType, BasicContractReqDto } from './contract';
 import type { PaginationDto } from './pagination';
 
 // 매물 유형 enum
@@ -70,7 +70,7 @@ export interface PropertyRegistrationDTO {
   bathroomCnt?: number; // 욕실 개수
   roomCnt?: number; // 방 개수
   active?: boolean; // 계약 가능 여부
-  contract?: ContractReqDto;
+  contract?: BasicContractReqDto;
   tagIds?: number[];
 }
 

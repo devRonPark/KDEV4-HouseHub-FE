@@ -17,8 +17,8 @@ import PriceInput from '../../components/contract/PriceInput';
 import { useToast } from '../../context/useToast';
 import { registerProperty } from '../../api/property';
 import type { PropertyType, PropertyDirection } from '../../types/property';
-import type { ContractReqDto } from '../../types/contract';
-import { ContractStatus, ContractType, ContractTypeLabels } from '../../types/contract';
+import type { BasicContractReqDto } from '../../types/contract';
+import { ContractType, ContractTypeLabels } from '../../types/contract';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -121,9 +121,8 @@ const PropertyRegistration: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const contractData: ContractReqDto | undefined = contractType ? {
+      const contractData: BasicContractReqDto | undefined = contractType ? {
         contractType,
-        contractStatus: ContractStatus.AVAILABLE,
         salePrice: salePrice ? Number.parseInt(salePrice, 10) * 10000 : undefined,
         jeonsePrice: jeonsePrice ? Number.parseInt(jeonsePrice, 10) * 10000 : undefined,
         monthlyRentDeposit: monthlyRentDeposit ? Number.parseInt(monthlyRentDeposit, 10) * 10000 : undefined,
