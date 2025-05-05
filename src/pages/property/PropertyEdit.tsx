@@ -10,7 +10,6 @@ import Button from '../../components/ui/Button';
 import Textarea from '../../components/ui/Textarea';
 import Input from '../../components/ui/Input';
 import AddressInput from '../../components/ui/AddressInput';
-import CustomerDropdown from '../../components/property/CustomerDropdown';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
 import PropertyDirectionSelector from '../../components/property/PropertyDirectionSelector';
 import { useToast } from '../../context/useToast';
@@ -46,7 +45,6 @@ const PropertyEdit: React.FC = () => {
   const [jibunAddress, setJibunAddress] = useState('');
   const [detailAddress, setDetailAddress] = useState('');
   const [memo, setMemo] = useState('');
-  const [isCustomerSearchActive, setIsCustomerSearchActive] = useState(false);
   const [active, setActive] = useState(true);
 
   // 새로 추가된 필드들
@@ -161,19 +159,6 @@ const PropertyEdit: React.FC = () => {
 
     loadTags();
   }, []);
-
-  // 고객 선택 핸들러
-  const handleCustomerSelect = (customerId: number | null, customer?: Customer | null) => {
-    setSelectedCustomerId(customerId);
-    // 고객 객체가 전달되면 상태 업데이트
-    if (customer) {
-      setSelectedCustomer(customer);
-    } else {
-      setSelectedCustomer(null);
-    }
-    // 고객 선택 후 드롭다운 닫기
-    setIsCustomerSearchActive(false);
-  };
 
   // 주소 선택 핸들러
   const handleAddressSelect = (address: {

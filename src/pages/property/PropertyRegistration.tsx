@@ -11,7 +11,6 @@ import Textarea from '../../components/ui/Textarea';
 import Input from '../../components/ui/Input';
 import AddressInput from '../../components/ui/AddressInput';
 import PropertyTypeSelector from '../../components/property/PropertyTypeSelector';
-import CustomerDropdown from '../../components/property/CustomerDropdown';
 import PropertyDirectionSelector from '../../components/property/PropertyDirectionSelector';
 import PriceInput from '../../components/contract/PriceInput';
 import { useToast } from '../../context/useToast';
