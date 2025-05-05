@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Home } from 'react-feather';
+import { ArrowLeft, Home, Tag } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -23,6 +23,9 @@ import type {
 } from '../../types/property';
 import type { Customer } from '../../types/customer';
 import { getObjectDiff } from '../../utils/objectUtil';
+import { getTags } from '../../api/tag';
+import type { TagResDto } from '../../types/tag';
+import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 
 const PropertyEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -56,6 +59,12 @@ const PropertyEdit: React.FC = () => {
 
   // 상태 추가
   const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [availableTags, setAvailableTags] = useState<TagResDto[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchPropertyDetail = async () => {
@@ -115,6 +124,11 @@ const PropertyEdit: React.FC = () => {
             bathroomCnt: propertyData.bathroomCnt,
             roomCnt: propertyData.roomCnt,
           });
+
+          // 매물 데이터 로드 시 선택된 태그 설정
+          if (propertyData.tags) {
+            setSelectedTags(propertyData.tags.map(tag => tag.tagId));
+          }
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
         }
@@ -127,6 +141,26 @@ const PropertyEdit: React.FC = () => {
 
     fetchPropertyDetail();
   }, [id, showToast]);
+
+  // 태그 목록 로드
+  useEffect(() => {
+    const loadTags = async () => {
+      setIsLoadingTags(true);
+      try {
+        const response = await getTags();
+        if (response.success && response.data) {
+          setAvailableTags(response.data);
+        }
+      } catch (error) {
+        console.error('태그 로드 중 오류:', error);
+        showToast('태그 목록을 불러오는데 실패했습니다.', 'error');
+      } finally {
+        setIsLoadingTags(false);
+      }
+    };
+
+    loadTags();
+  }, []);
 
   // 고객 선택 핸들러
   const handleCustomerSelect = (customerId: number | null, customer?: Customer | null) => {
@@ -205,6 +239,7 @@ const PropertyEdit: React.FC = () => {
       direction: direction || undefined,
       bathroomCnt: bathroomCnt ? Number.parseInt(bathroomCnt, 10) : undefined,
       roomCnt: roomCnt ? Number.parseInt(roomCnt, 10) : undefined,
+      tagIds: selectedTags,
     };
 
     // 변경된 필드만 추출
@@ -284,51 +319,38 @@ const PropertyEdit: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <Card className="mb-6">
             <div className="space-y-6">
-              {/* 고객 정보 */}
-              {!isCustomerSearchActive ? (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-                    의뢰인 <span className="text-red-500">*</span>
-                  </label>
+              {/* 고객 선택 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">고객 선택</label>
+                {selectedCustomer ? (
                   <div className="p-4 bg-gray-50 rounded-md flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">{selectedCustomer?.name}</p>
-                      <p className="text-sm text-gray-500">{selectedCustomer?.contact}</p>
-                      {selectedCustomer?.email && (
-                        <p className="text-sm text-gray-500">{selectedCustomer?.email}</p>
+                      <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
+                      <p className="text-sm text-gray-500">{selectedCustomer.contact}</p>
+                      {selectedCustomer.email && (
+                        <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
                       )}
                     </div>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsCustomerSearchActive(true)}
+                      onClick={() => setIsCustomerModalOpen(true)}
                     >
                       변경
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-gray-700 text-left">
-                      의뢰인 선택 <span className="text-red-500">*</span>
-                    </label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setIsCustomerSearchActive(false)}
-                    >
-                      취소
-                    </Button>
-                  </div>
-                  <CustomerDropdown
-                    onCustomerSelect={handleCustomerSelect}
-                    selectedCustomerId={selectedCustomer?.id}
-                  />
-                </div>
-              )}
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCustomerModalOpen(true)}
+                    className="w-full"
+                  >
+                    고객 선택하기
+                  </Button>
+                )}
+              </div>
 
               {/* 매물 유형 선택 */}
               <PropertyTypeSelector selectedType={propertyType} onChange={setPropertyType} />
@@ -414,6 +436,39 @@ const PropertyEdit: React.FC = () => {
                 onChange={(e) => setMemo(e.target.value)}
                 className="min-h-[100px]"
               />
+
+              {/* 태그 선택 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  태그
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map((tag) => (
+                    <button
+                      key={tag.tagId}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTags((prev) =>
+                          prev.includes(tag.tagId)
+                            ? prev.filter((id) => id !== tag.tagId)
+                            : [...prev, tag.tagId]
+                        );
+                      }}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        selectedTags.includes(tag.tagId)
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Tag size={12} className="mr-1" />
+                      {tag.type}: {tag.value}
+                    </button>
+                  ))}
+                </div>
+                {isLoadingTags && (
+                  <div className="mt-2 text-sm text-gray-500">태그 목록을 불러오는 중...</div>
+                )}
+              </div>
             </div>
           </Card>
 
@@ -437,6 +492,17 @@ const PropertyEdit: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* 고객 선택 모달 */}
+      <CustomerSelectionModal
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        onSelectCustomer={(customer) => {
+          setSelectedCustomer(customer);
+          setIsCustomerModalOpen(false);
+        }}
+        selectedCustomerId={selectedCustomer?.id}
+      />
     </DashboardLayout>
   );
 };

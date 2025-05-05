@@ -1,9 +1,9 @@
 'use client';
 
 import type React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, ArrowLeft } from 'react-feather';
+import { Home, ArrowLeft, Tag } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -19,6 +19,10 @@ import { registerProperty } from '../../api/property';
 import type { PropertyType, PropertyDirection } from '../../types/property';
 import type { BasicContractReqDto } from '../../types/contract';
 import { ContractType, ContractTypeLabels } from '../../types/contract';
+import type { TagResDto } from '../../types/tag';
+import { getTags } from '../../api/tag';
+import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
+import type { CustomerResDto } from '../../types/customer';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -64,6 +68,11 @@ const PropertyRegistration: React.FC = () => {
   const [jeonsePrice, setJeonsePrice] = useState<string>('');
   const [monthlyRentDeposit, setMonthlyRentDeposit] = useState<string>('');
   const [monthlyRentFee, setMonthlyRentFee] = useState<string>('');
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [availableTags, setAvailableTags] = useState<TagResDto[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerResDto | null>(null);
 
   // 주소 선택 핸들러
   const handleAddressSelect = (address: {
@@ -144,6 +153,7 @@ const PropertyRegistration: React.FC = () => {
         bathroomCnt: bathroomCnt ? Number.parseInt(bathroomCnt, 10) : undefined,
         roomCnt: roomCnt ? Number.parseInt(roomCnt, 10) : undefined,
         contract: contractData,
+        tagIds: selectedTags,
       };
 
       const response = await registerProperty(propertyData);
@@ -160,6 +170,26 @@ const PropertyRegistration: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  // 태그 목록 로드
+  useEffect(() => {
+    const loadTags = async () => {
+      setIsLoadingTags(true);
+      try {
+        const response = await getTags();
+        if (response.success && response.data) {
+          setAvailableTags(response.data);
+        }
+      } catch (error) {
+        console.error('태그 로드 중 오류:', error);
+        showToast('태그 목록을 불러오는데 실패했습니다.', 'error');
+      } finally {
+        setIsLoadingTags(false);
+      }
+    };
+
+    loadTags();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -182,10 +212,34 @@ const PropertyRegistration: React.FC = () => {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">고객 선택</label>
-                <CustomerDropdown
-                  onCustomerSelect={setSelectedCustomerId}
-                  selectedCustomerId={selectedCustomerId}
-                />
+                {selectedCustomer ? (
+                  <div className="p-4 bg-gray-50 rounded-md flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
+                      <p className="text-sm text-gray-500">{selectedCustomer.contact}</p>
+                      {selectedCustomer.email && (
+                        <p className="text-sm text-gray-500">{selectedCustomer.email}</p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsCustomerModalOpen(true)}
+                    >
+                      변경
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCustomerModalOpen(true)}
+                    className="w-full"
+                  >
+                    고객 선택하기
+                  </Button>
+                )}
               </div>
 
               {/* 매물 유형 선택 */}
@@ -262,6 +316,39 @@ const PropertyRegistration: React.FC = () => {
                 onChange={(e) => setMemo(e.target.value)}
                 className="min-h-[100px]"
               />
+
+              {/* 태그 선택 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  태그
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map((tag) => (
+                    <button
+                      key={tag.tagId}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTags((prev) =>
+                          prev.includes(tag.tagId)
+                            ? prev.filter((id) => id !== tag.tagId)
+                            : [...prev, tag.tagId]
+                        );
+                      }}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        selectedTags.includes(tag.tagId)
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      }`}
+                    >
+                      <Tag size={12} className="mr-1" />
+                      {tag.type}: {tag.value}
+                    </button>
+                  ))}
+                </div>
+                {isLoadingTags && (
+                  <div className="mt-2 text-sm text-gray-500">태그 목록을 불러오는 중...</div>
+                )}
+              </div>
 
               {/* 계약 정보 */}
               <div className="border-t border-gray-200 pt-6">
@@ -359,6 +446,17 @@ const PropertyRegistration: React.FC = () => {
           </div>
         </form>
       </div>
+
+      {/* 고객 선택 모달 */}
+      <CustomerSelectionModal
+        isOpen={isCustomerModalOpen}
+        onClose={() => setIsCustomerModalOpen(false)}
+        onSelectCustomer={(customer) => {
+          setSelectedCustomer(customer);
+          setSelectedCustomerId(customer.id);
+          setIsCustomerModalOpen(false);
+        }}
+      />
     </DashboardLayout>
   );
 };
