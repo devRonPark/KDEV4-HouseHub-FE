@@ -70,20 +70,19 @@ const ContractStatusButton: React.FC<{
   </button>
 );
 
-interface ContractFormState {
+interface ContractFormData {
   propertyId: number | null;
   customerId: number | null;
   contractType: ContractType;
   contractStatus: ContractStatus;
-  salePrice: string | null;
-  jeonsePrice: string | null;
-  monthlyRentDeposit: string | null;
-  monthlyRentFee: string | null;
-  startedAt: string;
-  expiredAt: string;
+  salePrice: string;
+  jeonsePrice: string;
+  monthlyRentDeposit: string;
+  monthlyRentFee: string;
+  startDate: string;
+  endDate: string;
+  completedDate: string;
   memo: string;
-  completedAt: string | null;
-  // active: boolean;
 }
 
 const ContractEdit: React.FC = () => {
@@ -96,35 +95,40 @@ const ContractEdit: React.FC = () => {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // 폼 상태 관리
+  // 선택된 매물과 고객 정보
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedLandlord, setSelectedLandlord] = useState<CustomerResDto | null>(null); // 집주인
-  const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null); // 계약자
-  const [contractType, setContractType] = useState<ContractType>(ContractType.SALE);
-  const [contractStatus, setContractStatus] = useState<ContractStatus>(ContractStatus.IN_PROGRESS);
-  const [salePrice, setSalePrice] = useState<string>('');
-  const [jeonsePrice, setJeonsePrice] = useState<string>('');
-  const [monthlyRentDeposit, setMonthlyRentDeposit] = useState<string>('');
-  const [monthlyRentFee, setMonthlyRentFee] = useState<string>('');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [memo, setMemo] = useState<string>('');
-  const [completedDate, setCompletedDate] = useState<string>('');
-  // const [active, setActive] = useState<boolean>(true);
+  const [selectedLandlord, setSelectedLandlord] = useState<CustomerResDto | null>(null);
+  const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null);
 
   // 원본 계약 데이터 저장용 상태
   const [originalContract, setOriginalContract] = useState<ContractResDto | null>(null);
 
+  // 폼 데이터 상태
+  const [formData, setFormData] = useState<ContractFormData>({
+    propertyId: null,
+    customerId: null,
+    contractType: ContractType.SALE,
+    contractStatus: ContractStatus.IN_PROGRESS,
+    salePrice: '',
+    jeonsePrice: '',
+    monthlyRentDeposit: '',
+    monthlyRentFee: '',
+    startDate: '',
+    endDate: '',
+    completedDate: '',
+    memo: '',
+  });
+
   // 계약 상태에 따른 고객 선택 필요 여부
-  const isCustomerRequired = contractStatus !== ContractStatus.AVAILABLE;
+  const isCustomerRequired = formData.contractStatus !== ContractStatus.AVAILABLE;
 
   // 가격 문자열에서 '만', '억', ',' 단위를 제거하는 함수
   const removePriceUnits = (price: string | null | undefined): string => {
     if (!price) return '';
 
-    const trimmed = price.replace(/\s+/g, ''); // 공백 제거
-    const okMatch = trimmed.match(/(\d+(,\d+)*)(?=억)/); // 억 단위 추출
-    const manMatch = trimmed.match(/(\d+(,\d+)*)(?=만)/); // 만 단위 추출
+    const trimmed = price.replace(/\s+/g, '');
+    const okMatch = trimmed.match(/(\d+(,\d+)*)(?=억)/);
+    const manMatch = trimmed.match(/(\d+(,\d+)*)(?=만)/);
 
     const ok = okMatch ? parseInt(okMatch[0].replace(/,/g, '')) : 0;
     const man = manMatch ? parseInt(manMatch[0].replace(/,/g, '')) : 0;
@@ -145,17 +149,21 @@ const ContractEdit: React.FC = () => {
           setSelectedProperty(contract.property);
           setSelectedLandlord(contract.property.customer || null);
           setSelectedTenant(contract.customer || null);
-          setContractType(contract.contractType);
-          setContractStatus(contract.status);
-          setSalePrice(removePriceUnits(contract.salePrice));
-          setJeonsePrice(removePriceUnits(contract.jeonsePrice));
-          setMonthlyRentDeposit(removePriceUnits(contract.monthlyRentDeposit));
-          setMonthlyRentFee(removePriceUnits(contract.monthlyRentFee));
-          setStartDate(contract.startedAt || '');
-          setEndDate(contract.expiredAt || '');
-          setMemo(contract.memo || '');
-          setCompletedDate(contract.completedAt || '');
-          // setActive(contract.active ?? true);
+          
+          setFormData({
+            propertyId: contract.property?.id || null,
+            customerId: contract.customer?.id || null,
+            contractType: contract.contractType,
+            contractStatus: contract.status,
+            salePrice: removePriceUnits(contract.salePrice),
+            jeonsePrice: removePriceUnits(contract.jeonsePrice),
+            monthlyRentDeposit: removePriceUnits(contract.monthlyRentDeposit),
+            monthlyRentFee: removePriceUnits(contract.monthlyRentFee),
+            startDate: contract.startedAt || '',
+            endDate: contract.expiredAt || '',
+            memo: contract.memo || '',
+            completedDate: contract.completedAt || '',
+          });
         } else {
           showToast(response.error || '계약 정보를 불러오는데 실패했습니다.', 'error');
           navigate('/contracts');
@@ -173,6 +181,7 @@ const ContractEdit: React.FC = () => {
 
   const handlePropertySelect = async (property: FindPropertyResDto) => {
     setSelectedProperty(property);
+    setFormData(prev => ({ ...prev, propertyId: property.id }));
     showToast('매물이 성공적으로 선택되었습니다.', 'success');
   };
 
@@ -183,6 +192,7 @@ const ContractEdit: React.FC = () => {
         return;
       }
       setSelectedTenant(customer);
+      setFormData(prev => ({ ...prev, customerId: customer.id }));
       setIsCustomerModalOpen(false);
       showToast('고객이 성공적으로 선택되었습니다.', 'success');
     },
@@ -194,50 +204,40 @@ const ContractEdit: React.FC = () => {
   };
 
   // 계약 유형에 따라 필요한 필드 표시 여부 결정
-  const showSalePrice = contractType === ContractType.SALE;
-  const showJeonsePrice = contractType === ContractType.JEONSE;
-  const showMonthlyRent = contractType === ContractType.MONTHLY_RENT;
+  const showSalePrice = formData.contractType === ContractType.SALE;
+  const showJeonsePrice = formData.contractType === ContractType.JEONSE;
+  const showMonthlyRent = formData.contractType === ContractType.MONTHLY_RENT;
 
   // 계약 상태가 완료인 경우 완료일 필드 표시
-  const showCompletedDate = contractStatus === ContractStatus.COMPLETED;
+  const showCompletedDate = formData.contractStatus === ContractStatus.COMPLETED;
 
   // 계약 상태가 진행 중인 경우에만 계약 기간 필드 표시
-  const showContractPeriod = contractStatus !== ContractStatus.AVAILABLE && contractType !== ContractType.SALE;
+  const showContractPeriod = formData.contractStatus !== ContractStatus.AVAILABLE && formData.contractType !== ContractType.SALE;
 
   // 계약 유형 변경 시 가격 필드 초기화
   useEffect(() => {
     if (originalContract) {
-      setSalePrice(
-        originalContract.contractType === ContractType.SALE
-          ? removePriceUnits(originalContract.salePrice)
-          : ''
-      );
-      setJeonsePrice(
-        originalContract.contractType === ContractType.JEONSE
-          ? removePriceUnits(originalContract.jeonsePrice)
-          : ''
-      );
-      setMonthlyRentDeposit(
-        originalContract.contractType === ContractType.MONTHLY_RENT
-          ? removePriceUnits(originalContract.monthlyRentDeposit)
-          : ''
-      );
-      setMonthlyRentFee(
-        originalContract.contractType === ContractType.MONTHLY_RENT
-          ? removePriceUnits(originalContract.monthlyRentFee)
-          : ''
-      );
+      setFormData(prev => ({
+        ...prev,
+        salePrice: originalContract.contractType === ContractType.SALE ? removePriceUnits(originalContract.salePrice) : '',
+        jeonsePrice: originalContract.contractType === ContractType.JEONSE ? removePriceUnits(originalContract.jeonsePrice) : '',
+        monthlyRentDeposit: originalContract.contractType === ContractType.MONTHLY_RENT ? removePriceUnits(originalContract.monthlyRentDeposit) : '',
+        monthlyRentFee: originalContract.contractType === ContractType.MONTHLY_RENT ? removePriceUnits(originalContract.monthlyRentFee) : '',
+      }));
     } else {
-      setSalePrice('');
-      setJeonsePrice('');
-      setMonthlyRentDeposit('');
-      setMonthlyRentFee('');
+      setFormData(prev => ({
+        ...prev,
+        salePrice: '',
+        jeonsePrice: '',
+        monthlyRentDeposit: '',
+        monthlyRentFee: '',
+      }));
     }
-  }, [contractType, originalContract]);
+  }, [formData.contractType, originalContract]);
 
   // 만원 단위 가격을 원화 단위로 변환하는 함수
-  const convertToWon = (manwonValue: string): string | null => {
-    if (!manwonValue || manwonValue.trim() === '') return null;
+  const convertToWon = (manwonValue: string): string => {
+    if (!manwonValue || manwonValue.trim() === '') return '';
     return (parseInt(manwonValue, 10) * 10000).toString();
   };
 
@@ -247,13 +247,13 @@ const ContractEdit: React.FC = () => {
     if (!id || !originalContract) return;
 
     // 계약 상태가 완료인데 완료일이 없는 경우
-    if (showCompletedDate && !completedDate) {
+    if (showCompletedDate && !formData.completedDate) {
       showToast('계약 완료 상태일 경우, 거래 완료일은 필수입니다.', 'error');
       return;
     }
 
     // 계약 기간 검증
-    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+    if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
       showToast(
         '계약 종료일이 계약 시작일보다 빠를 수 없습니다. 날짜를 다시 확인해주세요.',
         'error'
@@ -262,17 +262,17 @@ const ContractEdit: React.FC = () => {
     }
 
     // 계약 유형에 따른 가격 필드 검증
-    if (showSalePrice && !salePrice) {
+    if (showSalePrice && !formData.salePrice) {
       showToast('매매 계약의 경우 매매가는 필수입니다.', 'error');
       return;
     }
 
-    if (showJeonsePrice && !jeonsePrice) {
+    if (showJeonsePrice && !formData.jeonsePrice) {
       showToast('전세 계약의 경우 전세가는 필수입니다.', 'error');
       return;
     }
 
-    if (showMonthlyRent && (!monthlyRentDeposit || !monthlyRentFee)) {
+    if (showMonthlyRent && (!formData.monthlyRentDeposit || !formData.monthlyRentFee)) {
       showToast('월세 계약의 경우 보증금과 월세는 필수입니다.', 'error');
       return;
     }
@@ -280,47 +280,37 @@ const ContractEdit: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const currentData: ContractFormState = {
-        propertyId: selectedProperty?.id || null,
-        customerId: selectedTenant?.id || null,
-        contractType,
-        contractStatus,
-        salePrice: showSalePrice ? convertToWon(salePrice) : null,
-        jeonsePrice: showJeonsePrice ? convertToWon(jeonsePrice) : null,
-        monthlyRentDeposit: showMonthlyRent ? convertToWon(monthlyRentDeposit) : null,
-        monthlyRentFee: showMonthlyRent ? convertToWon(monthlyRentFee) : null,
-        startedAt: startDate,
-        expiredAt: endDate,
-        memo,
-        completedAt: showCompletedDate ? completedDate : null,
-        // active,
+      const currentData: ContractFormData = {
+        propertyId: formData.propertyId,
+        customerId: formData.customerId,
+        contractType: formData.contractType,
+        contractStatus: formData.contractStatus,
+        salePrice: showSalePrice ? convertToWon(formData.salePrice) : '',
+        jeonsePrice: showJeonsePrice ? convertToWon(formData.jeonsePrice) : '',
+        monthlyRentDeposit: showMonthlyRent ? convertToWon(formData.monthlyRentDeposit) : '',
+        monthlyRentFee: showMonthlyRent ? convertToWon(formData.monthlyRentFee) : '',
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        memo: formData.memo,
+        completedDate: showCompletedDate ? formData.completedDate : '',
       };
 
-      const originalData: ContractFormState = {
+      const originalData: ContractFormData = {
         propertyId: originalContract.property?.id || null,
         customerId: originalContract.customer?.id || null,
         contractType: originalContract.contractType,
         contractStatus: originalContract.status,
-        salePrice: originalContract.salePrice || null,
-        jeonsePrice: originalContract.jeonsePrice || null,
-        monthlyRentDeposit: originalContract.monthlyRentDeposit || null,
-        monthlyRentFee: originalContract.monthlyRentFee || null,
-        startedAt: originalContract.startedAt || '',
-        expiredAt: originalContract.expiredAt || '',
+        salePrice: originalContract.salePrice || '',
+        jeonsePrice: originalContract.jeonsePrice || '',
+        monthlyRentDeposit: originalContract.monthlyRentDeposit || '',
+        monthlyRentFee: originalContract.monthlyRentFee || '',
+        startDate: originalContract.startedAt || '',
+        endDate: originalContract.expiredAt || '',
         memo: originalContract.memo || '',
-        completedAt: originalContract.completedAt || '',
-        // active: originalContract.active ?? true,
+        completedDate: originalContract.completedAt || '',
       };
 
       const changedFields = getObjectDiff(originalData, currentData) as Partial<ContractReqDto>;
-
-      // propertyId와 customerId는 객체 비교가 아닌 id 직접 비교
-      if (selectedProperty?.id !== originalContract.property?.id) {
-        changedFields.propertyId = selectedProperty?.id || 0;
-      }
-      if (selectedTenant?.id !== originalContract.customer?.id) {
-        changedFields.customerId = selectedTenant?.id || null;
-      }
 
       // 변경된 필드가 없는 경우
       if (Object.keys(changedFields).length === 0) {
@@ -430,7 +420,7 @@ const ContractEdit: React.FC = () => {
                     )}
                   </div>
 
-                  {contractStatus === ContractStatus.AVAILABLE ? (
+                  {formData.contractStatus === ContractStatus.AVAILABLE ? (
                     <div className="p-3 bg-gray-50 rounded-md text-left h-[88px] flex items-center">
                       <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
                         <AlertCircle size={20} className="text-yellow-500" />
@@ -488,8 +478,8 @@ const ContractEdit: React.FC = () => {
                       <ContractTypeButton
                         key={type}
                         type={type}
-                        selected={contractType === type}
-                        onClick={() => setContractType(type)}
+                        selected={formData.contractType === type}
+                        onClick={() => setFormData(prev => ({ ...prev, contractType: type }))}
                       />
                     ))}
                   </div>
@@ -505,8 +495,8 @@ const ContractEdit: React.FC = () => {
                       <ContractStatusButton
                         key={status}
                         status={status}
-                        selected={contractStatus === status}
-                        onClick={() => setContractStatus(status)}
+                        selected={formData.contractStatus === status}
+                        onClick={() => setFormData(prev => ({ ...prev, contractStatus: status }))}
                       />
                     ))}
                   </div>
@@ -520,8 +510,8 @@ const ContractEdit: React.FC = () => {
                     매매가 <span className="text-red-500">*</span>
                   </label>
                   <PriceInput
-                    value={salePrice}
-                    onChange={(value) => setSalePrice(value)}
+                    value={formData.salePrice}
+                    onChange={(value) => setFormData(prev => ({ ...prev, salePrice: value }))}
                     placeholder="매매가 입력 (만원 단위)"
                     required
                   />
@@ -534,8 +524,8 @@ const ContractEdit: React.FC = () => {
                     전세가 <span className="text-red-500">*</span>
                   </label>
                   <PriceInput
-                    value={jeonsePrice}
-                    onChange={(value) => setJeonsePrice(value)}
+                    value={formData.jeonsePrice}
+                    onChange={(value) => setFormData(prev => ({ ...prev, jeonsePrice: value }))}
                     placeholder="전세가 입력 (만원 단위)"
                     required
                   />
@@ -549,14 +539,14 @@ const ContractEdit: React.FC = () => {
                   </label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <PriceInput
-                      value={monthlyRentDeposit}
-                      onChange={(value) => setMonthlyRentDeposit(value)}
+                      value={formData.monthlyRentDeposit}
+                      onChange={(value) => setFormData(prev => ({ ...prev, monthlyRentDeposit: value }))}
                       placeholder="보증금 입력 (만원 단위)"
                       required
                     />
                     <PriceInput
-                      value={monthlyRentFee}
-                      onChange={(value) => setMonthlyRentFee(value)}
+                      value={formData.monthlyRentFee}
+                      onChange={(value) => setFormData(prev => ({ ...prev, monthlyRentFee: value }))}
                       placeholder="월세 입력 (만원 단위)"
                       required
                     />
@@ -573,14 +563,14 @@ const ContractEdit: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      value={formData.startDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                       leftIcon={<Calendar size={18} />}
                     />
                     <Input
                       type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
+                      value={formData.endDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
                       leftIcon={<Calendar size={18} />}
                     />
                   </div>
@@ -595,8 +585,8 @@ const ContractEdit: React.FC = () => {
                   </label>
                   <Input
                     type="date"
-                    value={completedDate}
-                    onChange={(e) => setCompletedDate(e.target.value)}
+                    value={formData.completedDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, completedDate: e.target.value }))}
                     required
                     leftIcon={<CheckCircle size={18} />}
                     className="border-green-500 focus:ring-green-500"
@@ -614,8 +604,8 @@ const ContractEdit: React.FC = () => {
                 </label>
                 <Textarea
                   placeholder={originalContract?.memo || '계약에 대한 추가 정보를 입력하세요.'}
-                  value={memo}
-                  onChange={(e) => setMemo(e.target.value)}
+                  value={formData.memo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, memo: e.target.value }))}
                   className="min-h-[100px]"
                 />
               </div>
