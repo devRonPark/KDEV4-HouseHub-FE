@@ -34,21 +34,40 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialData, onSubmit, onCanc
   };
 
   return (
-    <div className="p-6 bg-white rounded shadow-md">
-      <Input label="이름" value={name} onChange={(e) => setName(e.target.value)} />
-      <Input label="이메일" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <Input label="연락처" value={contact} onChange={(e) => setContact(e.target.value)} />
-      <Input
-        label="자격증 번호"
-        value={licenseNumber}
-        onChange={(e) => setLicenseNumber(e.target.value)}
-      />
-      <div className="flex justify-end space-x-3 pt-4">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6">
+        <Input
+          label="이름"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="이름을 입력하세요"
+        />
+        <Input
+          label="이메일"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="이메일을 입력하세요"
+          type="email"
+        />
+        <Input
+          label="연락처"
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
+          placeholder="연락처를 입력하세요"
+        />
+        <Input
+          label="자격증 번호"
+          value={licenseNumber}
+          onChange={(e) => setLicenseNumber(e.target.value)}
+          placeholder="자격증 번호를 입력하세요"
+        />
+      </div>
+      <div className="flex justify-end space-x-3 pt-4 border-t">
         <Button type="button" variant="outline" onClick={onCancel}>
           취소
         </Button>
         <Button type="button" variant="primary" onClick={handleSubmit}>
-          수정
+          저장
         </Button>
       </div>
     </div>
