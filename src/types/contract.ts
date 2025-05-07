@@ -119,3 +119,18 @@ export interface ExpiringContract {
   displayStatus: '임박' | '만료' | '정상';
   dday: string;
 }
+
+export interface ContractFormData {
+  propertyId: number | null;
+  customerId: number | null;
+  contractType: ContractType;
+  contractStatus: ContractStatus;
+  salePrice: string;
+  jeonsePrice: string;
+  monthlyRentDeposit: string;
+  monthlyRentFee: string;
+  startedAt: string;
+  expiredAt: string;
+  completedAt: string;
+  memo: string;
+}

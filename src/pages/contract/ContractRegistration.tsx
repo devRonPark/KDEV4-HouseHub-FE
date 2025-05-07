@@ -18,6 +18,7 @@ import {
   ContractStatus,
   ContractStatusLabels,
   type ContractReqDto,
+  type ContractFormData,
 } from '../../types/contract';
 import { PropertyType, PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
@@ -70,21 +71,6 @@ const ContractStatusButton: React.FC<{
   </button>
 );
 
-interface ContractFormData {
-  propertyId: number | null;
-  customerId: number | null;
-  contractType: ContractType;
-  contractStatus: ContractStatus;
-  salePrice: string;
-  jeonsePrice: string;
-  monthlyRentDeposit: string;
-  monthlyRentFee: string;
-  startDate: string;
-  endDate: string;
-  completedDate: string;
-  memo: string;
-}
-
 const ContractRegistration: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -112,9 +98,9 @@ const ContractRegistration: React.FC = () => {
     jeonsePrice: '',
     monthlyRentDeposit: '',
     monthlyRentFee: '',
-    startDate: '',
-    endDate: '',
-    completedDate: '',
+    startedAt: '',
+    expiredAt: '',
+    completedAt: '',
     memo: '',
   });
 
@@ -258,17 +244,17 @@ const ContractRegistration: React.FC = () => {
 
     // 계약 상태에 따른 날짜 필드 검증
     if (showContractPeriod) {
-      if (!formData.startDate) {
+      if (!formData.startedAt) {
         showToast('계약 시작일은 필수입니다.', 'error');
         return;
       }
-      if (!formData.endDate) {
+      if (!formData.expiredAt) {
         showToast('계약 종료일은 필수입니다.', 'error');
         return;
       }
 
       // 계약 기간 검증 (시작일이 종료일보다 늦으면 안 됨)
-      if (new Date(formData.startDate) > new Date(formData.endDate)) {
+      if (new Date(formData.startedAt) > new Date(formData.expiredAt)) {
         showToast(
           '계약 종료일이 계약 시작일보다 빠를 수 없습니다. 날짜를 다시 확인해주세요.',
           'error'
@@ -278,7 +264,7 @@ const ContractRegistration: React.FC = () => {
     }
 
     // 계약 상태가 완료인데 완료일이 없는 경우
-    if (showCompletedDate && !formData.completedDate) {
+    if (showCompletedDate && !formData.completedAt) {
       showToast('계약 완료 상태일 경우, 거래 완료일은 필수입니다.', 'error');
       return;
     }
@@ -292,13 +278,13 @@ const ContractRegistration: React.FC = () => {
         contractType: formData.contractType,
         contractStatus: formData.contractStatus,
         memo: formData.memo || null,
-        startedAt: formData.startDate || null,
-        expiredAt: formData.endDate || null,
+        startedAt: formData.startedAt || null,
+        expiredAt: formData.expiredAt || null,
         salePrice: showSalePrice ? convertToWon(formData.salePrice) : null,
         jeonsePrice: showJeonsePrice ? convertToWon(formData.jeonsePrice) : null,
         monthlyRentDeposit: showMonthlyRent ? convertToWon(formData.monthlyRentDeposit) : null,
         monthlyRentFee: showMonthlyRent ? convertToWon(formData.monthlyRentFee) : null,
-        completedAt: showCompletedDate ? formData.completedDate : null,
+        completedAt: showCompletedDate ? formData.completedAt : null,
       };
 
       const response = await registerContract(contractData);
@@ -552,14 +538,14 @@ const ContractRegistration: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       type="date"
-                      value={formData.startDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                      value={formData.startedAt}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startedAt: e.target.value }))}
                       leftIcon={<Calendar size={18} />}
                     />
                     <Input
                       type="date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                      value={formData.expiredAt}
+                      onChange={(e) => setFormData(prev => ({ ...prev, expiredAt: e.target.value }))}
                       leftIcon={<Calendar size={18} />}
                     />
                   </div>
@@ -574,8 +560,8 @@ const ContractRegistration: React.FC = () => {
                   </label>
                   <Input
                     type="date"
-                    value={formData.completedDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, completedDate: e.target.value }))}
+                    value={formData.completedAt}
+                    onChange={(e) => setFormData(prev => ({ ...prev, completedAt: e.target.value }))}
                     leftIcon={<CheckCircle size={18} />}
                     className="border-green-500 focus:ring-green-500"
                   />
