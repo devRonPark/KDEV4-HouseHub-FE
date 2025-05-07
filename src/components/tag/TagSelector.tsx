@@ -53,17 +53,22 @@ const TagSelector = ({ selectedTagIds, onTagChange, className = '' }: TagSelecto
     const selectedTag = tags.find((tag) => tag.tagId === tagId);
     if (!selectedTag) return;
 
-    // 같은 타입의 다른 태그가 선택되어 있는지 확인
-    const sameTypeTag = tags.find(
-      (tag) =>
-        tag.type === selectedTag.type && selectedTagIds.includes(tag.tagId) && tag.tagId !== tagId
-    );
+    // 방 개수 태그인 경우
+    if (selectedTag.type === '방 개수') {
+      // 이미 선택된 방 개수 태그가 있는지 확인
+      const existingRoomTag = tags.find(
+        (tag) => tag.type === '방 개수' && selectedTagIds.includes(tag.tagId)
+      );
 
-    if (sameTypeTag) {
-      // 같은 타입의 다른 태그가 선택되어 있다면, 해당 태그를 제거하고 새로운 태그를 추가
-      onTagChange([...selectedTagIds.filter((id) => id !== sameTypeTag.tagId), tagId]);
+      if (existingRoomTag) {
+        // 이미 선택된 방 개수 태그가 있다면, 해당 태그를 제거하고 새로운 태그를 추가
+        onTagChange([...selectedTagIds.filter((id) => id !== existingRoomTag.tagId), tagId]);
+      } else {
+        // 선택된 방 개수 태그가 없다면, 새로운 태그 추가
+        onTagChange([...selectedTagIds, tagId]);
+      }
     } else {
-      // 같은 타입의 태그가 선택되어 있지 않다면, 토글
+      // 방 개수가 아닌 다른 태그들은 자유롭게 선택 가능
       if (selectedTagIds.includes(tagId)) {
         onTagChange(selectedTagIds.filter((id) => id !== tagId));
       } else {
@@ -78,18 +83,13 @@ const TagSelector = ({ selectedTagIds, onTagChange, className = '' }: TagSelecto
 
       {/* 태그 목록 */}
       <div className="bg-gray-50 p-3 rounded-lg max-h-[500px] overflow-y-auto">
-        <h3 className="text-sm font-medium text-gray-800 mb-3 sticky top-0 bg-gray-50 py-1">
-          사용 가능한 태그
-        </h3>
         {isLoadingTags ? (
           <div className="text-sm text-gray-600">태그 목록을 불러오는 중...</div>
         ) : Object.keys(groupedTags).length > 0 ? (
           <div className="space-y-3">
             {Object.entries(groupedTags).map(([type, typeTags]) => (
               <div key={type} className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700 sticky top-8 bg-gray-50 py-1">
-                  {type}
-                </h4>
+                <h4 className="text-sm font-medium text-gray-700 py-1">{type}</h4>
                 <div className="flex flex-wrap gap-2">
                   {typeTags.map((tag) => (
                     <button
