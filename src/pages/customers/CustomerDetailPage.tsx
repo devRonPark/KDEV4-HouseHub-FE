@@ -265,50 +265,55 @@ const CustomerDetailPage: React.FC = () => {
             />
           </Card>
         ) : (
-          <div className="space-y-6">
-            {/* 기본 정보 */}
-            <Card>
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">기본 정보</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* 왼쪽 컨테이너: 기본 정보와 태그 */}
+            <div className="space-y-8">
+              {/* 기본 정보 카드 */}
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+                    기본 정보
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         <User size={20} className="text-gray-500" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-500">이름</p>
-                        <p className="text-gray-900">{customer.name || '미등록'}</p>
+                        <p className="text-gray-900 truncate">{customer.name || '미등록'}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         <Phone size={20} className="text-gray-500" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-500">연락처</p>
-                        <p className="text-gray-900">{formatPhoneNumber(customer.contact)}</p>
+                        <p className="text-gray-900 truncate">
+                          {formatPhoneNumber(customer.contact)}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         <Mail size={20} className="text-gray-500" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-500">이메일</p>
-                        <p className="text-gray-900">{customer.email || '미등록'}</p>
+                        <p className="text-gray-900 truncate">{customer.email || '미등록'}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         <Calendar size={20} className="text-gray-500" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-500">생년월일 / 성별</p>
-                        <p className="text-gray-900">
+                        <p className="text-gray-900 truncate">
                           {customer.birthDate || '미등록'} /{' '}
                           {customer.gender === 'M'
                             ? '남성'
@@ -319,11 +324,11 @@ const CustomerDetailPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-start space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors md:col-span-2">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         <FileText size={20} className="text-gray-500" />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-gray-500">메모</p>
                         <p className="text-gray-900 whitespace-pre-line">
                           {customer.memo || '미등록'}
@@ -332,18 +337,22 @@ const CustomerDetailPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </Card>
 
-                {/* 태그 정보 */}
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">태그</h3>
+              {/* 태그 정보 카드 */}
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+                    태그
+                  </h2>
                   {customer.tags && customer.tags.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {customer.tags.map((tag) => (
                         <span
                           key={tag.tagId}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                          className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
                         >
-                          <Tag size={12} className="mr-1" />
+                          <Tag size={14} className="mr-1.5" />
                           {tag.type}: {tag.value}
                         </span>
                       ))}
@@ -352,308 +361,325 @@ const CustomerDetailPage: React.FC = () => {
                     <p className="text-gray-500">등록된 태그가 없습니다.</p>
                   )}
                 </div>
-              </div>
-            </Card>
-
-            {/* 탭 메뉴 */}
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setActiveTab('consultation')}
-                  className={`${
-                    activeTab === 'consultation'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
-                >
-                  <MessageSquare size={16} />
-                  <span>상담 내역</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('contract')}
-                  className={`${
-                    activeTab === 'contract'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
-                >
-                  <File size={16} />
-                  <span>계약 내역</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('inquiry')}
-                  className={`${
-                    activeTab === 'inquiry'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
-                >
-                  <MessageSquare size={16} />
-                  <span>문의 내역</span>
-                </button>
-              </nav>
+              </Card>
             </div>
 
-            {/* 탭 컨텐츠 */}
-            <Card>
-              {activeTab === 'consultation' && (
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">상담 내역</h2>
-                  {consultations?.content && consultations.content.length > 0 ? (
-                    <div className="space-y-4">
-                      {consultations.content.map((consultation) => (
-                        <div
-                          key={consultation.id}
-                          className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
-                          onClick={() => navigate(`/consultations/${consultation.id}`)}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-start space-x-3">
-                              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <Clock size={20} className="text-gray-500" />
-                              </div>
-                              <div>
-                                <p className="font-medium text-gray-900">
-                                  {consultation.consultationType === 'VISIT'
-                                    ? '방문 상담'
-                                    : '전화 상담'}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {consultation.consultationDate
-                                    ? new Date(consultation.consultationDate).toLocaleString(
-                                        'ko-KR',
-                                        {
-                                          year: 'numeric',
-                                          month: 'long',
-                                          day: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit',
-                                          hour12: true,
-                                        }
-                                      )
-                                    : '날짜 정보 없음'}
-                                </p>
-                              </div>
-                            </div>
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${getConsultationStatusClass(
-                                consultation.status
-                              )}`}
-                            >
-                              {getConsultationStatusText(consultation.status)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 bg-gray-50 rounded-lg">
-                      <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">상담 내역 없음</h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        아직 기록된 상담 내역이 없습니다.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* 페이지네이션 컴포넌트 추가 */}
-                  {consultations && (
-                    <div className="mt-4 flex justify-center">
-                      <div className="flex space-x-2">
-                        {Array.from(
-                          { length: Math.ceil(consultations.pagination.totalElements / pageSize) },
-                          (_, i) => (
-                            <button
-                              key={i + 1}
-                              onClick={() => handlePageChange(i + 1)}
-                              className={`px-3 py-1 rounded ${
-                                currentPage === i + 1
-                                  ? 'bg-blue-500 text-white'
-                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}
-                            >
-                              {i + 1}
-                            </button>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'contract' && (
-                <div>
-                  <div className="border-b border-gray-200 mb-4">
+            {/* 오른쪽 컨테이너: 상담/계약/문의 내역 */}
+            <div className="space-y-8">
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  {/* 탭 메뉴 */}
+                  <div className="border-b border-gray-200 mb-6">
                     <nav className="-mb-px flex space-x-8">
                       <button
-                        onClick={() => setActiveContractTab('sale')}
+                        onClick={() => setActiveTab('consultation')}
                         className={`${
-                          activeContractTab === 'sale'
+                          activeTab === 'consultation'
                             ? 'border-blue-500 text-blue-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`}
                       >
-                        매도 계약 내역
+                        <MessageSquare size={16} />
+                        <span>상담 내역</span>
                       </button>
                       <button
-                        onClick={() => setActiveContractTab('purchase')}
+                        onClick={() => setActiveTab('contract')}
                         className={`${
-                          activeContractTab === 'purchase'
+                          activeTab === 'contract'
                             ? 'border-blue-500 text-blue-600'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`}
                       >
-                        매수 계약 내역
+                        <File size={16} />
+                        <span>계약 내역</span>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('inquiry')}
+                        className={`${
+                          activeTab === 'inquiry'
+                            ? 'border-blue-500 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`}
+                      >
+                        <MessageSquare size={16} />
+                        <span>문의 내역</span>
                       </button>
                     </nav>
                   </div>
 
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">
-                    {activeContractTab === 'sale' ? '매도 계약 내역' : '매수 계약 내역'}
-                  </h2>
-                  {contracts?.content && contracts.content.length > 0 ? (
-                    <div className="space-y-4">
-                      {contracts.content.map((contract) => (
-                        <div
-                          key={contract.id}
-                          className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
-                          onClick={() => navigate(`/contracts/${contract.id}`)}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {contract.contractType === ContractType.SALE
-                                  ? '매매'
-                                  : contract.contractType === ContractType.JEONSE
-                                    ? '전세'
-                                    : '월세'}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {contract.startedAt
-                                  ? new Date(contract.startedAt).toLocaleDateString('ko-KR')
-                                  : '날짜 정보 없음'}
-                              </p>
-                            </div>
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                contract.status === ContractStatus.COMPLETED
-                                  ? 'bg-green-100 text-green-800'
-                                  : contract.status === ContractStatus.IN_PROGRESS
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-gray-100 text-gray-800'
-                              }`}
-                            >
-                              {contract.status === ContractStatus.COMPLETED
-                                ? '완료'
-                                : contract.status === ContractStatus.IN_PROGRESS
-                                  ? '진행중'
-                                  : '취소'}
-                            </span>
+                  {/* 탭 컨텐츠 */}
+                  <div className="mt-6">
+                    {activeTab === 'consultation' && (
+                      <div>
+                        <h2 className="text-lg font-medium text-gray-900 mb-4">상담 내역</h2>
+                        {consultations?.content && consultations.content.length > 0 ? (
+                          <div className="space-y-4">
+                            {consultations.content.map((consultation) => (
+                              <div
+                                key={consultation.id}
+                                className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                                onClick={() => navigate(`/consultations/${consultation.id}`)}
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div className="flex items-start space-x-3">
+                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                      <Clock size={20} className="text-gray-500" />
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-gray-900">
+                                        {consultation.consultationType === 'VISIT'
+                                          ? '방문 상담'
+                                          : '전화 상담'}
+                                      </p>
+                                      <p className="text-sm text-gray-500">
+                                        {consultation.consultationDate
+                                          ? new Date(consultation.consultationDate).toLocaleString(
+                                              'ko-KR',
+                                              {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true,
+                                              }
+                                            )
+                                          : '날짜 정보 없음'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-full ${getConsultationStatusClass(
+                                      consultation.status
+                                    )}`}
+                                  >
+                                    {getConsultationStatusText(consultation.status)}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 bg-gray-50 rounded-lg">
-                      <File className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">
-                        {activeContractTab === 'sale'
-                          ? '매도 계약 내역 없음'
-                          : '매수 계약 내역 없음'}
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {activeContractTab === 'sale'
-                          ? '아직 기록된 매도 계약 내역이 없습니다.'
-                          : '아직 기록된 매수 계약 내역이 없습니다.'}
-                      </p>
-                    </div>
-                  )}
+                        ) : (
+                          <div className="text-center py-12 bg-gray-50 rounded-lg">
+                            <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
+                            <h3 className="mt-2 text-sm font-medium text-gray-900">
+                              상담 내역 없음
+                            </h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                              아직 기록된 상담 내역이 없습니다.
+                            </p>
+                          </div>
+                        )}
 
-                  {/* 페이지네이션 컴포넌트 추가 */}
-                  {contracts && (
-                    <div className="mt-4 flex justify-center">
-                      <div className="flex space-x-2">
-                        {Array.from(
-                          { length: Math.ceil(contracts.pagination.totalElements / pageSize) },
-                          (_, i) => (
-                            <button
-                              key={i + 1}
-                              onClick={() =>
-                                activeContractTab === 'sale'
-                                  ? handleSalePageChange(i + 1)
-                                  : handlePurchasePageChange(i + 1)
-                              }
-                              className={`px-3 py-1 rounded ${
-                                (activeContractTab === 'sale'
-                                  ? saleCurrentPage
-                                  : purchaseCurrentPage) ===
-                                i + 1
-                                  ? 'bg-blue-500 text-white'
-                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}
-                            >
-                              {i + 1}
-                            </button>
-                          )
+                        {/* 페이지네이션 컴포넌트 추가 */}
+                        {consultations && (
+                          <div className="mt-4 flex justify-center">
+                            <div className="flex space-x-2">
+                              {Array.from(
+                                {
+                                  length: Math.ceil(
+                                    consultations.pagination.totalElements / pageSize
+                                  ),
+                                },
+                                (_, i) => (
+                                  <button
+                                    key={i + 1}
+                                    onClick={() => handlePageChange(i + 1)}
+                                    className={`px-3 py-1 rounded ${
+                                      currentPage === i + 1
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                  >
+                                    {i + 1}
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
 
-              {activeTab === 'inquiry' && (
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">문의 내역</h2>
-                  {inquiries?.content && inquiries.content.length > 0 ? (
-                    <div className="space-y-4">
-                      {inquiries.content.map((inquiry) => (
-                        <div
-                          key={inquiry.inquiryId}
-                          className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
-                          onClick={() => navigate(`/inquiries/${inquiry.inquiryId}/answers`)}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {inquiry.name || '제목 없음'}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                {new Date(inquiry.createdAt).toLocaleDateString('ko-KR')}
-                              </p>
-                            </div>
-                            <span
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                inquiry.customerType === CustomerType.CUSTOMER
-                                  ? 'bg-green-100 text-green-800'
-                                  : inquiry.customerType === CustomerType.CUSTOMER_CANDIDATE
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-gray-100 text-gray-800'
-                              }`}
+                    {activeTab === 'contract' && (
+                      <div>
+                        <div className="border-b border-gray-200 mb-4">
+                          <nav className="-mb-px flex space-x-8">
+                            <button
+                              onClick={() => setActiveContractTab('sale')}
+                              className={`${
+                                activeContractTab === 'sale'
+                                  ? 'border-blue-500 text-blue-600'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
                             >
-                              {inquiry.customerType === CustomerType.CUSTOMER
-                                ? '고객'
-                                : inquiry.customerType === CustomerType.CUSTOMER_CANDIDATE
-                                  ? '예비고객'
-                                  : '기타'}
-                            </span>
-                          </div>
+                              매도 계약 내역
+                            </button>
+                            <button
+                              onClick={() => setActiveContractTab('purchase')}
+                              className={`${
+                                activeContractTab === 'purchase'
+                                  ? 'border-blue-500 text-blue-600'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                            >
+                              매수 계약 내역
+                            </button>
+                          </nav>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12 bg-gray-50 rounded-lg">
-                      <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">문의 내역 없음</h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        아직 기록된 문의 내역이 없습니다.
-                      </p>
-                    </div>
-                  )}
+
+                        <h2 className="text-lg font-medium text-gray-900 mb-4">
+                          {activeContractTab === 'sale' ? '매도 계약 내역' : '매수 계약 내역'}
+                        </h2>
+                        {contracts?.content && contracts.content.length > 0 ? (
+                          <div className="space-y-4">
+                            {contracts.content.map((contract) => (
+                              <div
+                                key={contract.id}
+                                className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                                onClick={() => navigate(`/contracts/${contract.id}`)}
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="font-medium text-gray-900">
+                                      {contract.contractType === ContractType.SALE
+                                        ? '매매'
+                                        : contract.contractType === ContractType.JEONSE
+                                          ? '전세'
+                                          : '월세'}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      {contract.startedAt
+                                        ? new Date(contract.startedAt).toLocaleDateString('ko-KR')
+                                        : '날짜 정보 없음'}
+                                    </p>
+                                  </div>
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-full ${
+                                      contract.status === ContractStatus.COMPLETED
+                                        ? 'bg-green-100 text-green-800'
+                                        : contract.status === ContractStatus.IN_PROGRESS
+                                          ? 'bg-blue-100 text-blue-800'
+                                          : 'bg-gray-100 text-gray-800'
+                                    }`}
+                                  >
+                                    {contract.status === ContractStatus.COMPLETED
+                                      ? '완료'
+                                      : contract.status === ContractStatus.IN_PROGRESS
+                                        ? '진행중'
+                                        : '취소'}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 bg-gray-50 rounded-lg">
+                            <File className="mx-auto h-12 w-12 text-gray-400" />
+                            <h3 className="mt-2 text-sm font-medium text-gray-900">
+                              {activeContractTab === 'sale'
+                                ? '매도 계약 내역 없음'
+                                : '매수 계약 내역 없음'}
+                            </h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                              {activeContractTab === 'sale'
+                                ? '아직 기록된 매도 계약 내역이 없습니다.'
+                                : '아직 기록된 매수 계약 내역이 없습니다.'}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* 페이지네이션 컴포넌트 추가 */}
+                        {contracts && (
+                          <div className="mt-4 flex justify-center">
+                            <div className="flex space-x-2">
+                              {Array.from(
+                                {
+                                  length: Math.ceil(contracts.pagination.totalElements / pageSize),
+                                },
+                                (_, i) => (
+                                  <button
+                                    key={i + 1}
+                                    onClick={() =>
+                                      activeContractTab === 'sale'
+                                        ? handleSalePageChange(i + 1)
+                                        : handlePurchasePageChange(i + 1)
+                                    }
+                                    className={`px-3 py-1 rounded ${
+                                      (activeContractTab === 'sale'
+                                        ? saleCurrentPage
+                                        : purchaseCurrentPage) ===
+                                      i + 1
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                  >
+                                    {i + 1}
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'inquiry' && (
+                      <div>
+                        <h2 className="text-lg font-medium text-gray-900 mb-4">문의 내역</h2>
+                        {inquiries?.content && inquiries.content.length > 0 ? (
+                          <div className="space-y-4">
+                            {inquiries.content.map((inquiry) => (
+                              <div
+                                key={inquiry.inquiryId}
+                                className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                                onClick={() => navigate(`/inquiries/${inquiry.inquiryId}/answers`)}
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="font-medium text-gray-900">
+                                      {inquiry.name || '제목 없음'}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      {new Date(inquiry.createdAt).toLocaleDateString('ko-KR')}
+                                    </p>
+                                  </div>
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-full ${
+                                      inquiry.customerType === CustomerType.CUSTOMER
+                                        ? 'bg-green-100 text-green-800'
+                                        : inquiry.customerType === CustomerType.CUSTOMER_CANDIDATE
+                                          ? 'bg-yellow-100 text-yellow-800'
+                                          : 'bg-gray-100 text-gray-800'
+                                    }`}
+                                  >
+                                    {inquiry.customerType === CustomerType.CUSTOMER
+                                      ? '고객'
+                                      : inquiry.customerType === CustomerType.CUSTOMER_CANDIDATE
+                                        ? '예비고객'
+                                        : '기타'}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 bg-gray-50 rounded-lg">
+                            <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
+                            <h3 className="mt-2 text-sm font-medium text-gray-900">
+                              문의 내역 없음
+                            </h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                              아직 기록된 문의 내역이 없습니다.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </Card>
+              </Card>
+            </div>
           </div>
         )}
       </div>
