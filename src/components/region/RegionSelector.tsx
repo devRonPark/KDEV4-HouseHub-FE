@@ -122,7 +122,6 @@ const RegionDropdown: FC<RegionDropdownProps> = ({ onChange = () => {}, initialV
         dong: selectedDongName,
         name: `${selectedProvinceName} ${selectedCityName} ${selectedDongName}`,
       };
-      console.log(regionData);
       onChange(regionData);
     } else {
       onChange(null);

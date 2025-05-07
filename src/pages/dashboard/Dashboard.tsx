@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { formatDate } from '../../utils/format';
 import { ChartData, RecentProperty } from '../../types/dashboard';
 import { PropertyTypeLabels } from '../../types/property';
+import ContractExpiryAccordion from '../../components/dashboard/ContractExpiryAccordion';
 
 const Dashboard: React.FC = () => {
   const { showToast } = useToast();
@@ -155,6 +156,10 @@ const Dashboard: React.FC = () => {
                 />
               </div>
             )}
+          </div>
+
+          <div className="bg-white shadow rounded-lg mb-8">
+            <ContractExpiryAccordion />
           </div>
 
           {/* 최근 등록 매물 리스트 */}

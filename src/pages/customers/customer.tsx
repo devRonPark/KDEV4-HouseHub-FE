@@ -327,7 +327,7 @@ const CustomersPage = () => {
       key: 'name',
       header: <div className="text-center">이름</div>,
       render: (customer: Customer) => (
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-center space-x-3">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
             <User size={20} className="text-gray-500" />
           </div>
@@ -337,7 +337,7 @@ const CustomersPage = () => {
           </div>
         </div>
       ),
-      width: '300px',
+      width: '200px',
     },
     {
       key: 'email',
@@ -355,21 +355,27 @@ const CustomersPage = () => {
           <TagList tags={customer.tags || []} />
         </div>
       ),
-      width: '300px',
+      width: '360px',
     },
     {
       key: 'memo',
       header: <div className="text-center">메모</div>,
       render: (customer: Customer) => (
-        <div className="text-center">{customer.memo || '미등록'}</div>
+        <div
+          className="text-center truncate"
+          style={{ maxWidth: '250px', margin: '0 auto' }}
+          title={customer.memo || '미등록'}
+        >
+          {customer.memo || '미등록'}
+        </div>
       ),
-      width: '200px',
+      width: '250px',
     },
     {
       key: 'actions',
       header: <div className="text-center">관리</div>,
       render: (customer: Customer) => (
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-center space-x-2">
           {customer.deletedAt ? (
             <Button
               variant="outline"

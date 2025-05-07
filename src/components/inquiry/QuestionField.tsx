@@ -255,7 +255,6 @@ const QuestionField: React.FC<QuestionFieldProps> = ({ question, control, error 
                   <RegionSelector
                     error={error?.message}
                     onChange={(regionData: RegionData | null) => {
-                      console.log(regionData);
                       onChange(regionData);
                     }}
                   />
