@@ -83,18 +83,13 @@ const TagSelector = ({ selectedTagIds, onTagChange, className = '' }: TagSelecto
 
       {/* 태그 목록 */}
       <div className="bg-gray-50 p-3 rounded-lg max-h-[500px] overflow-y-auto">
-        <h3 className="text-sm font-medium text-gray-800 mb-3 sticky top-0 bg-gray-50 py-1">
-          사용 가능한 태그
-        </h3>
         {isLoadingTags ? (
           <div className="text-sm text-gray-600">태그 목록을 불러오는 중...</div>
         ) : Object.keys(groupedTags).length > 0 ? (
           <div className="space-y-3">
             {Object.entries(groupedTags).map(([type, typeTags]) => (
               <div key={type} className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-700 sticky top-8 bg-gray-50 py-1">
-                  {type}
-                </h4>
+                <h4 className="text-sm font-medium text-gray-700 py-1">{type}</h4>
                 <div className="flex flex-wrap gap-2">
                   {typeTags.map((tag) => (
                     <button
