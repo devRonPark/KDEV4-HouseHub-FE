@@ -11,7 +11,7 @@ const TagList = ({ tags, className = '' }: TagListProps) => {
     return <span className="text-gray-500 text-xs">등록된 태그 없음</span>;
   }
 
-  // 태그를 2줄로 나누어 표시 (각 줄 최대 4개)
+  // 태그를 2줄로 나누어 표시 (각 줄 최대 3개)
   const firstLineTags = tags.slice(0, Math.min(3, tags.length));
   const secondLineTags = tags.slice(3, 6);
   const remainingCount = tags.length > 6 ? tags.length - 6 : 0;
