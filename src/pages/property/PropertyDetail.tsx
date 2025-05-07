@@ -17,6 +17,7 @@ import {
   Compass,
   Square,
   Droplet,
+  Tag,
 } from 'react-feather';
 import { format } from 'date-fns';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -28,7 +29,7 @@ import { getPropertyById, deleteProperty } from '../../api/property';
 import {
   PropertyTypeLabels,
   PropertyDirectionLabels,
-  type FindPropertyDetailResDto,
+  FindPropertyDetailResDto,
 } from '../../types/property';
 import Modal from '../../components/ui/Modal';
 
@@ -265,6 +266,24 @@ const PropertyDetail: React.FC = () => {
               <div className="border-t border-gray-200 pt-4">
                 <h3 className="text-lg font-medium text-gray-900 mb-2 text-left">메모</h3>
                 <p className="text-gray-700 whitespace-pre-line">{property.memo}</p>
+              </div>
+            )}
+
+            {/* 태그 표시 */}
+            {property.tags && property.tags.length > 0 && (
+              <div className="border-t border-gray-200 pt-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-2 text-left">태그</h3>
+                <div className="flex flex-wrap gap-2">
+                  {property.tags.map((tag) => (
+                    <span
+                      key={tag.tagId}
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                    >
+                      <Tag size={12} className="mr-1" />
+                      {tag.type}: {tag.value}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>

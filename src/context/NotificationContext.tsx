@@ -68,7 +68,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     (event: MessageEvent) => {
       try {
         const data: NotificationEvent = JSON.parse(event.data);
-        console.log('SSE 알림 수신:', data);
 
         // 알림 객체 생성
         const newNotification: Notification = {

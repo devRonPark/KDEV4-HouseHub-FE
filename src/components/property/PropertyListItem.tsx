@@ -14,7 +14,6 @@ interface PropertyListItemProps {
 }
 
 const PropertyListItem: React.FC<PropertyListItemProps> = ({ property }) => {
-  console.log('Property contractList:', property.contractTypes);
 
   return (
     <Link
