@@ -22,3 +22,10 @@ export interface AgentDetail extends Agent {
     contact?: string;
   };
 }
+
+export interface UpdateAgentReqDto {
+  name?: string;
+  email: string;
+  contact: string;
+  licenseNumber?: string;
+}

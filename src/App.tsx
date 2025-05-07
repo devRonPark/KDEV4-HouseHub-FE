@@ -6,6 +6,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/useAuth';
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
+import MyPage from './pages/auth/MyPage';
 import Dashboard from './pages/dashboard/Dashboard';
 import PropertyRegistration from './pages/property/PropertyRegistration';
 import PropertyList from './pages/property/PropertyList';
@@ -283,6 +284,15 @@ function App() {
         element={
           <ProtectedRoute>
             <CrawlingPropertyPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <MyPage />
           </ProtectedRoute>
         }
       />
