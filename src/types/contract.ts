@@ -129,3 +129,18 @@ export interface ContractSummaryDto {
   monthlyRentFee?: string; // 월세 금액 (MONTHLY일 경우만)
   monthlyRentDeposit?: string; // 월세 보증금 (MONTHLY일 경우만)
 }
+
+export interface ContractFormData {
+  propertyId: number | null;
+  customerId: number | null;
+  contractType: ContractType;
+  contractStatus: ContractStatus;
+  salePrice: string;
+  jeonsePrice: string;
+  monthlyRentDeposit: string;
+  monthlyRentFee: string;
+  startedAt: string;
+  expiredAt: string;
+  completedAt: string;
+  memo: string;
+}
