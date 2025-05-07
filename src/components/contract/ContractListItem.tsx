@@ -53,7 +53,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
             <div className="ml-3">
               <div className="flex items-center">
                 <span className="text-lg font-medium text-gray-900 mr-2">
-                  {contract.property.roadAddress}
+                  {contract.property.roadAddress}{contract.property.detailAddress}
                 </span>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

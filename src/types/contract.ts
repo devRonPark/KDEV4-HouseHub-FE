@@ -119,3 +119,13 @@ export interface ExpiringContract {
   displayStatus: '임박' | '만료' | '정상';
   dday: string;
 }
+
+export interface ContractSummaryDto {
+  id: number; // 계약 ID
+  status: ContractStatus; // 계약 상태
+  contractType: ContractType; // 거래 유형
+  salePrice?: string; // 매매가 (SALE일 경우만)
+  jeonsePrice?: string; // 전세가 (JEONSE일 경우만)
+  monthlyRentFee?: string; // 월세 금액 (MONTHLY일 경우만)
+  monthlyRentDeposit?: string; // 월세 보증금 (MONTHLY일 경우만)
+}
