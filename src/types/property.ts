@@ -133,4 +133,3 @@ export interface FindPropertyDetailResDto {
   roomCnt?: number; // 방 개수
   tags?: TagResDto[];
 }
-
