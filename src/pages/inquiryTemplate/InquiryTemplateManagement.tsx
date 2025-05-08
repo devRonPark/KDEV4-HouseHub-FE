@@ -109,7 +109,6 @@ const InquiryTemplateManagement: React.FC = () => {
   // 유형 필터 핸들러
   const handleTypeChange = (value: string) => {
     const templateType = value ? (value as unknown as InquiryTemplateType) : undefined;
-    console.log('templateType', templateType);
     setSelectedType(templateType);
     setFilter((prev) => ({
       ...prev,

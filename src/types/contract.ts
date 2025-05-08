@@ -48,9 +48,18 @@ export const ContractStatusColors: Record<ContractStatus, { bg: string; text: st
   [ContractStatus.CANCELED]: { bg: 'bg-red-100', text: 'text-red-800' },
 };
 
+// 매물 등록시 기본 계약 정보 등록 요청 DTO
+export interface BasicContractReqDto {
+  contractType: ContractType;
+  salePrice?: number | null;
+  jeonsePrice?: number | null;
+  monthlyRentDeposit?: number | null;
+  monthlyRentFee?: number | null;
+}
+
 // 계약 등록 요청 DTO
 export interface ContractReqDto {
-  propertyId: number;
+  propertyId?: number;
   customerId?: number | null;
   contractType: ContractType;
   contractStatus: ContractStatus;
@@ -99,4 +108,29 @@ export interface ContractSearchFilter {
   // active?: boolean | null;
   page: number;
   size: number;
+}
+
+export interface ExpiringContract {
+  id: number;
+  propertyAddress: string;
+  customerName: string;
+  contractType: '매매' | '전세' | '월세';
+  expiredAt: string;
+  displayStatus: '임박' | '만료' | '정상';
+  dday: string;
+}
+
+export interface ContractFormData {
+  propertyId: number | null;
+  customerId: number | null;
+  contractType: ContractType;
+  contractStatus: ContractStatus;
+  salePrice: string;
+  jeonsePrice: string;
+  monthlyRentDeposit: string;
+  monthlyRentFee: string;
+  startedAt: string;
+  expiredAt: string;
+  completedAt: string;
+  memo: string;
 }

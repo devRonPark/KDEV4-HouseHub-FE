@@ -56,7 +56,7 @@ export const createTemplate = async (
   data: CreateUpdateTemplateReqDto
 ): Promise<ApiResponse<TemplateResDto>> => {
   try {
-    const response = await apiClient.post<ApiResponse<TemplateResDto>>('/sms/templates', data);
+    const response = await apiClient.post<ApiResponse<TemplateResDto>>('/sms-templates', data);
     return response.data;
   } catch (error) {
     console.error('템플릿 생성 오류:', error);
@@ -70,7 +70,7 @@ export const updateTemplate = async (
   data: CreateUpdateTemplateReqDto
 ): Promise<ApiResponse<TemplateResDto>> => {
   try {
-    const response = await apiClient.put<ApiResponse<TemplateResDto>>(`/sms/templates/${id}`, data);
+    const response = await apiClient.put<ApiResponse<TemplateResDto>>(`/sms-templates/${id}`, data);
     return response.data;
   } catch (error) {
     console.error('템플릿 수정 오류:', error);
@@ -81,7 +81,7 @@ export const updateTemplate = async (
 // 템플릿 삭제 API
 export const deleteTemplate = async (id: number): Promise<ApiResponse<void>> => {
   try {
-    const response = await apiClient.delete<ApiResponse<void>>(`/sms/templates/${id}`);
+    const response = await apiClient.delete<ApiResponse<void>>(`/sms-templates/${id}`);
     return response.data;
   } catch (error) {
     console.error('템플릿 삭제 오류:', error);
@@ -92,7 +92,7 @@ export const deleteTemplate = async (id: number): Promise<ApiResponse<void>> => 
 // 템플릿 상세 조회 API
 export const getTemplateById = async (id: number): Promise<ApiResponse<TemplateResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<TemplateResDto>>(`/sms/templates/${id}`);
+    const response = await apiClient.get<ApiResponse<TemplateResDto>>(`/sms-templates/${id}`);
     return response.data;
   } catch (error) {
     console.error('템플릿 상세 조회 오류:', error);
@@ -105,7 +105,7 @@ export const getAllTemplates = async (
   filter: SmsTemplateSearchFilter
 ): Promise<ApiResponse<SmsTemplateListResDto>> => {
   try {
-    let url = `/sms/templates?page=${filter.page}&size=${filter.size}`;
+    let url = `/sms-templates?page=${filter.page}&size=${filter.size}`;
     if (filter.keyword) {
       url += `&keyword=${encodeURIComponent(filter.keyword)}`;
     }
