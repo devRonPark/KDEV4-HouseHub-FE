@@ -8,7 +8,6 @@ import { useToast } from '../../context/useToast';
 import { CustomerListResDto } from '../../types/customer';
 import { formatDate } from '../../utils/format';
 import Pagination from '../ui/Pagination';
-import TagList from '../tag/TagList';
 
 interface RecentCustomersModalProps {
   isOpen: boolean;

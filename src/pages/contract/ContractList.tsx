@@ -65,7 +65,12 @@ const ContractList: React.FC = () => {
       const response = await getContracts(filter);
       if (response.success && response.data) {
         setContracts(response.data.content || []);
-        setPagination(response.data.pagination);
+        setPagination({
+          totalPages: response.data.pagination.totalPages,
+          totalElements: response.data.pagination.totalElements,
+          size: response.data.pagination.size,
+          currentPage: response.data.pagination.currentPage,
+        });
       } else {
         console.error('Failed to fetch contracts:', response.error);
         showToast(response.error || '계약 목록을 불러오는데 실패했습니다.', 'error');

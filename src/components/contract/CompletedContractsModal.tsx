@@ -1,7 +1,7 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, FileText } from 'react-feather';
+import { FileText } from 'react-feather';
 import Modal from '../ui/Modal';
 import { getCompletedContractsThisMonth } from '../../api/contract';
 import { useToast } from '../../context/useToast';
@@ -36,10 +36,10 @@ const CompletedContractsModal: React.FC<CompletedContractsModalProps> = ({ isOpe
         if (response.success && response.data) {
           setContracts(response.data.content);
           setPagination({
-            currentPage: response.data.number + 1,
-            totalPages: response.data.totalPages,
-            totalElements: response.data.totalElements,
-            size: response.data.size,
+            currentPage: response.data.pagination.currentPage,
+            totalPages: response.data.pagination.totalPages,
+            totalElements: response.data.pagination.totalElements,
+            size: response.data.pagination.size,
           });
         } else {
           showToast(response.error || '완료된 계약 목록을 불러오는데 실패했습니다.', 'error');
