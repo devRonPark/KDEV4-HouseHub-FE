@@ -65,10 +65,10 @@ const SmsSendPage = () => {
   // 메시지 미리보기 업데이트 함수
   const updatePreviewMessage = useCallback(
     (content: string, sender: string) => {
-      const preview = `보낸이: ${user?.name || '알 수 없는 중개인'}\n\n${content}\n\n문의 번호: ${sender}`;
+      const preview = `보낸이: ${user?.realEstate?.name ? user.realEstate.name + ' 중개사 ' : ''}${user?.name || '알 수 없는 중개인'}\n\n${content}\n\n문의 번호: ${sender}`;
       setPreviewMessage(preview);
     },
-    [user?.name]
+    [user?.realEstate?.name, user?.name]
   );
 
   // 메시지 내용이 변경될 때마다 미리보기 업데이트
@@ -168,11 +168,11 @@ const SmsSendPage = () => {
 
   // 메시지 길이에 따라 메시지 타입 자동 변경
   useEffect(() => {
-    const previewText = `보낸이: ${user?.name || '알 수 없는 중개인'}\n\n${message}\n\n문의 번호: ${sender}`;
+    const previewText = `보낸이: ${user?.realEstate?.name ? user.realEstate.name + ' ' : ''}${user?.name || '알 수 없는 중개인'}\n\n${message}\n\n문의 번호: ${sender}`;
     if (previewText.length > 90 && messageType === 'SMS') {
       setMessageType('LMS');
     }
-  }, [message, messageType, user?.name, sender]);
+  }, [message, messageType, user?.realEstate?.name, user?.name, sender]);
 
   const handleMessageTypeChange = (type: 'SMS' | 'LMS' | 'MMS') => {
     if (isTemplateAutoFill) setSelectedTemplateId(null);
@@ -643,7 +643,7 @@ const SmsSendPage = () => {
                   <div className="text-sm text-gray-500 flex justify-between items-center">
                     <span>
                       {
-                        `보낸이: ${user?.name || '알 수 없는 중개인'}\n\n${message}\n\n문의 번호: ${sender}`
+                        `보낸이: ${user?.realEstate?.name ? user.realEstate.name + ' ' : ''}${user?.name || '알 수 없는 중개인'}\n\n${message}\n\n문의 번호: ${sender}`
                           .length
                       }
                       자 / {messageType === 'SMS' ? '90' : '2,000'}자 (발송인 정보 포함)

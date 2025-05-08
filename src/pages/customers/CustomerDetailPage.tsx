@@ -369,7 +369,7 @@ const CustomerDetailPage: React.FC = () => {
               <Card className="overflow-hidden">
                 <div className="p-6">
                   {/* 탭 메뉴 */}
-                  <div className="border-b border-gray-200 mb-6">
+                  <div className="border-b border-gray-200 mb-2">
                     <nav className="-mb-px flex space-x-8">
                       <button
                         onClick={() => setActiveTab('consultation')}
@@ -408,10 +408,12 @@ const CustomerDetailPage: React.FC = () => {
                   </div>
 
                   {/* 탭 컨텐츠 */}
-                  <div className="mt-6">
+                  <div className="mt-2">
                     {activeTab === 'consultation' && (
                       <div>
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">상담 내역</h2>
+                        <h2 className="mt-4 text-lg font-medium text-gray-900 mb-4 leading-normal">
+                          상담 내역
+                        </h2>
                         {consultations?.content && consultations.content.length > 0 ? (
                           <div className="space-y-4">
                             {consultations.content.map((consultation) => (
@@ -626,7 +628,9 @@ const CustomerDetailPage: React.FC = () => {
 
                     {activeTab === 'inquiry' && (
                       <div>
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">문의 내역</h2>
+                        <h2 className="mt-4 text-lg font-medium text-gray-900 mb-4 leading-normal">
+                          문의 내역
+                        </h2>
                         {inquiries?.content && inquiries.content.length > 0 ? (
                           <div className="space-y-4">
                             {inquiries.content.map((inquiry) => (
