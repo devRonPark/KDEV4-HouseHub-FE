@@ -14,8 +14,8 @@ import Modal from '../../components/ui/Modal';
 import Pagination from '../../components/ui/Pagination';
 import Badge from '../../components/ui/Badge';
 import { useToast } from '../../context/useToast';
-import { getAllSms, getSmsById, getSmsCost } from '../../api/smsApi';
-import { getAllTemplates } from '../../api/smsApi';
+import { getAllSms, getSmsById, getSmsCost } from '../../api/sms';
+import { getAllTemplates } from '../../api/sms';
 import type { SendSmsResDto } from '../../types/sms';
 import type { SmsTemplateListResDto } from '../../types/sms';
 

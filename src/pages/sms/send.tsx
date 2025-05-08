@@ -13,7 +13,7 @@ import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import Card from '../../components/ui/Card';
 import { useToast } from '../../context/useToast';
-import { sendSms, getAllTemplates } from '../../api/smsApi';
+import { sendSms, getAllTemplates } from '../../api/sms';
 import { getMyCustomers } from '../../api/customer';
 import type { SendSmsReqDto, SmsTemplateListResDto } from '../../types/sms';
 import type { CustomerResDto, CustomerListResDto } from '../../types/customer';

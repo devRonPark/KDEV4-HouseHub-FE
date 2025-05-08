@@ -7,6 +7,7 @@ export interface Agent {
   licenseNumber?: string;
   role: 'ADMIN' | 'AGENT';
   profileImage?: string;
+  birthdayTemplateId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,4 +29,5 @@ export interface UpdateAgentReqDto {
   email: string;
   contact: string;
   licenseNumber?: string;
+  birthdayTemplateId?: string;
 }
