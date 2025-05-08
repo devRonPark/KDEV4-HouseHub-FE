@@ -152,3 +152,15 @@ export const getCustomerSellContracts = async (
     };
   }
 };
+
+export const getCompletedContractsThisMonth = async (): Promise<ApiResponse<ContractListResDto>> => {
+  try {
+    const response = await apiClient.get('/contracts/completed/this-month');
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      error: '이번 달 완료된 계약 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};

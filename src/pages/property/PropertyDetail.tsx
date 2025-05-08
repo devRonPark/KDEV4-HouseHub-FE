@@ -246,7 +246,10 @@ const PropertyDetail: React.FC = () => {
 
             <div className="border-t border-gray-200 pt-4">
               <h3 className="text-lg font-medium text-gray-900 mb-2 text-left">의뢰인 정보</h3>
-              <div className="flex items-start">
+              <div 
+                className="flex items-start cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors duration-200"
+                onClick={() => navigate(`/customers/${property.customer.id}`)}
+              >
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                     <User className="h-5 w-5 text-blue-600" />

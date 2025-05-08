@@ -246,3 +246,20 @@ export const restoreCustomer = async (id: number): Promise<ApiResponse<CustomerR
     };
   }
 };
+
+export const getRecentCustomers = async (page: number = 0, size: number = 5): Promise<ApiResponse<CustomerListResDto>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<CustomerListResDto>>('/customers/recent', {
+      params: {
+        page,
+        size,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      error: '최근 신규 고객 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};

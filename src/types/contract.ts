@@ -95,7 +95,10 @@ export interface FindContractResDto {
 // 계약 목록 응답 DTO
 export interface ContractListResDto {
   content: FindContractResDto[];
-  pagination: PaginationDto;
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
 }
 
 // 계약 검색 필터
