@@ -4,7 +4,7 @@ import type {
   ContractReqDto,
   ContractListResDto,
   ContractSearchFilter,
-  ContractResDto,
+  FindContractResDto,
 } from '../types/contract';
 
 // 계약 등록 API
@@ -56,9 +56,9 @@ export const getContracts = async (
 };
 
 // 계약 상세 조회 API
-export const getContractById = async (id: number): Promise<ApiResponse<ContractResDto>> => {
+export const getContractById = async (id: number): Promise<ApiResponse<FindContractResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<ContractResDto>>(`/contracts/${id}`);
+    const response = await apiClient.get<ApiResponse<FindContractResDto>>(`/contracts/${id}`);
     return response.data;
   } catch {
     return {

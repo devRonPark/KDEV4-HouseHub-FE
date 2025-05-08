@@ -134,3 +134,9 @@ export interface FindPropertyDetailResDto {
   tags?: TagResDto[];
 }
 
+export interface PropertySummaryResDto {
+  id: number;
+  propertyType: PropertyType;
+  detailAddress: string;
+  roadAddress: string;
+}

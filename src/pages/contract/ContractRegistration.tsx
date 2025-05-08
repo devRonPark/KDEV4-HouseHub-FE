@@ -18,7 +18,6 @@ import {
   ContractStatus,
   ContractStatusLabels,
   type ContractReqDto,
-  type ContractFormData,
 } from '../../types/contract';
 import { PropertyType, PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
@@ -71,6 +70,21 @@ const ContractStatusButton: React.FC<{
   </button>
 );
 
+interface ContractFormData {
+  propertyId: number | null;
+  customerId: number | null;
+  contractType: ContractType;
+  contractStatus: ContractStatus;
+  salePrice: string;
+  jeonsePrice: string;
+  monthlyRentDeposit: string;
+  monthlyRentFee: string;
+  startDate: string;
+  endDate: string;
+  completedDate: string;
+  memo: string;
+}
+
 const ContractRegistration: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -85,7 +99,7 @@ const ContractRegistration: React.FC = () => {
 
   // 선택된 매물과 고객 정보
   const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedLandlord, setSelectedLandlord] = useState<CustomerResDto | null>(null);
+  const [selectedLandlord] = useState<CustomerResDto | null>(null);
   const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null);
 
   // 폼 데이터 상태
@@ -98,9 +112,9 @@ const ContractRegistration: React.FC = () => {
     jeonsePrice: '',
     monthlyRentDeposit: '',
     monthlyRentFee: '',
-    startedAt: '',
-    expiredAt: '',
-    completedAt: '',
+    startDate: '',
+    endDate: '',
+    completedDate: '',
     memo: '',
   });
 
@@ -133,7 +147,7 @@ const ContractRegistration: React.FC = () => {
             ...response.data,
             propertyType: response.data.propertyType as PropertyType,
           } as unknown as FindPropertyResDto);
-          setSelectedLandlord(response.data.customer || null);
+          // setSelectedLandlord(response.data.customer || null);
           setFormData(prev => ({ ...prev, propertyId: response.data?.id || null }));
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
@@ -148,7 +162,7 @@ const ContractRegistration: React.FC = () => {
 
   const handlePropertySelect = async (property: FindPropertyResDto) => {
     setSelectedProperty(property);
-    setSelectedLandlord(property.customer || null);
+    // setSelectedLandlord(property.customer || null);
     setFormData(prev => ({ ...prev, propertyId: property.id }));
     if (selectedTenant) {
       setSelectedTenant(null);
@@ -244,17 +258,17 @@ const ContractRegistration: React.FC = () => {
 
     // 계약 상태에 따른 날짜 필드 검증
     if (showContractPeriod) {
-      if (!formData.startedAt) {
+      if (!formData.startDate) {
         showToast('계약 시작일은 필수입니다.', 'error');
         return;
       }
-      if (!formData.expiredAt) {
+      if (!formData.endDate) {
         showToast('계약 종료일은 필수입니다.', 'error');
         return;
       }
 
       // 계약 기간 검증 (시작일이 종료일보다 늦으면 안 됨)
-      if (new Date(formData.startedAt) > new Date(formData.expiredAt)) {
+      if (new Date(formData.startDate) > new Date(formData.endDate)) {
         showToast(
           '계약 종료일이 계약 시작일보다 빠를 수 없습니다. 날짜를 다시 확인해주세요.',
           'error'
@@ -264,7 +278,7 @@ const ContractRegistration: React.FC = () => {
     }
 
     // 계약 상태가 완료인데 완료일이 없는 경우
-    if (showCompletedDate && !formData.completedAt) {
+    if (showCompletedDate && !formData.completedDate) {
       showToast('계약 완료 상태일 경우, 거래 완료일은 필수입니다.', 'error');
       return;
     }
@@ -278,13 +292,13 @@ const ContractRegistration: React.FC = () => {
         contractType: formData.contractType,
         contractStatus: formData.contractStatus,
         memo: formData.memo || null,
-        startedAt: formData.startedAt || null,
-        expiredAt: formData.expiredAt || null,
+        startedAt: formData.startDate || null,
+        expiredAt: formData.endDate || null,
         salePrice: showSalePrice ? convertToWon(formData.salePrice) : null,
         jeonsePrice: showJeonsePrice ? convertToWon(formData.jeonsePrice) : null,
         monthlyRentDeposit: showMonthlyRent ? convertToWon(formData.monthlyRentDeposit) : null,
         monthlyRentFee: showMonthlyRent ? convertToWon(formData.monthlyRentFee) : null,
-        completedAt: showCompletedDate ? formData.completedAt : null,
+        completedAt: showCompletedDate ? formData.completedDate : null,
       };
 
       const response = await registerContract(contractData);
@@ -538,14 +552,14 @@ const ContractRegistration: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       type="date"
-                      value={formData.startedAt}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startedAt: e.target.value }))}
+                      value={formData.startDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                       leftIcon={<Calendar size={18} />}
                     />
                     <Input
                       type="date"
-                      value={formData.expiredAt}
-                      onChange={(e) => setFormData(prev => ({ ...prev, expiredAt: e.target.value }))}
+                      value={formData.endDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
                       leftIcon={<Calendar size={18} />}
                     />
                   </div>
@@ -560,8 +574,8 @@ const ContractRegistration: React.FC = () => {
                   </label>
                   <Input
                     type="date"
-                    value={formData.completedAt}
-                    onChange={(e) => setFormData(prev => ({ ...prev, completedAt: e.target.value }))}
+                    value={formData.completedDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, completedDate: e.target.value }))}
                     leftIcon={<CheckCircle size={18} />}
                     className="border-green-500 focus:ring-green-500"
                   />

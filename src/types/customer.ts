@@ -57,6 +57,6 @@ export interface CustomerSearchFilter {
 
 export interface CustomerSummaryDto {
   id: number | null;
-  name: string;
-  contact: string | null;
+  name?: string;
+  contact?: string | null;
 }

@@ -19,13 +19,13 @@ import {
   ContractStatusLabels,
   type ContractReqDto,
   type ContractFormData,
+  type FindContractResDto,
 } from '../../types/contract';
-import { PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
+import { FindPropertyResDto, PropertyTypeLabels, type PropertySummaryResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
-import type { CustomerResDto } from '../../types/customer';
+import type { CustomerSummaryDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 import { getObjectDiff } from '../../utils/objectUtil';
-import type { ContractResDto } from '../../types/contract';
 
 // 계약 유형 선택 버튼 컴포넌트
 const ContractTypeButton: React.FC<{
@@ -82,12 +82,12 @@ const ContractEdit: React.FC = () => {
   const formRef = useRef<HTMLFormElement>(null);
 
   // 선택된 매물과 고객 정보
-  const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedLandlord, setSelectedLandlord] = useState<CustomerResDto | null>(null);
-  const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<PropertySummaryResDto | null>(null);
+  const [selectedLandlord, setSelectedLandlord] = useState<CustomerSummaryDto | null>(null);
+  const [selectedTenant, setSelectedTenant] = useState<CustomerSummaryDto | null>(null);
 
   // 원본 계약 데이터 저장용 상태
-  const [originalContract, setOriginalContract] = useState<ContractResDto | null>(null);
+  const [originalContract, setOriginalContract] = useState<FindContractResDto | null>(null);
 
   // 폼 데이터 상태
   const [formData, setFormData] = useState<ContractFormData>({
@@ -133,12 +133,12 @@ const ContractEdit: React.FC = () => {
           const contract = response.data;
           setOriginalContract(contract);
           setSelectedProperty(contract.property);
-          setSelectedLandlord(contract.property.customer || null);
-          setSelectedTenant(contract.customer || null);
+          setSelectedLandlord(contract.provider || null);
+          setSelectedTenant(contract.seeker || null);
           
           setFormData({
             propertyId: contract.property?.id || null,
-            customerId: contract.customer?.id || null,
+            customerId: contract.seeker?.id || null,
             contractType: contract.contractType,
             contractStatus: contract.status,
             salePrice: removePriceUnits(contract.salePrice),
@@ -172,7 +172,7 @@ const ContractEdit: React.FC = () => {
   };
 
   const handleCustomerSelect = useCallback(
-    (customer: CustomerResDto) => {
+    (customer: CustomerSummaryDto) => {
       if (selectedLandlord && selectedLandlord.id === customer.id) {
         showToast('집주인은 계약 대상이 될 수 없습니다.');
         return;
@@ -283,7 +283,7 @@ const ContractEdit: React.FC = () => {
 
       const originalData: ContractFormData = {
         propertyId: originalContract.property?.id || null,
-        customerId: originalContract.customer?.id || null,
+        customerId: originalContract.provider?.id || null,
         contractType: originalContract.contractType,
         contractStatus: originalContract.status,
         salePrice: originalContract.salePrice || '',
@@ -426,9 +426,9 @@ const ContractEdit: React.FC = () => {
                       <div>
                         <p className="font-medium text-gray-900">{selectedTenant.name}</p>
                         <p className="text-sm text-gray-500">{selectedTenant.contact}</p>
-                        {selectedTenant.email && (
+                        {/* {selectedTenant.email && (
                           <p className="text-sm text-gray-500">{selectedTenant.email}</p>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   ) : (

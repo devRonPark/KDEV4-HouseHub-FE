@@ -16,7 +16,7 @@ import {
   ContractStatus,
   ContractTypeLabels,
   ContractStatusLabels,
-  ContractResDto,
+  FindContractResDto,
   ContractSearchFilter,
 } from '../../types/contract';
 import { PaginationDto } from '../../types/pagination';
@@ -25,7 +25,7 @@ const ContractList: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
-  const [contracts, setContracts] = useState<ContractResDto[]>([]);
+  const [contracts, setContracts] = useState<FindContractResDto[]>([]);
   const [pagination, setPagination] = useState<PaginationDto>({
     totalPages: 1,
     totalElements: 0,

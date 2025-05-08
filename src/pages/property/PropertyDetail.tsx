@@ -255,9 +255,9 @@ const PropertyDetail: React.FC = () => {
                 <div className="ml-3">
                   <h3 className="text-lg font-medium text-gray-900">{property.customer.name}</h3>
                   <p className="text-sm text-gray-500">{property.customer.contact}</p>
-                  {property.customer.email && (
+                  {/* {property.customer.email && (
                     <p className="text-sm text-gray-500">{property.customer.email}</p>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>
@@ -315,9 +315,9 @@ const PropertyDetail: React.FC = () => {
                           ? '진행중'
                           : '거래 가능'}
                     </Badge>
-                    <span className="text-sm text-gray-500">
+                    {/* <span className="text-sm text-gray-500">
                       {contract.startedAt ? formatDate(contract.startedAt) : ''}
-                    </span>
+                    </span> */}
                   </div>
                   <p className="font-medium text-gray-900 text-left">
                     {contract.contractType === 'SALE'
@@ -342,11 +342,11 @@ const PropertyDetail: React.FC = () => {
                       <p className="text-gray-700 text-left">월세: {contract.monthlyRentFee}</p>
                     </>
                   )}
-                  {contract.startedAt && contract.expiredAt && (
+                  {/* {contract.startedAt && contract.expiredAt && (
                     <p className="text-sm text-gray-500 mt-1 text-left">
                       계약기간: {formatDate(contract.startedAt)} ~ {formatDate(contract.expiredAt)}
                     </p>
-                  )}
+                  )} */}
                 </div>
               ))}
             </div>

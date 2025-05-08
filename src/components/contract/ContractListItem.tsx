@@ -1,9 +1,8 @@
 import type React from 'react';
-import { FileText, User } from 'react-feather';
+import { FileText } from 'react-feather';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import {
-  ContractResDto,
+  FindContractResDto,
   ContractTypeLabels,
   ContractStatusLabels,
   ContractTypeColors,
@@ -11,19 +10,19 @@ import {
 } from '../../types/contract';
 
 interface ContractListItemProps {
-  contract: ContractResDto;
+  contract: FindContractResDto;
 }
 
 const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
   const navigate = useNavigate();
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    try {
-      return format(new Date(dateString), 'yyyy-MM-dd');
-    } catch (error) {
-      return dateString;
-    }
-  };
+  // const formatDate = (dateString?: string) => {
+  //   if (!dateString) return '-';
+  //   try {
+  //     return format(new Date(dateString), 'yyyy-MM-dd');
+  //   } catch (error) {
+  //     return dateString;
+  //   }
+  // };
 
   // 계약 유형에 따른 금액 표시
   const getPriceDisplay = () => {
@@ -72,7 +71,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
               </div>
               <p className="text-sm text-gray-500 mt-1">{getPriceDisplay()}</p>
               <div className="flex items-center mt-2">
-                <div className="flex items-center text-sm text-gray-500 mr-4">
+                {/* <div className="flex items-center text-sm text-gray-500 mr-4">
                   <User className="h-4 w-4 mr-1" />
                   {contract.customer?.name || '계약자를 등록해주세요.'}
                 </div>
@@ -82,7 +81,7 @@ const ContractListItem: React.FC<ContractListItemProps> = ({ contract }) => {
                       {formatDate(contract.startedAt)} ~ {formatDate(contract.expiredAt)}
                     </span>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           </div>
