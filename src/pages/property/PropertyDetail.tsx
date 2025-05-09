@@ -246,7 +246,10 @@ const PropertyDetail: React.FC = () => {
 
             <div className="border-t border-gray-200 pt-4">
               <h3 className="text-lg font-medium text-gray-900 mb-2 text-left">의뢰인 정보</h3>
-              <div className="flex items-start">
+              <div 
+                className="flex items-start cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors duration-200"
+                onClick={() => navigate(`/customers/${property.customer.id}`)}
+              >
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                     <User className="h-5 w-5 text-blue-600" />
@@ -255,9 +258,9 @@ const PropertyDetail: React.FC = () => {
                 <div className="ml-3">
                   <h3 className="text-lg font-medium text-gray-900">{property.customer.name}</h3>
                   <p className="text-sm text-gray-500">{property.customer.contact}</p>
-                  {property.customer.email && (
+                  {/* {property.customer.email && (
                     <p className="text-sm text-gray-500">{property.customer.email}</p>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>
@@ -315,9 +318,9 @@ const PropertyDetail: React.FC = () => {
                           ? '진행중'
                           : '거래 가능'}
                     </Badge>
-                    <span className="text-sm text-gray-500">
+                    {/* <span className="text-sm text-gray-500">
                       {contract.startedAt ? formatDate(contract.startedAt) : ''}
-                    </span>
+                    </span> */}
                   </div>
                   <p className="font-medium text-gray-900 text-left">
                     {contract.contractType === 'SALE'
@@ -342,11 +345,11 @@ const PropertyDetail: React.FC = () => {
                       <p className="text-gray-700 text-left">월세: {contract.monthlyRentFee}</p>
                     </>
                   )}
-                  {contract.startedAt && contract.expiredAt && (
+                  {/* {contract.startedAt && contract.expiredAt && (
                     <p className="text-sm text-gray-500 mt-1 text-left">
                       계약기간: {formatDate(contract.startedAt)} ~ {formatDate(contract.expiredAt)}
                     </p>
-                  )}
+                  )} */}
                 </div>
               ))}
             </div>

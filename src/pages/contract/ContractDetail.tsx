@@ -14,7 +14,7 @@ import {
   ContractStatusLabels,
   ContractTypeColors,
   ContractStatusColors,
-  type ContractResDto,
+  FindContractResDto,
   ContractStatus,
 } from '../../types/contract';
 
@@ -22,7 +22,7 @@ const ContractDetail: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { showToast } = useToast();
-  const [contract, setContract] = useState<ContractResDto | null>(null);
+  const [contract, setContract] = useState<FindContractResDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -250,22 +250,47 @@ const ContractDetail: React.FC = () => {
               {/* 고객 정보 */}
               <div>
                 <h2 className="text-lg font-medium text-gray-900 mb-4">계약자 정보</h2>
-                {contract.customer ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center">
-                      <User className="h-5 w-5 text-gray-400 mr-2" />
-                      <span className="text-gray-700">이름: {contract.customer.name}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <User className="h-5 w-5 text-gray-400 mr-2" />
-                      <span className="text-gray-700">연락처: {contract.customer.contact}</span>
-                    </div>
-                    {contract.customer.email && (
-                      <div className="flex items-center">
-                        <User className="h-5 w-5 text-gray-400 mr-2" />
-                        <span className="text-gray-700">이메일: {contract.customer.email}</span>
+                {contract.seeker && contract.provider ? (
+                  <div className="space-y-6">
+                    {/* 계약 유형에 따른 seeker 라벨 */}
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">
+                        {contract.contractType === 'SALE' ? '매수자' : '임차인'}
+                      </h3>
+                      <div
+                        className="p-4 rounded-md hover:bg-gray-50 cursor-pointer transition"
+                        onClick={() => navigate(`/customers/${contract.seeker.id}`)}
+                      >
+                        <div className="flex items-center mb-2">
+                          <User className="h-5 w-5 text-gray-400 mr-2" />
+                          <span className="text-gray-700">이름: {contract.seeker.name}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <User className="h-5 w-5 text-gray-400 mr-2" />
+                          <span className="text-gray-700">연락처: {contract.seeker.contact}</span>
+                        </div>
                       </div>
-                    )}
+                    </div>
+
+                    {/* 계약 유형에 따른 provider 라벨 */}
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">
+                        {contract.contractType === 'SALE' ? '매도자' : '임대인'}
+                      </h3>
+                      <div
+                        className="p-4 rounded-md hover:bg-gray-50 cursor-pointer transition"
+                        onClick={() => navigate(`/customers/${contract.provider.id}`)}
+                      >
+                        <div className="flex items-center mb-2">
+                          <User className="h-5 w-5 text-gray-400 mr-2" />
+                          <span className="text-gray-700">이름: {contract.provider.name}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <User className="h-5 w-5 text-gray-400 mr-2" />
+                          <span className="text-gray-700">연락처: {contract.provider.contact}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div>

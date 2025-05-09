@@ -54,3 +54,9 @@ export interface CustomerSearchFilter {
   size: number;
   includeDeleted?: boolean;
 }
+
+export interface CustomerSummaryDto {
+  id: number | null;
+  name?: string;
+  contact?: string | null;
+}

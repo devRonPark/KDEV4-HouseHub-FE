@@ -580,11 +580,11 @@ const CustomerDetailPage: React.FC = () => {
                                           ? '전세'
                                           : '월세'}
                                     </p>
-                                    <p className="text-sm text-gray-500">
+                                    {/* <p className="text-sm text-gray-500">
                                       {contract.startedAt
                                         ? new Date(contract.startedAt).toLocaleDateString('ko-KR')
                                         : '날짜 정보 없음'}
-                                    </p>
+                                    </p> */}
                                   </div>
                                   <span
                                     className={`px-2 py-1 text-xs rounded-full ${

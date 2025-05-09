@@ -4,7 +4,7 @@ import type {
   ContractReqDto,
   ContractListResDto,
   ContractSearchFilter,
-  ContractResDto,
+  FindContractResDto,
 } from '../types/contract';
 
 // 계약 등록 API
@@ -56,9 +56,9 @@ export const getContracts = async (
 };
 
 // 계약 상세 조회 API
-export const getContractById = async (id: number): Promise<ApiResponse<ContractResDto>> => {
+export const getContractById = async (id: number): Promise<ApiResponse<FindContractResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<ContractResDto>>(`/contracts/${id}`);
+    const response = await apiClient.get<ApiResponse<FindContractResDto>>(`/contracts/${id}`);
     return response.data;
   } catch {
     return {
@@ -149,6 +149,18 @@ export const getCustomerSellContracts = async (
     return {
       success: false,
       error: '고객 매도 계약 내역을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+export const getCompletedContractsThisMonth = async (): Promise<ApiResponse<ContractListResDto>> => {
+  try {
+    const response = await apiClient.get('/contracts/completed/this-month');
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      error: '이번 달 완료된 계약 목록을 불러오는 중 오류가 발생했습니다.',
     };
   }
 };

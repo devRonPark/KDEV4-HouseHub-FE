@@ -107,14 +107,14 @@ const PropertyEdit: React.FC = () => {
           // 고객 정보 설정
           if (propertyData.customer) {
             setSelectedCustomer({
-              id: propertyData.customer.id,
-              name: propertyData.customer.name,
-              contact: propertyData.customer.contact,
-              email: propertyData.customer.email,
-              birthDate: propertyData.customer.birthDate,
-              gender: propertyData.customer.gender,
-              createdAt: propertyData.customer.createdAt,
-              updatedAt: propertyData.customer.updatedAt,
+              id: propertyData.customer.id || 0,
+              name: propertyData.customer.name || '',
+              contact: propertyData.customer.contact || '',
+              // email: propertyData.customer.email,
+              // birthDate: propertyData.customer.birthDate,
+              // gender: propertyData.customer.gender,
+              // createdAt: propertyData.customer.createdAt,
+              // updatedAt: propertyData.customer.updatedAt,
             });
           }
 
