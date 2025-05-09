@@ -46,6 +46,7 @@ const PropertyList: React.FC = () => {
       propertyType: null,
       contractType: undefined,
       active: undefined,
+      tagIds: undefined,
       page: 1,
       size: 10,
     };
@@ -64,6 +65,7 @@ const PropertyList: React.FC = () => {
         },
         [ContractType.SALE]: { min: 0, max: DEFAULT_MAX_PRICE },
       },
+      tagIds: undefined as number[] | undefined,
     };
   }
 
@@ -86,7 +88,7 @@ const PropertyList: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filter, showToast]);
+  }, [filter]);
 
   const handlePageChange = (page: number) => {
     setFilter((prev) => ({ ...prev, page }));
@@ -118,6 +120,7 @@ const PropertyList: React.FC = () => {
       maxDeposit,
       minMonthlyRent,
       maxMonthlyRent,
+      tagIds,
     } = filter;
     setFilterModalValues({
       propertyType,
@@ -163,6 +166,7 @@ const PropertyList: React.FC = () => {
                 : maxPrice / PRICE_UNIT,
         },
       },
+      tagIds,
     });
     setIsFilterModalOpen(true);
   };
@@ -172,6 +176,7 @@ const PropertyList: React.FC = () => {
     newFilter.propertyType = filterValues.propertyType;
     newFilter.contractType = filterValues.contractType || undefined;
     newFilter.active = filterValues.active;
+    newFilter.tagIds = filterValues.tagIds;
 
     const jeonseRange = filterValues.priceRanges[ContractType.JEONSE];
     const monthlyRentRange = filterValues.priceRanges[ContractType.MONTHLY_RENT];
@@ -223,7 +228,7 @@ const PropertyList: React.FC = () => {
       fetchProperties();
       setSearchBtnClicked(false);
     }
-  }, [fetchProperties, searchBtnClicked]);
+  }, [searchBtnClicked]);
 
   return (
     <DashboardLayout>
