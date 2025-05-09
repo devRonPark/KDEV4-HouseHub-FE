@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
   File,
   MessageSquare,
   Tag,
+  Home,
 } from 'react-feather';
 import {
   getCustomerById,
@@ -23,6 +24,8 @@ import {
   getCustomerBuyContracts,
   getCustomerInquiries,
   getCustomerSms,
+  getCustomerRecommendProperties,
+  getCustomerRecommendCrawlProperties,
 } from '../../api/customer';
 import { useToast } from '../../context/useToast';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -38,9 +41,12 @@ import { ContractType, ContractStatus } from '../../types/contract';
 import { CustomerType } from '../../types/inquiry';
 import type { SmsListResDto, SendSmsResDto } from '../../types/sms';
 import SmsDetailModal from '../../components/sms/SmsDetailModal';
+import type { FindPropertyResDto, CrawlingPropertyResDto } from '../../types/property';
+import { PropertyTypeLabels, PropertyDirectionLabels } from '../../types/property';
 
-type TabType = 'consultation' | 'contract' | 'inquiry' | 'sms';
+type TabType = 'consultation' | 'contract' | 'inquiry' | 'sms' | 'recommend';
 type ContractTabType = 'sale' | 'purchase';
+type RecommendTabType = 'my' | 'public';
 
 const CustomerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +57,7 @@ const CustomerDetailPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('consultation');
   const [activeContractTab, setActiveContractTab] = useState<ContractTabType>('sale');
+  const [activeRecommendTab, setActiveRecommendTab] = useState<RecommendTabType>('my');
 
   // 각 탭별 상태 관리
   const [consultations, setConsultations] = useState<ConsultationListResDto | null>(null);
@@ -66,6 +73,13 @@ const CustomerDetailPage: React.FC = () => {
 
   const [selectedSms, setSelectedSms] = useState<SendSmsResDto | null>(null);
   const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
+
+  const [recommendProperties, setRecommendProperties] = useState<FindPropertyResDto[]>([]);
+  const [isLoadingRecommend, setIsLoadingRecommend] = useState(false);
+  const [recommendCrawlProperties, setRecommendCrawlProperties] = useState<
+    CrawlingPropertyResDto[]
+  >([]);
+  const [isLoadingRecommendCrawl, setIsLoadingRecommendCrawl] = useState(false);
 
   // 페이지 변경 핸들러 추가
   const handlePageChange = (page: number) => {
@@ -83,6 +97,46 @@ const CustomerDetailPage: React.FC = () => {
   const handleSmsPageChange = (page: number) => {
     setSmsCurrentPage(page);
   };
+
+  // 추천 매물 로드 함수
+  const loadRecommendProperties = useCallback(async () => {
+    if (!id) return;
+
+    setIsLoadingRecommend(true);
+    try {
+      const response = await getCustomerRecommendProperties(Number(id), 5);
+      if (response.success && response.data) {
+        setRecommendProperties(response.data);
+      } else {
+        showToast(response.message || '추천 매물을 불러오는데 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to load recommend properties:', error);
+      showToast('추천 매물을 불러오는데 실패했습니다.', 'error');
+    } finally {
+      setIsLoadingRecommend(false);
+    }
+  }, [id, showToast]);
+
+  // 공개 매물 로드 함수
+  const loadRecommendCrawlProperties = useCallback(async () => {
+    if (!id) return;
+
+    setIsLoadingRecommendCrawl(true);
+    try {
+      const response = await getCustomerRecommendCrawlProperties(Number(id), 5);
+      if (response.success && response.data) {
+        setRecommendCrawlProperties(response.data);
+      } else {
+        showToast(response.message || '추천 공개 매물을 불러오는데 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to load recommend crawl properties:', error);
+      showToast('추천 공개 매물을 불러오는데 실패했습니다.', 'error');
+    } finally {
+      setIsLoadingRecommendCrawl(false);
+    }
+  }, [id, showToast]);
 
   useEffect(() => {
     const fetchCustomer = async () => {
@@ -152,6 +206,9 @@ const CustomerDetailPage: React.FC = () => {
               setSmsList(response.data);
             }
             break;
+          case 'recommend':
+            await loadRecommendProperties();
+            break;
         }
       } catch (error) {
         console.error(`${activeTab} 목록을 불러오는 중 오류가 발생했습니다:`, error);
@@ -171,7 +228,15 @@ const CustomerDetailPage: React.FC = () => {
     pageSize,
     showToast,
     smsCurrentPage,
+    loadRecommendProperties,
   ]);
+
+  // 탭 변경 시 데이터 로드
+  useEffect(() => {
+    if (activeTab === 'recommend' && activeRecommendTab === 'public') {
+      loadRecommendCrawlProperties();
+    }
+  }, [activeTab, activeRecommendTab, loadRecommendCrawlProperties]);
 
   const handleUpdateCustomer = async (data: Partial<Customer>) => {
     if (!customer) return;
@@ -433,6 +498,17 @@ const CustomerDetailPage: React.FC = () => {
                       >
                         <MessageSquare size={16} />
                         <span>문자 내역</span>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('recommend')}
+                        className={`${
+                          activeTab === 'recommend'
+                            ? 'border-blue-500 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`}
+                      >
+                        <Home size={16} />
+                        <span>추천 매물</span>
                       </button>
                     </nav>
                   </div>
@@ -778,6 +854,174 @@ const CustomerDetailPage: React.FC = () => {
                               )}
                             </div>
                           </div>
+                        )}
+                      </div>
+                    )}
+
+                    {activeTab === 'recommend' && (
+                      <div>
+                        <div className="border-b border-gray-200 mb-4">
+                          <nav className="-mb-px flex space-x-8">
+                            <button
+                              onClick={() => setActiveRecommendTab('my')}
+                              className={`${
+                                activeRecommendTab === 'my'
+                                  ? 'border-blue-500 text-blue-600'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                            >
+                              내 매물
+                            </button>
+                            <button
+                              onClick={() => setActiveRecommendTab('public')}
+                              className={`${
+                                activeRecommendTab === 'public'
+                                  ? 'border-blue-500 text-blue-600'
+                                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                            >
+                              공개 매물
+                            </button>
+                          </nav>
+                        </div>
+
+                        {activeRecommendTab === 'my' ? (
+                          <>
+                            {isLoadingRecommend ? (
+                              <div className="flex justify-center items-center h-32">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                              </div>
+                            ) : recommendProperties.length > 0 ? (
+                              <div className="space-y-4">
+                                {recommendProperties.map((property) => (
+                                  <div
+                                    key={property.id}
+                                    className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                                    onClick={() => navigate(`/properties/${property.id}`)}
+                                  >
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <p className="font-medium text-gray-900">
+                                          {PropertyTypeLabels[property.propertyType]}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {property.roadAddress}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {property.detailAddress}
+                                        </p>
+                                        <div className="mt-2 flex gap-2">
+                                          {property.contractTypes.map((type) => (
+                                            <span
+                                              key={type}
+                                              className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
+                                            >
+                                              {type === 'SALE'
+                                                ? '매매'
+                                                : type === 'JEONSE'
+                                                  ? '전세'
+                                                  : '월세'}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                                <Home className="mx-auto h-12 w-12 text-gray-400" />
+                                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                  추천 매물 없음
+                                </h3>
+                                <p className="mt-1 text-sm text-gray-500">
+                                  현재 추천할 수 있는 매물이 없습니다.
+                                </p>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {isLoadingRecommendCrawl ? (
+                              <div className="flex justify-center items-center h-32">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                              </div>
+                            ) : recommendCrawlProperties.length > 0 ? (
+                              <div className="space-y-4">
+                                {recommendCrawlProperties.map((property) => (
+                                  <div
+                                    key={property.crawlingPropertiesId}
+                                    className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                                  >
+                                    <div className="flex gap-4">
+                                      {/* 왼쪽: 기본 정보 */}
+                                      <div className="flex-1">
+                                        <p className="font-medium text-gray-900">
+                                          {PropertyTypeLabels[property.propertyType]}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {property.province} {property.city} {property.dong}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                          {property.detailAddress}
+                                        </p>
+                                        <div className="mt-2 flex gap-2">
+                                          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                            {PropertyDirectionLabels[property.direction]}
+                                          </span>
+                                          <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                            {property.roomCnt}룸 {property.bathRoomCnt}욕실
+                                          </span>
+                                        </div>
+                                      </div>
+
+                                      {/* 오른쪽: 가격 및 중개사 정보 */}
+                                      <div className="flex-1 border-l border-gray-200 pl-4">
+                                        <div className="space-y-2">
+                                          <p className="text-sm text-gray-600">
+                                            {property.area}㎡ · {property.floor}층/
+                                            {property.allFloors}층
+                                          </p>
+                                          <p className="text-sm font-medium text-gray-900">
+                                            {property.transactionType === 'SALE' ? (
+                                              <>매매가: {property.salePrice}만원</>
+                                            ) : (
+                                              <>
+                                                보증금: {property.deposit}만원
+                                                {property.transactionType === 'MONTHLY' && (
+                                                  <> · 월세: {property.monthlyRentFee}만원</>
+                                                )}
+                                              </>
+                                            )}
+                                          </p>
+                                          <div className="pt-2 border-t border-gray-200">
+                                            <p className="text-sm text-gray-600">
+                                              {property.realEstateOfficeName}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                              {property.realEstateAgentName} ·{' '}
+                                              {property.realEstateAgentContact}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                                <Home className="mx-auto h-12 w-12 text-gray-400" />
+                                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                                  추천 공개 매물 없음
+                                </h3>
+                                <p className="mt-1 text-sm text-gray-500">
+                                  현재 추천할 수 있는 공개 매물이 없습니다.
+                                </p>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
