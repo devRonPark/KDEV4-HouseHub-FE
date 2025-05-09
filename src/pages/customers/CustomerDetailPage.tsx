@@ -517,9 +517,6 @@ const CustomerDetailPage: React.FC = () => {
                   <div className="mt-2">
                     {activeTab === 'consultation' && (
                       <div>
-                        <h2 className="mt-4 text-lg font-medium text-gray-900 mb-4 leading-normal">
-                          상담 내역
-                        </h2>
                         {consultations?.content && consultations.content.length > 0 ? (
                           <div className="space-y-4">
                             {consultations.content.map((consultation) => (
@@ -636,9 +633,6 @@ const CustomerDetailPage: React.FC = () => {
                           </nav>
                         </div>
 
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">
-                          {activeContractTab === 'sale' ? '매도 계약 내역' : '매수 계약 내역'}
-                        </h2>
                         {contracts?.content && contracts.content.length > 0 ? (
                           <div className="space-y-4">
                             {contracts.content.map((contract) => (
@@ -734,9 +728,6 @@ const CustomerDetailPage: React.FC = () => {
 
                     {activeTab === 'inquiry' && (
                       <div>
-                        <h2 className="mt-4 text-lg font-medium text-gray-900 mb-4 leading-normal">
-                          문의 내역
-                        </h2>
                         {inquiries?.content && inquiries.content.length > 0 ? (
                           <div className="space-y-4">
                             {inquiries.content.map((inquiry) => (
@@ -789,9 +780,6 @@ const CustomerDetailPage: React.FC = () => {
 
                     {activeTab === 'sms' && (
                       <div>
-                        <h2 className="mt-4 text-lg font-medium text-gray-900 mb-4 leading-normal">
-                          문자 내역
-                        </h2>
                         {smsList?.content && smsList.content.length > 0 ? (
                           <div className="space-y-4">
                             {smsList.content.map((sms) => (
