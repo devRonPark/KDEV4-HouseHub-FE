@@ -10,7 +10,6 @@ import {
   Mail,
   Calendar,
   FileText,
-  Clock,
   File,
   MessageSquare,
   Tag,
@@ -38,7 +37,6 @@ import type { ConsultationListResDto } from '../../types/consultation';
 import type { ContractListResDto } from '../../types/contract';
 import type { InquiryListResponse } from '../../types/inquiry';
 import { ContractType, ContractStatus } from '../../types/contract';
-import { CustomerType } from '../../types/inquiry';
 import type { SmsListResDto, SendSmsResDto } from '../../types/sms';
 import SmsDetailModal from '../../components/sms/SmsDetailModal';
 import type { FindPropertyResDto, CrawlingPropertyResDto } from '../../types/property';
@@ -277,32 +275,6 @@ const CustomerDetailPage: React.FC = () => {
     }
   };
 
-  const getConsultationStatusText = (status: string) => {
-    switch (status) {
-      case 'RESERVED':
-        return '예약';
-      case 'COMPLETED':
-        return '완료';
-      case 'CANCELED':
-        return '취소';
-      default:
-        return status;
-    }
-  };
-
-  const getConsultationStatusClass = (status: string) => {
-    switch (status) {
-      case 'RESERVED':
-        return 'bg-blue-100 text-blue-800';
-      case 'COMPLETED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELED':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   if (loading) {
     return (
       <DashboardLayout>
@@ -339,7 +311,7 @@ const CustomerDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
         {isEditing ? (
           <Card>
             <CustomerForm
@@ -355,7 +327,7 @@ const CustomerDetailPage: React.FC = () => {
               {/* 기본 정보 카드 */}
               <Card className="overflow-hidden">
                 <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-4 border-b border-gray-200">
                     기본 정보
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -426,7 +398,7 @@ const CustomerDetailPage: React.FC = () => {
               {/* 태그 정보 카드 */}
               <Card className="overflow-hidden">
                 <div className="p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-200">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-4 border-b border-gray-200">
                     태그
                   </h2>
                   {customer.tags && customer.tags.length > 0 ? (
@@ -452,8 +424,11 @@ const CustomerDetailPage: React.FC = () => {
             <div className="space-y-8">
               <Card className="overflow-hidden">
                 <div className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 pb-4 border-b border-gray-200">
+                    활동 내역
+                  </h2>
                   {/* 탭 메뉴 */}
-                  <div className="border-b border-gray-200 mb-2">
+                  <div className="border-b border-gray-200">
                     <nav className="-mb-px flex space-x-8">
                       <button
                         onClick={() => setActiveTab('consultation')}
@@ -514,7 +489,7 @@ const CustomerDetailPage: React.FC = () => {
                   </div>
 
                   {/* 탭 컨텐츠 */}
-                  <div className="mt-2">
+                  <div>
                     {activeTab === 'consultation' && (
                       <div>
                         {consultations?.content && consultations.content.length > 0 ? (
@@ -522,50 +497,65 @@ const CustomerDetailPage: React.FC = () => {
                             {consultations.content.map((consultation) => (
                               <div
                                 key={consultation.id}
-                                className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                                className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors mt-4"
                                 onClick={() => navigate(`/consultations/${consultation.id}`)}
                               >
                                 <div className="flex justify-between items-start">
-                                  <div className="flex items-start space-x-3">
-                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                      <Clock size={20} className="text-gray-500" />
-                                    </div>
-                                    <div>
-                                      <p className="font-medium text-gray-900">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span
+                                        className={`px-2 py-1 text-xs rounded-full ${
+                                          consultation.consultationType === 'VISIT'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : 'bg-purple-100 text-purple-800'
+                                        }`}
+                                      >
                                         {consultation.consultationType === 'VISIT'
                                           ? '방문 상담'
                                           : '전화 상담'}
-                                      </p>
-                                      <p className="text-sm text-gray-500">
-                                        {consultation.consultationDate
-                                          ? new Date(consultation.consultationDate).toLocaleString(
-                                              'ko-KR',
-                                              {
+                                      </span>
+                                      <span
+                                        className={`px-2 py-1 text-xs rounded-full ${
+                                          consultation.status === 'COMPLETED'
+                                            ? 'bg-green-100 text-green-800'
+                                            : consultation.status === 'RESERVED'
+                                              ? 'bg-yellow-100 text-yellow-800'
+                                              : 'bg-gray-100 text-gray-800'
+                                        }`}
+                                      >
+                                        {consultation.status === 'COMPLETED'
+                                          ? '완료'
+                                          : consultation.status === 'RESERVED'
+                                            ? '예약'
+                                            : '취소'}
+                                      </span>
+                                    </div>
+                                    <div className="text-sm">
+                                      <div>
+                                        <span className="text-gray-500">상담일시:</span>{' '}
+                                        <span className="text-gray-900">
+                                          {consultation.consultationDate
+                                            ? new Date(
+                                                consultation.consultationDate
+                                              ).toLocaleString('ko-KR', {
                                                 year: 'numeric',
                                                 month: 'long',
                                                 day: 'numeric',
                                                 hour: '2-digit',
                                                 minute: '2-digit',
                                                 hour12: true,
-                                              }
-                                            )
-                                          : '날짜 정보 없음'}
-                                      </p>
+                                              })
+                                            : '미정'}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-                                  <span
-                                    className={`px-2 py-1 text-xs rounded-full ${getConsultationStatusClass(
-                                      consultation.status
-                                    )}`}
-                                  >
-                                    {getConsultationStatusText(consultation.status)}
-                                  </span>
                                 </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="text-center py-12 bg-gray-50 rounded-lg">
+                          <div className="text-center py-12 bg-gray-50 rounded-lg mt-4">
                             <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">
                               상담 내역 없음
@@ -642,34 +632,82 @@ const CustomerDetailPage: React.FC = () => {
                                 onClick={() => navigate(`/contracts/${contract.id}`)}
                               >
                                 <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="font-medium text-gray-900">
-                                      {contract.contractType === ContractType.SALE
-                                        ? '매매'
-                                        : contract.contractType === ContractType.JEONSE
-                                          ? '전세'
-                                          : '월세'}
+                                  <div className="flex-1">
+                                    <p className="font-medium text-gray-900 mb-2">
+                                      {contract.property?.roadAddress || '주소 정보 없음'}
                                     </p>
-                                    {/* <p className="text-sm text-gray-500">
-                                      {contract.startedAt
-                                        ? new Date(contract.startedAt).toLocaleDateString('ko-KR')
-                                        : '날짜 정보 없음'}
-                                    </p> */}
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                      <div>
+                                        <p className="text-xs text-gray-500">계약 유형</p>
+                                        <p className="text-sm text-gray-900">
+                                          {contract.contractType === ContractType.SALE
+                                            ? '매매'
+                                            : contract.contractType === ContractType.JEONSE
+                                              ? '전세'
+                                              : '월세'}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs text-gray-500">매물 유형</p>
+                                        <p className="text-sm text-gray-900">
+                                          {contract.property?.propertyType
+                                            ? PropertyTypeLabels[contract.property.propertyType]
+                                            : '매물 정보 없음'}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs text-gray-500">계약 금액</p>
+                                        <p className="text-sm text-gray-900">
+                                          {contract.contractType === ContractType.SALE
+                                            ? `매매가: ${contract.salePrice}원`
+                                            : contract.contractType === ContractType.JEONSE
+                                              ? `전세가: ${contract.jeonsePrice}원`
+                                              : `보증금: ${contract.monthlyRentDeposit}원 / 월세: ${contract.monthlyRentFee}원`}
+                                        </p>
+                                      </div>
+                                      {contract.contractType !== ContractType.SALE &&
+                                        contract.startedAt && (
+                                          <div>
+                                            <p className="text-xs text-gray-500">계약 기간</p>
+                                            <p className="text-sm text-gray-900">
+                                              {new Date(contract.startedAt).toLocaleDateString(
+                                                'ko-KR'
+                                              )}{' '}
+                                              ~{' '}
+                                              {contract.expiredAt
+                                                ? new Date(contract.expiredAt).toLocaleDateString(
+                                                    'ko-KR'
+                                                  )
+                                                : '미정'}
+                                            </p>
+                                          </div>
+                                        )}
+                                      {contract.completedAt && (
+                                        <div className="col-span-2">
+                                          <p className="text-xs text-gray-500">계약 체결일</p>
+                                          <p className="text-sm text-gray-900">
+                                            {new Date(contract.completedAt).toLocaleDateString(
+                                              'ko-KR'
+                                            )}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                   <span
-                                    className={`px-2 py-1 text-xs rounded-full ${
+                                    className={`ml-4 px-2 py-1 text-xs rounded-full ${
                                       contract.status === ContractStatus.COMPLETED
                                         ? 'bg-green-100 text-green-800'
                                         : contract.status === ContractStatus.IN_PROGRESS
                                           ? 'bg-blue-100 text-blue-800'
-                                          : 'bg-gray-100 text-gray-800'
+                                          : 'bg-yellow-100 text-yellow-800'
                                     }`}
                                   >
                                     {contract.status === ContractStatus.COMPLETED
                                       ? '완료'
                                       : contract.status === ContractStatus.IN_PROGRESS
                                         ? '진행중'
-                                        : '취소'}
+                                        : '계약 가능'}
                                   </span>
                                 </div>
                               </div>
@@ -733,39 +771,38 @@ const CustomerDetailPage: React.FC = () => {
                             {inquiries.content.map((inquiry) => (
                               <div
                                 key={inquiry.inquiryId}
-                                className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                                className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors mt-4"
                                 onClick={() => navigate(`/inquiries/${inquiry.inquiryId}/answers`)}
                               >
                                 <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="font-medium text-gray-900">
-                                      {inquiry.name || '제목 없음'}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                      {new Date(inquiry.createdAt).toLocaleDateString('ko-KR')}
-                                    </p>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                                        {inquiry.customerStatus}
+                                      </span>
+                                    </div>
+                                    <div className="text-sm">
+                                      <div>
+                                        <span className="text-gray-500">작성일시:</span>{' '}
+                                        <span className="text-gray-900">
+                                          {new Date(inquiry.createdAt).toLocaleString('ko-KR', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: true,
+                                          })}
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <span
-                                    className={`px-2 py-1 text-xs rounded-full ${
-                                      inquiry.customerType === CustomerType.CUSTOMER
-                                        ? 'bg-green-100 text-green-800'
-                                        : inquiry.customerType === CustomerType.CUSTOMER_CANDIDATE
-                                          ? 'bg-yellow-100 text-yellow-800'
-                                          : 'bg-gray-100 text-gray-800'
-                                    }`}
-                                  >
-                                    {inquiry.customerType === CustomerType.CUSTOMER
-                                      ? '고객'
-                                      : inquiry.customerType === CustomerType.CUSTOMER_CANDIDATE
-                                        ? '예비고객'
-                                        : '기타'}
-                                  </span>
                                 </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="text-center py-12 bg-gray-50 rounded-lg">
+                          <div className="text-center py-12 bg-gray-50 rounded-lg mt-4">
                             <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">
                               문의 내역 없음
@@ -785,18 +822,29 @@ const CustomerDetailPage: React.FC = () => {
                             {smsList.content.map((sms) => (
                               <div
                                 key={sms.id}
-                                className="flex items-center border rounded px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-sm cursor-pointer"
+                                className="flex items-center border rounded px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-sm cursor-pointer mt-4"
                                 onClick={() => {
                                   setSelectedSms(sms);
                                   setIsSmsModalOpen(true);
                                 }}
                               >
-                                <span
-                                  className={`px-2 py-0.5 text-xs rounded-full mr-2 ${sms.status === 'SUCCESS' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                                >
-                                  {sms.status === 'SUCCESS' ? '성공' : '실패'}
-                                </span>
-                                <span className="font-medium text-gray-900 mr-2">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className={`px-2 py-0.5 text-xs rounded-full ${
+                                      sms.status === 'SUCCESS'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-red-100 text-red-800'
+                                    }`}
+                                  >
+                                    {sms.status === 'SUCCESS' ? '성공' : '실패'}
+                                  </span>
+                                  {sms.rdate && (
+                                    <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">
+                                      예약
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="font-medium text-gray-900 mx-2">
                                   {sms.msgType}
                                 </span>
                                 <span
@@ -814,7 +862,7 @@ const CustomerDetailPage: React.FC = () => {
                             ))}
                           </div>
                         ) : (
-                          <div className="text-center py-12 bg-gray-50 rounded-lg">
+                          <div className="text-center py-12 bg-gray-50 rounded-lg mt-4">
                             <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900">
                               문자 내역 없음
@@ -947,9 +995,6 @@ const CustomerDetailPage: React.FC = () => {
                                       <div className="flex-1">
                                         <p className="font-medium text-gray-900">
                                           {PropertyTypeLabels[property.propertyType]}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {property.province} {property.city} {property.dong}
                                         </p>
                                         <p className="text-sm text-gray-500">
                                           {property.detailAddress}
