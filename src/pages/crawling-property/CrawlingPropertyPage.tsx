@@ -42,8 +42,8 @@ const propertyTypeKoreanMap = {
 export const CrawlingPropertyPage = () => {
   const { showToast } = useToast();
   const [searchParams, setSearchParams] = useState({
-    province: '',
-    city: '',
+    province: '서울시', // 초기 화면에서 로딩이 너무 길기 때문에 전체 조회를 피하기 위해 초기값 설정
+    city: '마포구',
     dong: ''
   });
 
@@ -256,8 +256,8 @@ export const CrawlingPropertyPage = () => {
       const params: CrawlingPropertySearchParams = {
         propertyType: selectedPropertyType as CrawlingPropertyType || undefined,
         transactionType: selectedContractType as CrawlingTransactionType || undefined,
-        province: searchParams.province || "서울시", // 초기 화면에서 로딩이 너무 길기 때문에 전체 조회를 피하기 위해 초기값 설정
-        city: searchParams.city || "마포구",
+        province: searchParams.province || undefined,
+        city: searchParams.city || undefined,
         dong: searchParams.dong || undefined,
         page: page,
         size: pagination.size,
