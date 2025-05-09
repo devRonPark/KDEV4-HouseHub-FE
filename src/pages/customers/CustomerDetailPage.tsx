@@ -22,6 +22,7 @@ import {
   getCustomerSellContracts,
   getCustomerBuyContracts,
   getCustomerInquiries,
+  getCustomerSms,
 } from '../../api/customer';
 import { useToast } from '../../context/useToast';
 import DashboardLayout from '../../components/layout/DashboardLayout';
@@ -35,8 +36,10 @@ import type { ContractListResDto } from '../../types/contract';
 import type { InquiryListResponse } from '../../types/inquiry';
 import { ContractType, ContractStatus } from '../../types/contract';
 import { CustomerType } from '../../types/inquiry';
+import type { SmsListResDto, SendSmsResDto } from '../../types/sms';
+import SmsDetailModal from '../../components/sms/SmsDetailModal';
 
-type TabType = 'consultation' | 'contract' | 'inquiry';
+type TabType = 'consultation' | 'contract' | 'inquiry' | 'sms';
 type ContractTabType = 'sale' | 'purchase';
 
 const CustomerDetailPage: React.FC = () => {
@@ -53,11 +56,16 @@ const CustomerDetailPage: React.FC = () => {
   const [consultations, setConsultations] = useState<ConsultationListResDto | null>(null);
   const [contracts, setContracts] = useState<ContractListResDto | null>(null);
   const [inquiries, setInquiries] = useState<InquiryListResponse | null>(null);
+  const [smsList, setSmsList] = useState<SmsListResDto | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(5);
   const [saleCurrentPage, setSaleCurrentPage] = useState(1);
   const [purchaseCurrentPage, setPurchaseCurrentPage] = useState(1);
+  const [smsCurrentPage, setSmsCurrentPage] = useState(1);
+
+  const [selectedSms, setSelectedSms] = useState<SendSmsResDto | null>(null);
+  const [isSmsModalOpen, setIsSmsModalOpen] = useState(false);
 
   // 페이지 변경 핸들러 추가
   const handlePageChange = (page: number) => {
@@ -70,6 +78,10 @@ const CustomerDetailPage: React.FC = () => {
 
   const handlePurchasePageChange = (page: number) => {
     setPurchaseCurrentPage(page);
+  };
+
+  const handleSmsPageChange = (page: number) => {
+    setSmsCurrentPage(page);
   };
 
   useEffect(() => {
@@ -134,6 +146,12 @@ const CustomerDetailPage: React.FC = () => {
               setInquiries(response.data);
             }
             break;
+          case 'sms':
+            response = await getCustomerSms(Number(id), smsCurrentPage, pageSize);
+            if (response.success && response.data) {
+              setSmsList(response.data);
+            }
+            break;
         }
       } catch (error) {
         console.error(`${activeTab} 목록을 불러오는 중 오류가 발생했습니다:`, error);
@@ -152,6 +170,7 @@ const CustomerDetailPage: React.FC = () => {
     purchaseCurrentPage,
     pageSize,
     showToast,
+    smsCurrentPage,
   ]);
 
   const handleUpdateCustomer = async (data: Partial<Customer>) => {
@@ -369,7 +388,7 @@ const CustomerDetailPage: React.FC = () => {
               <Card className="overflow-hidden">
                 <div className="p-6">
                   {/* 탭 메뉴 */}
-                  <div className="border-b border-gray-200 mb-6">
+                  <div className="border-b border-gray-200 mb-2">
                     <nav className="-mb-px flex space-x-8">
                       <button
                         onClick={() => setActiveTab('consultation')}
@@ -404,14 +423,27 @@ const CustomerDetailPage: React.FC = () => {
                         <MessageSquare size={16} />
                         <span>문의 내역</span>
                       </button>
+                      <button
+                        onClick={() => setActiveTab('sms')}
+                        className={`${
+                          activeTab === 'sms'
+                            ? 'border-blue-500 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`}
+                      >
+                        <MessageSquare size={16} />
+                        <span>문자 내역</span>
+                      </button>
                     </nav>
                   </div>
 
                   {/* 탭 컨텐츠 */}
-                  <div className="mt-6">
+                  <div className="mt-2">
                     {activeTab === 'consultation' && (
                       <div>
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">상담 내역</h2>
+                        <h2 className="mt-4 text-lg font-medium text-gray-900 mb-4 leading-normal">
+                          상담 내역
+                        </h2>
                         {consultations?.content && consultations.content.length > 0 ? (
                           <div className="space-y-4">
                             {consultations.content.map((consultation) => (
@@ -626,7 +658,9 @@ const CustomerDetailPage: React.FC = () => {
 
                     {activeTab === 'inquiry' && (
                       <div>
-                        <h2 className="text-lg font-medium text-gray-900 mb-4">문의 내역</h2>
+                        <h2 className="mt-4 text-lg font-medium text-gray-900 mb-4 leading-normal">
+                          문의 내역
+                        </h2>
                         {inquiries?.content && inquiries.content.length > 0 ? (
                           <div className="space-y-4">
                             {inquiries.content.map((inquiry) => (
@@ -676,6 +710,77 @@ const CustomerDetailPage: React.FC = () => {
                         )}
                       </div>
                     )}
+
+                    {activeTab === 'sms' && (
+                      <div>
+                        <h2 className="mt-4 text-lg font-medium text-gray-900 mb-4 leading-normal">
+                          문자 내역
+                        </h2>
+                        {smsList?.content && smsList.content.length > 0 ? (
+                          <div className="space-y-4">
+                            {smsList.content.map((sms) => (
+                              <div
+                                key={sms.id}
+                                className="flex items-center border rounded px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-sm cursor-pointer"
+                                onClick={() => {
+                                  setSelectedSms(sms);
+                                  setIsSmsModalOpen(true);
+                                }}
+                              >
+                                <span
+                                  className={`px-2 py-0.5 text-xs rounded-full mr-2 ${sms.status === 'SUCCESS' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                                >
+                                  {sms.status === 'SUCCESS' ? '성공' : '실패'}
+                                </span>
+                                <span className="font-medium text-gray-900 mr-2">
+                                  {sms.msgType}
+                                </span>
+                                <span
+                                  className="truncate max-w-[300px] text-gray-700 mr-2"
+                                  title={sms.msg}
+                                >
+                                  {sms.msg}
+                                </span>
+                                <span className="ml-auto text-gray-400">
+                                  {sms.createdAt
+                                    ? new Date(sms.createdAt).toLocaleString('ko-KR')
+                                    : '날짜 정보 없음'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 bg-gray-50 rounded-lg">
+                            <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
+                            <h3 className="mt-2 text-sm font-medium text-gray-900">
+                              문자 내역 없음
+                            </h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                              아직 기록된 문자 내역이 없습니다.
+                            </p>
+                          </div>
+                        )}
+                        {/* 페이지네이션 */}
+                        {smsList && (
+                          <div className="mt-4 flex justify-center">
+                            <div className="flex space-x-2">
+                              {Array.from(
+                                { length: Math.ceil(smsList.pagination.totalElements / pageSize) },
+                                (_, i) => (
+                                  <button
+                                    key={i + 1}
+                                    onClick={() => handleSmsPageChange(i + 1)}
+                                    className={`px-3 py-1 rounded ${smsCurrentPage === i + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                                  >
+                                    {i + 1}
+                                  </button>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -683,6 +788,13 @@ const CustomerDetailPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 문자 상세 모달 */}
+      <SmsDetailModal
+        isOpen={isSmsModalOpen}
+        onClose={() => setIsSmsModalOpen(false)}
+        sms={selectedSms}
+      />
     </DashboardLayout>
   );
 };

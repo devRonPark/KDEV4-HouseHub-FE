@@ -11,6 +11,7 @@ import axios from 'axios';
 import { ConsultationListResDto } from '../types/consultation';
 import { ContractListResDto } from '../types/contract';
 import { InquiryListResponse } from '../types/inquiry';
+import { SmsListResDto } from '../types/sms';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회 (상담 내역 제외)
 export const getMyCustomers = async (
@@ -260,6 +261,25 @@ export const getRecentCustomers = async (page: number = 0, size: number = 5): Pr
     return {
       success: false,
       error: '최근 신규 고객 목록을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+}
+
+// 고객 문자 내역 조회
+export const getCustomerSms = async (
+  customerId: number,
+  page: number = 1,
+  size: number = 10
+): Promise<ApiResponse<SmsListResDto>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<SmsListResDto>>(
+      `/customers/${customerId}/sms?page=${page}&size=${size}`
+    );
+    return response.data;
+  } catch {
+    return {
+      success: false,
+      error: '고객 문자 내역을 불러오는 중 오류가 발생했습니다.',
     };
   }
 };
