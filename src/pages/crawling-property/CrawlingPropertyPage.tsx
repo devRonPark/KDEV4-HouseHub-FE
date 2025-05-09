@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { searchCrawlingPropertiesWithTags } from '../../api/crawling-property';
+import { searchCrawlingPropertiesWithTags, getCrawlingPropertyById } from '../../api/crawling-property';
 import { 
   CrawlingPropertyItem,
   PaginationDto,
@@ -256,8 +256,8 @@ export const CrawlingPropertyPage = () => {
       const params: CrawlingPropertySearchParams = {
         propertyType: selectedPropertyType as CrawlingPropertyType || undefined,
         transactionType: selectedContractType as CrawlingTransactionType || undefined,
-        province: searchParams.province || undefined,
-        city: searchParams.city || undefined,
+        province: searchParams.province || "서울시", // 초기 화면에서 로딩이 너무 길기 때문에 전체 조회를 피하기 위해 초기값 설정
+        city: searchParams.city || "마포구",
         dong: searchParams.dong || undefined,
         page: page,
         size: pagination.size,
@@ -301,9 +301,18 @@ export const CrawlingPropertyPage = () => {
     }
   };
 
-  const handlePropertyClick = (property: CrawlingPropertyItem) => {
-    setSelectedProperty(property);
-    setIsModalOpen(true);
+  const handlePropertyClick = async (id: string) => {
+    try {
+      const detail = await getCrawlingPropertyById(id);
+      if (detail && detail.success && detail.data) {
+        setSelectedProperty(detail.data);
+        setIsModalOpen(true);
+      } else {
+        alert('상세 정보를 불러오지 못했습니다.');
+      }
+    } catch (e) {
+      alert('상세 정보를 불러오지 못했습니다.');
+    }
   };
 
   // 태그 토글 핸들러
@@ -638,7 +647,7 @@ export const CrawlingPropertyPage = () => {
                   <div 
                     key={property.crawlingPropertiesId} 
                     className="p-6 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handlePropertyClick(property)}
+                    onClick={() => handlePropertyClick(property.crawlingPropertiesId)}
                   >
                     <div className="flex flex-row items-center justify-between">
                       <div>
