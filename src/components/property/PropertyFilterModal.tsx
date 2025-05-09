@@ -47,8 +47,8 @@ const PropertyFilterModal: React.FC<PropertyFilterModalProps> = ({
   onApplyFilters,
 }) => {
   const [filters, setFilters] = useState<FilterValues>(initialValues);
-  const [tags, setTags] = useState<TagResDto[]>([]);
-  const [isLoadingTags, setIsLoadingTags] = useState(false);
+  const [, setTags] = useState<TagResDto[]>([]);
+  const [, setIsLoadingTags] = useState(false);
 
   // Reset filters to initial values when modal opens
   useEffect(() => {
