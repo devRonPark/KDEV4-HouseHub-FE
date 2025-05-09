@@ -11,8 +11,8 @@ import { MailOpen } from 'lucide-react';
 
 interface NotificationItemProps {
   notification: Notification;
-  onMarkAsRead: (id: number) => void;
-  onMarkAsUnread: (id: number) => void;
+  onMarkAsRead: (notification: Notification) => void;
+  onMarkAsUnread: (notification: Notification) => void;
   onRemove: (id: number) => void;
   onClick?: (notification: Notification) => void;
   isSelected?: boolean;
@@ -74,7 +74,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   // 알림 클릭 핸들러
   const handleClick = () => {
     if (!notification.isRead) {
-      onMarkAsRead(notification.id);
+      onMarkAsRead(notification);
     }
 
     if (onClick) {
@@ -92,9 +92,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   const handleToggleReadStatus = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (notification.isRead) {
-      onMarkAsUnread(notification.id);
+      onMarkAsUnread(notification);
     } else {
-      onMarkAsRead(notification.id);
+      onMarkAsRead(notification);
     }
   };
 
