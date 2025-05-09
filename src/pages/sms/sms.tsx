@@ -10,17 +10,17 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
-import Modal from '../../components/ui/Modal';
 import Pagination from '../../components/ui/Pagination';
 import Badge from '../../components/ui/Badge';
 import { useToast } from '../../context/useToast';
-import { getAllSms, getSmsById, getSmsCost } from '../../api/smsApi';
-import { getAllTemplates } from '../../api/smsApi';
+import { getAllSms, getSmsById, getSmsCost } from '../../api/sms';
+import { getAllTemplates } from '../../api/sms';
 import type { SendSmsResDto } from '../../types/sms';
 import type { SmsTemplateListResDto } from '../../types/sms';
 
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
+import SmsDetailModal from '../../components/sms/SmsDetailModal';
 
 const SmsListPage = () => {
   const navigate = useNavigate();
@@ -449,86 +449,11 @@ const SmsListPage = () => {
       </div>
 
       {/* 문자 상세 정보 모달 */}
-      <Modal
+      <SmsDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        title="문자 상세 정보"
-        size="md"
-      >
-        {selectedSms && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">발신 번호</h3>
-              <p className="mt-1 text-sm text-gray-900">{selectedSms.sender}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">수신 번호</h3>
-              <p className="mt-1 text-sm text-gray-900">{selectedSms.receiver}</p>
-            </div>
-            {selectedSms.title && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">제목</h3>
-                <p className="mt-1 text-sm text-gray-900">{selectedSms.title}</p>
-              </div>
-            )}
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">메시지 유형</h3>
-              <p className="mt-1 text-sm text-gray-900">{selectedSms.msgType}</p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">발송 상태</h3>
-              <div className="mt-1">
-                <Badge
-                  variant={
-                    selectedSms.status === 'SUCCESS'
-                      ? 'success'
-                      : selectedSms.status === 'PERMANENT_FAIL'
-                        ? 'warning'
-                        : 'danger'
-                  }
-                  size="sm"
-                >
-                  {selectedSms.status === 'SUCCESS'
-                    ? '성공'
-                    : selectedSms.status === 'PERMANENT_FAIL'
-                      ? '영구 실패'
-                      : '실패'}
-                </Badge>
-              </div>
-            </div>
-            {/* 예약 일시 */}
-            {selectedSms?.rdate &&
-              selectedSms?.rtime &&
-              formatReserveTime(selectedSms.rdate + selectedSms.rtime) !==
-                formatRequestTime(selectedSms.createdAt) && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">예약 일시</h3>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {selectedSms?.rdate &&
-                      selectedSms?.rtime &&
-                      formatReserveTime(selectedSms.rdate + selectedSms.rtime)}
-                  </p>
-                </div>
-              )}
-
-            {/* 요청 일시 */}
-            {selectedSms.createdAt && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-500">요청 일시</h3>
-                <p className="mt-1 text-sm text-gray-900">
-                  {formatRequestTime(selectedSms.createdAt)}
-                </p>
-              </div>
-            )}
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">메시지 내용</h3>
-              <div className="mt-1 p-3 bg-gray-50 rounded-md">
-                <p className="text-sm text-gray-900 whitespace-pre-wrap">{selectedSms.msg}</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+        sms={selectedSms}
+      />
     </DashboardLayout>
   );
 };

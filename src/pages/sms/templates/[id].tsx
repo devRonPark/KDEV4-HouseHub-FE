@@ -10,7 +10,7 @@ import Input from '../../../components/ui/Input';
 import Textarea from '../../../components/ui/Textarea';
 import Card from '../../../components/ui/Card';
 import { useToast } from '../../../context/useToast';
-import { getTemplateById, updateTemplate } from '../../../api/smsApi';
+import { getTemplateById, updateTemplate } from '../../../api/sms';
 import type { CreateUpdateTemplateReqDto } from '../../../types/sms';
 
 const SmsTemplateEditPage = () => {

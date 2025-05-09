@@ -7,33 +7,55 @@ import DashboardLayout from '../../components/layout/DashboardLayout';
 import Modal from '../../components/ui/Modal';
 import ProfileForm from './ProfileForm';
 import { User, Phone, Mail, FileText } from 'react-feather';
+import { getAllTemplates } from '../../api/sms';
+import type { TemplateResDto } from '../../types/sms';
 
 function MyPage() {
   const [profile, setProfile] = useState<AgentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [templates, setTemplates] = useState<TemplateResDto[]>([]);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      const result = await getMyProfile();
-      if (result.success) {
-        setProfile(result.data!);
-        setError(null);
-      } else {
-        setError(result.error || '알 수 없는 오류가 발생했습니다.');
+      try {
+        const [profileResult, templatesResult] = await Promise.all([
+          getMyProfile(),
+          getAllTemplates({ page: 1, size: 100, keyword: '' }),
+        ]);
+
+        if (profileResult.success) {
+          setProfile(profileResult.data!);
+          setError(null);
+        } else {
+          setError(profileResult.error || '알 수 없는 오류가 발생했습니다.');
+        }
+
+        if (templatesResult.success && templatesResult.data) {
+          setTemplates(templatesResult.data.content || []);
+        }
+      } catch {
+        setError('데이터를 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    fetchProfile();
+    fetchData();
   }, []);
 
   if (loading)
     return <div className="flex justify-center items-center min-h-screen">로딩 중...</div>;
   if (error) return <div className="text-red-500 text-center p-4">{error}</div>;
   if (!profile) return null;
+
+  const getTemplateTitle = (templateId?: string) => {
+    if (!templateId) return '미설정';
+    const template = templates.find((t) => t.id.toString() === templateId);
+    return template ? template.title : '미설정';
+  };
 
   return (
     <DashboardLayout>
@@ -82,17 +104,25 @@ function MyPage() {
                 </div>
               </div>
 
-              {profile.licenseNumber && (
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                    <FileText className="text-gray-600" size={24} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">자격증 번호</p>
-                    <p className="text-gray-900">{profile.licenseNumber}</p>
-                  </div>
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                  <FileText className="text-gray-600" size={24} />
                 </div>
-              )}
+                <div>
+                  <p className="text-sm font-medium text-gray-500">자격증 번호</p>
+                  <p className="text-gray-900">{profile.licenseNumber || '미등록'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                  <FileText className="text-gray-600" size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">생일 축하 메시지 템플릿</p>
+                  <p className="text-gray-900">{getTemplateTitle(profile.birthdayTemplateId)}</p>
+                </div>
+              </div>
             </div>
           </div>
 

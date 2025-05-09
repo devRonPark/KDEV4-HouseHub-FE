@@ -14,12 +14,23 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
   error?: string;
   helperText?: string;
   fullWidth?: boolean;
+  isLoading?: boolean;
   onChange?: (value: string) => void;
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   (
-    { label, options, error, helperText, fullWidth = true, className = '', onChange, ...props },
+    {
+      label,
+      options,
+      error,
+      helperText,
+      fullWidth = true,
+      className = '',
+      onChange,
+      isLoading,
+      ...props
+    },
     ref
   ) => {
     const selectWrapperClasses = `relative ${fullWidth ? 'w-full' : ''}`;
@@ -48,12 +59,22 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
 
         <div className="relative">
-          <select ref={ref} className={selectClasses} onChange={handleChange} {...props}>
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
+          <select
+            ref={ref}
+            className={selectClasses}
+            onChange={handleChange}
+            disabled={isLoading}
+            {...props}
+          >
+            {isLoading ? (
+              <option value="">로딩 중...</option>
+            ) : (
+              options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))
+            )}
           </select>
 
           <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
