@@ -1,5 +1,5 @@
-import type { CustomerResDto } from './customer';
-import type { ContractResDto, ContractType, BasicContractReqDto } from './contract';
+import type { CustomerSummaryDto } from './customer';
+import type { ContractType, BasicContractReqDto, ContractSummaryDto } from './contract';
 import type { PaginationDto } from './pagination';
 import type { TagResDto } from './tag';
 
@@ -84,7 +84,7 @@ export interface FindPropertyResDto {
   jibunAddress: string;
   active: boolean;
   contractTypes: ContractType[];
-  customer: CustomerResDto;
+  // customer: CustomerResDto;
 }
 
 // 매물 목록 응답 LIST DTO
@@ -117,12 +117,12 @@ export interface PropertySearchFilter {
 export interface FindPropertyDetailResDto {
   id: number;
   propertyType: PropertyType;
-  customer: CustomerResDto;
+  customer: CustomerSummaryDto;
   memo?: string;
   detailAddress: string;
   roadAddress: string;
   jibunAddress: string;
-  contractList: ContractResDto[];
+  contractList: ContractSummaryDto[];
   active: boolean;
   createdAt: string;
   area?: number; // 면적
@@ -157,4 +157,11 @@ export interface CrawlingPropertyResDto {
   realEstateAgentContact: string;
   realEstateOfficeName: string;
   realEstateOfficeAddress: string;
+}
+
+export interface PropertySummaryResDto {
+  id: number;
+  propertyType: PropertyType;
+  detailAddress: string;
+  roadAddress: string;
 }

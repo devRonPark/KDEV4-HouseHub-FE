@@ -277,20 +277,6 @@ const PropertyRegistration: React.FC = () => {
               {/* 주소 입력 */}
               <AddressInput onAddressSelect={handleAddressSelect} />
 
-              {/* 매물 활성화 여부 */}
-              <div className="flex items-center">
-                <input
-                  id="active"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  checked={formData.active}
-                  onChange={(e) => setFormData(prev => ({ ...prev, active: e.target.checked }))}
-                />
-                <label htmlFor="active" className="ml-2 block text-sm text-gray-700">
-                  매물 활성화 (체크 해제 시 비활성화)
-                </label>
-              </div>
-
               {/* 새로 추가된 필드들 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 면적 */}
@@ -385,6 +371,9 @@ const PropertyRegistration: React.FC = () => {
               {/* 계약 정보 */}
               <div className="border-t border-gray-200 pt-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">계약 정보</h3>
+                <p className="mt-1 text-xs text-gray-500">
+                  ⚠️ 계약 조건을 함께 등록하지 않으면, 매물은 기본적으로 비활성화 상태로 저장됩니다.
+                </p>
                 <div className="space-y-6">
                   {/* 계약 유형 */}
                   <div>

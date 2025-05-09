@@ -2,7 +2,7 @@
 
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Search, Plus, RefreshCw, FileText } from 'react-feather';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Button from '../../components/ui/Button';
@@ -16,16 +16,17 @@ import {
   ContractStatus,
   ContractTypeLabels,
   ContractStatusLabels,
-  ContractResDto,
+  FindContractResDto,
   ContractSearchFilter,
 } from '../../types/contract';
 import { PaginationDto } from '../../types/pagination';
 
 const ContractList: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
-  const [contracts, setContracts] = useState<ContractResDto[]>([]);
+  const [contracts, setContracts] = useState<FindContractResDto[]>([]);
   const [pagination, setPagination] = useState<PaginationDto>({
     totalPages: 1,
     totalElements: 0,
@@ -42,20 +43,34 @@ const ContractList: React.FC = () => {
   });
   const [searchBtnClicked, setSearchBtnClicked] = useState(false);
 
+  // location state가 변경될 때마다 필터 적용
+  useEffect(() => {
+    const status = (location.state as { status?: ContractStatus })?.status;
+    if (status) {
+      const newFilter = {
+        ...filter,
+        status,
+        page: 1,
+      };
+      setFilter(newFilter);
+      setSearchBtnClicked(true);
+    }
+  }, [location.state]);
+
   // 계약 목록 조회
   const fetchContracts = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      // console.log('Fetching contracts with filter:', filter);
       const response = await getContracts(filter);
-      // console.log('Contracts API response:', response);
-
       if (response.success && response.data) {
-        // console.log('response.data:', response.data);
-        // console.log('Setting contracts:', response.data.content);
         setContracts(response.data.content || []);
-        setPagination(response.data.pagination);
+        setPagination({
+          totalPages: response.data.pagination.totalPages,
+          totalElements: response.data.pagination.totalElements,
+          size: response.data.pagination.size,
+          currentPage: response.data.pagination.currentPage,
+        });
       } else {
         console.error('Failed to fetch contracts:', response.error);
         showToast(response.error || '계약 목록을 불러오는데 실패했습니다.', 'error');
@@ -117,15 +132,22 @@ const ContractList: React.FC = () => {
     setSearchBtnClicked(false); // 버튼 클릭 false로 초기화
   };
 
-  // 초기 데이터 로딩 및 필터/페이지 변경 시 데이터 다시 로딩
+  // 초기 데이터 로딩
   useEffect(() => {
-    fetchContracts();
+    const status = (location.state as { status?: ContractStatus })?.status;
+    if (status) {
+      setFilter(prev => ({ ...prev, status }));
+      setSearchBtnClicked(true);
+    } else {
+      fetchContracts();
+    }
   }, []);
 
+  // searchBtnClicked가 변경될 때마다 데이터 다시 로딩
   useEffect(() => {
     if (searchBtnClicked) {
       fetchContracts();
-      setSearchBtnClicked(false); // 다시 false로 초기화
+      setSearchBtnClicked(false);
     }
   }, [fetchContracts, searchBtnClicked]);
 
