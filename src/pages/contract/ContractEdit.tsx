@@ -21,7 +21,7 @@ import {
   type ContractFormData,
   type FindContractResDto,
 } from '../../types/contract';
-import { FindPropertyDetailResDto, FindPropertyResDto, PropertyTypeLabels, type PropertySummaryResDto } from '../../types/property';
+import { FindPropertyDetailResDto, PropertyTypeLabels, type PropertySummaryResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
 import type { CustomerSummaryDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
