@@ -19,9 +19,9 @@ import {
   ContractStatusLabels,
   type ContractReqDto,
 } from '../../types/contract';
-import { PropertyType, PropertyTypeLabels, type FindPropertyResDto } from '../../types/property';
+import { PropertyType, PropertyTypeLabels, type FindPropertyDetailResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
-import type { CustomerResDto } from '../../types/customer';
+import type { CustomerResDto, CustomerSummaryDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
 import { getPropertyById } from '../../api/property';
 import { Tooltip } from '@mui/material';
@@ -98,9 +98,9 @@ const ContractRegistration: React.FC = () => {
   const propertyIdParam = queryParams.get('propertyId');
 
   // 선택된 매물과 고객 정보
-  const [selectedProperty, setSelectedProperty] = useState<FindPropertyResDto | null>(null);
-  const [selectedLandlord] = useState<CustomerResDto | null>(null);
-  const [selectedTenant, setSelectedTenant] = useState<CustomerResDto | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<FindPropertyDetailResDto | null>(null);
+  const [selectedLandlord, setSelectedLandlord] = useState<CustomerSummaryDto | null>(null);
+  const [selectedTenant, setSelectedTenant] = useState<CustomerSummaryDto | null>(null);
 
   // 폼 데이터 상태
   const [formData, setFormData] = useState<ContractFormData>({
@@ -146,8 +146,8 @@ const ContractRegistration: React.FC = () => {
           setSelectedProperty({
             ...response.data,
             propertyType: response.data.propertyType as PropertyType,
-          } as unknown as FindPropertyResDto);
-          // setSelectedLandlord(response.data.customer || null);
+          } as unknown as FindPropertyDetailResDto);
+          setSelectedLandlord(response.data.customer || null);
           setFormData(prev => ({ ...prev, propertyId: response.data?.id || null }));
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
@@ -160,9 +160,9 @@ const ContractRegistration: React.FC = () => {
     loadPropertyData();
   }, [propertyIdParam]);
 
-  const handlePropertySelect = async (property: FindPropertyResDto) => {
+  const handlePropertySelect = async (property: FindPropertyDetailResDto) => {
     setSelectedProperty(property);
-    // setSelectedLandlord(property.customer || null);
+    setSelectedLandlord(property.customer || null);
     setFormData(prev => ({ ...prev, propertyId: property.id }));
     if (selectedTenant) {
       setSelectedTenant(null);
@@ -425,7 +425,7 @@ const ContractRegistration: React.FC = () => {
                           {selectedTenant.name ?? '미입력'}
                         </p>
                         <p className="text-sm text-gray-500">{selectedTenant.contact}</p>
-                        <p className="text-sm text-gray-500">{selectedTenant.email ?? '미입력'}</p>
+                        {/* <p className="text-sm text-gray-500">{selectedTenant.email ?? '미입력'}</p> */}
                       </div>
                     </div>
                   ) : (
