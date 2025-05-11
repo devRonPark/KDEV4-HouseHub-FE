@@ -41,6 +41,7 @@ import type { SmsListResDto, SendSmsResDto } from '../../types/sms';
 import SmsDetailModal from '../../components/sms/SmsDetailModal';
 import type { FindPropertyResDto, CrawlingPropertyResDto } from '../../types/property';
 import { PropertyTypeLabels, PropertyDirectionLabels } from '../../types/property';
+import PropertyListItem from '../../components/property/PropertyListItem';
 
 type TabType = 'consultation' | 'contract' | 'inquiry' | 'sms' | 'recommend';
 type ContractTabType = 'sale' | 'purchase';
@@ -930,39 +931,7 @@ const CustomerDetailPage: React.FC = () => {
                             ) : recommendProperties.length > 0 ? (
                               <div className="space-y-4">
                                 {recommendProperties.map((property) => (
-                                  <div
-                                    key={property.id}
-                                    className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
-                                    onClick={() => navigate(`/properties/${property.id}`)}
-                                  >
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <p className="font-medium text-gray-900">
-                                          {PropertyTypeLabels[property.propertyType]}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {property.roadAddress}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                          {property.detailAddress}
-                                        </p>
-                                        <div className="mt-2 flex gap-2">
-                                          {property.contractTypes.map((type) => (
-                                            <span
-                                              key={type}
-                                              className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
-                                            >
-                                              {type === 'SALE'
-                                                ? '매매'
-                                                : type === 'JEONSE'
-                                                  ? '전세'
-                                                  : '월세'}
-                                            </span>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
+                                  <PropertyListItem key={property.id} property={property} />
                                 ))}
                               </div>
                             ) : (

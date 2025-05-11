@@ -84,6 +84,7 @@ export interface FindPropertyResDto {
   jibunAddress: string;
   active: boolean;
   contractTypes: ContractType[];
+  tags: TagResDto[];
   // customer: CustomerResDto;
 }
 
@@ -157,6 +158,7 @@ export interface CrawlingPropertyResDto {
   realEstateAgentContact: string;
   realEstateOfficeName: string;
   realEstateOfficeAddress: string;
+  tags: TagResDto[];
 }
 
 export interface PropertySummaryResDto {
