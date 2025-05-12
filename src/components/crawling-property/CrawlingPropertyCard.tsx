@@ -1,9 +1,9 @@
 import { Home, Users, Phone } from 'react-feather';
-import { CrawlingPropertyItem } from '../../types/crawling-property';
+import { CrawlingPropertyResDto } from '../../types/crawling-property';
 import Card from '../ui/Card';
 
 interface CrawlingPropertyCardProps {
-  property: CrawlingPropertyItem;
+  property: CrawlingPropertyResDto;
   onClick: () => void;
 }
 

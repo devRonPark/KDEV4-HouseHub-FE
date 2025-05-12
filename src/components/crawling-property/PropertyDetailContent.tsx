@@ -1,6 +1,7 @@
-import { CrawlingPropertyItem } from '../../types/crawling-property';
+import { CrawlingPropertyResDto } from '../../types/crawling-property';
+import { PropertyType } from '../../types/property';
 
-const formatTransactionInfo = (property: CrawlingPropertyItem) => {
+const formatTransactionInfo = (property: CrawlingPropertyResDto) => {
   const { transactionType, salePrice, deposit, monthlyRentFee } = property;
   if (transactionType === 'SALE') return `매매가: ${salePrice?.toLocaleString()}`;
   if (transactionType === 'JEONSE') return `전세가: ${deposit?.toLocaleString()}`;
@@ -10,20 +11,21 @@ const formatTransactionInfo = (property: CrawlingPropertyItem) => {
   return '';
 };
 
-const propertyTypeKoreanMap = {
-  MULTIFAMILY: '다세대',
-  SINGLEMULTIFAMILY: '단독/다가구',
-  VILLA: '빌라',
-  COMMERCIAL: '상가주택',
-  APARTMENT: '아파트',
-  ROWHOUSE: '연립',
-  OFFICETEL: '오피스텔',
-  ONE_ROOM: '원룸',
-  COUNTRYHOUSE: '전원',
+const propertyTypeKoreanMap: Record<PropertyType, string> = {
+  [PropertyType.APARTMENT]: '아파트',
+  [PropertyType.OFFICETEL]: '오피스텔',
+  [PropertyType.VILLA]: '빌라',
+  [PropertyType.ONE_ROOM]: '원룸',
+  [PropertyType.TWO_ROOM]: '투룸',
+  [PropertyType.MULTIFAMILY]: '다세대',
+  [PropertyType.SINGLEMULTIFAMILY]: '단독/다가구',
+  [PropertyType.COMMERCIAL]: '상가주택',
+  [PropertyType.ROWHOUSE]: '연립',
+  [PropertyType.COUNTRYHOUSE]: '전원',
 };
 
 type PropertyDetailContentProps = {
-  property: CrawlingPropertyItem;
+  property: CrawlingPropertyResDto;
 };
 
 const PropertyDetailContent = ({ property }: PropertyDetailContentProps) => (

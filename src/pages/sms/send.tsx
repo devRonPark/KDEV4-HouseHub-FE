@@ -33,7 +33,7 @@ const SmsSendPage = () => {
   // 단일 고객 선택에서 다중 고객 선택으로 변경
   const [selectedCustomers, setSelectedCustomers] = useState<CustomerResDto[]>([]);
   const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState<'SMS' | 'LMS' | 'MMS'>('SMS');
+  const [messageType, setMessageType] = useState<'SMS' | 'LMS'>('SMS');
   const [isReservation, setIsReservation] = useState(false);
   const [reservationDate, setReservationDate] = useState('');
   const [reservationTime, setReservationTime] = useState('');
@@ -174,7 +174,7 @@ const SmsSendPage = () => {
     }
   }, [message, messageType, user?.realEstate?.name, user?.name, sender]);
 
-  const handleMessageTypeChange = (type: 'SMS' | 'LMS' | 'MMS') => {
+  const handleMessageTypeChange = (type: 'SMS' | 'LMS') => {
     if (isTemplateAutoFill) setSelectedTemplateId(null);
     setIsTemplateAutoFill(false);
     setMessageType(type);
@@ -321,7 +321,7 @@ const SmsSendPage = () => {
           receiver: customer.contact,
           msg: message,
           msgType: messageType,
-          title: messageType === 'LMS' || messageType === 'MMS' ? title : undefined,
+          title: messageType === 'LMS' ? title : undefined,
           rtime,
           rdate,
           templateId: selectedTemplateId || undefined,
@@ -594,24 +594,11 @@ const SmsSendPage = () => {
                       LMS (2,000자 이내)
                     </label>
                   </div>
-                  <div className="flex items-center">
-                    <input
-                      id="mms"
-                      name="messageType"
-                      type="radio"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                      checked={messageType === 'MMS'}
-                      onChange={() => handleMessageTypeChange('MMS')}
-                    />
-                    <label htmlFor="mms" className="ml-2 block text-sm text-gray-700">
-                      MMS (이미지 포함)
-                    </label>
-                  </div>
                 </div>
               </div>
 
               {/* LMS/MMS 제목 입력 필드 */}
-              {(messageType === 'LMS' || messageType === 'MMS') && (
+              {messageType === 'LMS' && (
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700">
                     제목

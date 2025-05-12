@@ -12,7 +12,8 @@ import { ConsultationListResDto } from '../types/consultation';
 import { ContractListResDto } from '../types/contract';
 import { InquiryListResponse } from '../types/inquiry';
 import { SmsListResDto } from '../types/sms';
-import { FindPropertyResDto, CrawlingPropertyResDto } from '../types/property';
+import { FindPropertyResDto } from '../types/property';
+import { CrawlingPropertyResDto } from '../types/crawling-property';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회 (상담 내역 제외)
 export const getMyCustomers = async (
@@ -249,7 +250,10 @@ export const restoreCustomer = async (id: number): Promise<ApiResponse<CustomerR
   }
 };
 
-export const getRecentCustomers = async (page: number = 0, size: number = 5): Promise<ApiResponse<CustomerListResDto>> => {
+export const getRecentCustomers = async (
+  page: number = 0,
+  size: number = 5
+): Promise<ApiResponse<CustomerListResDto>> => {
   try {
     const response = await apiClient.get<ApiResponse<CustomerListResDto>>('/customers/recent', {
       params: {
@@ -259,12 +263,15 @@ export const getRecentCustomers = async (page: number = 0, size: number = 5): Pr
     });
     return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<CustomerListResDto>;
+    }
     return {
       success: false,
       error: '최근 신규 고객 목록을 불러오는 중 오류가 발생했습니다.',
     };
   }
-}
+};
 
 // 고객 문자 내역 조회
 export const getCustomerSms = async (

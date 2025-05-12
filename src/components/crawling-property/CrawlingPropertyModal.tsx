@@ -1,22 +1,24 @@
 import { X } from 'react-feather';
 import Modal from '../../components/ui/Modal';
-import { CrawlingPropertyItem } from '../../types/crawling-property';
+import { CrawlingPropertyResDto } from '../../types/crawling-property';
+import { PropertyType, PropertyDirection } from '../../types/property';
 
 interface CrawlingPropertyModalProps {
-  property: CrawlingPropertyItem;
+  property: CrawlingPropertyResDto;
   onClose: () => void;
 }
 
-const propertyTypeMap = {
-  MULTIFAMILY: '다세대',
-  SINGLEMULTIFAMILY: '단독/다가구',
-  VILLA: '빌라',
-  COMMERCIAL: '상가주택',
-  APARTMENT: '아파트',
-  ROWHOUSE: '연립',
-  OFFICETEL: '오피스텔',
-  ONE_ROOM: '원룸',
-  COUNTRYHOUSE: '전원',
+const propertyTypeMap: Record<PropertyType, string> = {
+  [PropertyType.APARTMENT]: '아파트',
+  [PropertyType.VILLA]: '빌라',
+  [PropertyType.OFFICETEL]: '오피스텔',
+  [PropertyType.COMMERCIAL]: '상가',
+  [PropertyType.ONE_ROOM]: '원룸',
+  [PropertyType.TWO_ROOM]: '투룸',
+  [PropertyType.MULTIFAMILY]: '다가구',
+  [PropertyType.SINGLEMULTIFAMILY]: '단독/다가구',
+  [PropertyType.ROWHOUSE]: '연립',
+  [PropertyType.COUNTRYHOUSE]: '주택',
 };
 
 const transactionTypeMap = {
@@ -25,15 +27,15 @@ const transactionTypeMap = {
   MONTHLY: '월세',
 };
 
-const directionMap = {
-  EAST: '동향',
-  WEST: '서향',
-  SOUTH: '남향',
-  NORTH: '북향',
-  SOUTH_EAST: '남동향',
-  SOUTH_WEST: '남서향',
-  NORTH_EAST: '북동향',
-  NORTH_WEST: '북서향',
+const directionMap: Record<PropertyDirection, string> = {
+  [PropertyDirection.NORTH]: '북향',
+  [PropertyDirection.SOUTH]: '남향',
+  [PropertyDirection.EAST]: '동향',
+  [PropertyDirection.WEST]: '서향',
+  [PropertyDirection.NORTHEAST]: '북동향',
+  [PropertyDirection.NORTHWEST]: '북서향',
+  [PropertyDirection.SOUTHEAST]: '남동향',
+  [PropertyDirection.SOUTHWEST]: '남서향',
 };
 
 interface InfoItemProps {
