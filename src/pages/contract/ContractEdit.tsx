@@ -21,7 +21,7 @@ import {
   type ContractFormData,
   type FindContractResDto,
 } from '../../types/contract';
-import { FindPropertyResDto, PropertyTypeLabels, type PropertySummaryResDto } from '../../types/property';
+import { FindPropertyDetailResDto, PropertyTypeLabels, type PropertySummaryResDto } from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
 import type { CustomerSummaryDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
@@ -135,7 +135,6 @@ const ContractEdit: React.FC = () => {
           setSelectedProperty(contract.property);
           setSelectedLandlord(contract.provider || null);
           setSelectedTenant(contract.seeker || null);
-          
           setFormData({
             propertyId: contract.property?.id || null,
             customerId: contract.seeker?.id || null,
@@ -165,7 +164,7 @@ const ContractEdit: React.FC = () => {
     fetchContract();
   }, [id]);
 
-  const handlePropertySelect = async (property: FindPropertyResDto) => {
+  const handlePropertySelect = async (property: FindPropertyDetailResDto) => {
     setSelectedProperty(property);
     setFormData(prev => ({ ...prev, propertyId: property.id }));
     showToast('매물이 성공적으로 선택되었습니다.', 'success');
