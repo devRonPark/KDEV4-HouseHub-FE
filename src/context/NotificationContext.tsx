@@ -12,6 +12,7 @@ import {
   markNotificationsAsRead,
   markNotificationsAsUnread,
 } from '../api/notification';
+import { useLocation } from 'react-router-dom';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -26,8 +27,8 @@ interface NotificationContextType {
       size: number;
     };
   } | null>;
-  markAsRead: (id: number) => Promise<void>;
-  markAsUnread: (id: number) => Promise<void>;
+  markAsRead: (notification: Notification) => Promise<void>;
+  markAsUnread: (notification: Notification) => Promise<void>;
   markMultipleAsRead: (ids: number[]) => Promise<void>;
   markMultipleAsUnread: (ids: number[]) => Promise<void>;
   markAllAsRead: () => Promise<void>;
@@ -56,61 +57,59 @@ const NotificationContext = createContext<NotificationContextType>({
 export const useNotification = () => useContext(NotificationContext);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { isAuthenticated } = useAuth();
   const { showToast } = useToast();
+  const [isNotificationsLoaded, setIsNotificationsLoaded] = useState(false);
 
   // 읽지 않은 알림 개수 계산
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
 
   // SSE 메시지 핸들러
-  const handleSSEMessage = useCallback(
-    (event: MessageEvent) => {
-      try {
-        const data: NotificationEvent = JSON.parse(event.data);
-        console.log('SSE 알림 수신:', data);
+  const handleSSEMessage = useCallback((event: MessageEvent) => {
+    try {
+      const data: NotificationEvent = JSON.parse(event.data);
 
-        // 알림 객체 생성
-        const newNotification: Notification = {
-          id: data.id,
-          type: data.type,
-          content: data.content,
-          url: data.url,
-          isRead: data.isRead,
-          createdAt: data.createdAt,
-          receiverId: data.receiverId,
-        };
+      // 알림 객체 생성
+      const newNotification: Notification = {
+        id: data.id,
+        type: data.type,
+        content: data.content,
+        url: data.url,
+        isRead: data.isRead,
+        createdAt: data.createdAt,
+        receiverId: data.receiverId,
+      };
 
-        // 알림 추가 (중복 방지)
-        setNotifications((prev) => {
-          // 이미 같은 ID의 알림이 있는지 확인
-          const exists = prev.some((item) => item.id === newNotification.id);
-          if (exists) {
-            return prev;
-          }
-          // 새 알림 추가 (최신 알림이 맨 위에 오도록)
-          return [newNotification, ...prev];
-        });
-
-        // 토스트 알림 표시
-        showToast(data.content, 'info');
-
-        // 브라우저 알림 표시 (선택적)
-        if (Notification.permission === 'granted') {
-          new Notification('새 문의 알림', {
-            body: data.content,
-          });
+      // 알림 추가 (중복 방지)
+      setNotifications((prev) => {
+        // 이미 같은 ID의 알림이 있는지 확인
+        const exists = prev.some((item) => item.id === newNotification.id);
+        if (exists) {
+          return prev;
         }
-      } catch (error) {
-        console.error('SSE 메시지 처리 중 오류:', error);
+        // 새 알림 추가 (최신 알림이 맨 위에 오도록)
+        return [newNotification, ...prev];
+      });
+
+      // 토스트 알림 표시
+      showToast(data.content, 'info');
+
+      // 브라우저 알림 표시 (선택적)
+      if (Notification.permission === 'granted') {
+        new Notification('새 문의 알림', {
+          body: data.content,
+        });
       }
-    },
-    [showToast]
-  );
+    } catch (error) {
+      console.error('SSE 메시지 처리 중 오류:', error);
+    }
+  }, []);
 
   // SSE 연결 설정
   const { isConnected } = useSSE({
-    url: `https://api.house-hub.store:8443/api/notifications/sse/connect`,
+    url: `https://www.house-hub.store:8443/api/notifications/sse/connect`,
     withCredentials: true, // 쿠키 기반 인증을 사용하는 경우
     onMessage: handleSSEMessage,
     onError: (error) => console.error('SSE 연결 오류:', error),
@@ -119,41 +118,41 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   });
 
   // 알림 목록 로드 (페이지네이션 및 필터링 지원)
-  const loadNotifications = useCallback(
-    async (filter: NotificationFilter) => {
-      try {
-        const response = await getNotifications(filter);
-        if (response.success && response.data) {
-          // 첫 페이지인 경우 알림 목록 교체, 그렇지 않은 경우 추가
-          if (response.data.pagination.currentPage === 1) {
-            setNotifications(response.data.content);
-          } else {
-            // 중복 방지를 위해 ID 기준으로 필터링
-            const existingIds = new Set(notifications.map((n) => n.id));
-            const newNotifications = response.data.content.filter((n) => !existingIds.has(n.id));
-            setNotifications((prev) => [...prev, ...newNotifications]);
-          }
-          return response.data;
+  const loadNotifications = useCallback(async (filter: NotificationFilter) => {
+    try {
+      const response = await getNotifications({ ...filter, filter: 'all' });
+      if (response.success && response.data) {
+        // 첫 페이지인 경우 알림 목록 교체, 그렇지 않은 경우 추가
+        if (response.data.pagination.currentPage === 1) {
+          setNotifications(response.data.content);
         } else {
-          console.error('알림 목록 로드 실패:', response.error);
-          return null;
+          // 중복 방지를 위해 ID 기준으로 필터링
+          const existingIds = new Set(notifications.map((n) => n.id));
+          const newNotifications = response.data.content.filter((n) => !existingIds.has(n.id));
+          setNotifications((prev) => [...prev, ...newNotifications]);
         }
-      } catch (error) {
-        console.error('알림 목록 로드 중 오류:', error);
+        return response.data;
+      } else {
+        console.error('알림 목록 로드 실패:', response.error);
         return null;
       }
-    },
-    [notifications]
-  );
+    } catch (error) {
+      console.error('알림 목록 로드 중 오류:', error);
+      return null;
+    }
+  }, []);
 
   // 알림을 읽음으로 표시
-  const markAsRead = useCallback(async (id: number) => {
+  const markAsRead = useCallback(async (notification: Notification) => {
     try {
-      const response = await markNotificationsAsRead([id], false);
+      const response = await markNotificationsAsRead([notification.id], false);
       if (response.success) {
+        console.log('알림 읽음 처리 성공:', response.data);
         setNotifications((prev) =>
           prev.map((notification) =>
-            notification.id === id ? { ...notification, isRead: true } : notification
+            notification.id === response.data?.notificationIds[0]
+              ? { ...notification, isRead: true }
+              : notification
           )
         );
       } else {
@@ -165,13 +164,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   // 단일 알림을 읽지 않음으로 표시 (내부적으로 배열 API 사용)
-  const markAsUnread = useCallback(async (id: number) => {
+  const markAsUnread = useCallback(async (notification: Notification) => {
     try {
-      const response = await markNotificationsAsUnread([id], false);
+      const response = await markNotificationsAsUnread([notification.id], false);
       if (response.success && response.data) {
         setNotifications((prev) =>
           prev.map((notification) =>
-            notification.id === id ? { ...notification, isRead: false } : notification
+            notification.id === response.data?.notificationIds[0]
+              ? { ...notification, isRead: false }
+              : notification
           )
         );
       } else {
@@ -343,12 +344,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // 초기 알림 데이터 로드
   useEffect(() => {
-    loadNotifications({
-      filter: 'all',
-      page: 1,
-      size: 5,
-    });
-  }, []);
+    const isDashboard = location.pathname.startsWith('/dashboard');
+
+    if (!isNotificationsLoaded && isAuthenticated && !isDashboard) {
+      loadNotifications({
+        filter: 'all',
+        page: 1,
+        size: 5,
+      });
+      setIsNotificationsLoaded(true);
+    }
+  }, [location.pathname, isNotificationsLoaded]);
 
   // 브라우저 알림 권한 요청 (선택적)
   useEffect(() => {

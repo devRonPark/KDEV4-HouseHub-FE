@@ -7,6 +7,9 @@ import Button from '../ui/Button';
 import { PropertyType, PropertyTypeLabels } from '../../types/property';
 import { ContractType, ContractTypeLabels } from '../../types/contract';
 import PriceRangeSlider from '../ui/PriceRangeSlider';
+import TagSelector from '../tag/TagSelector';
+import type { TagResDto } from '../../types/tag';
+import { getTags } from '../../api/tag';
 
 interface PriceRange {
   min: number;
@@ -27,6 +30,7 @@ interface FilterValues {
     [ContractType.MONTHLY_RENT]: DepositAndMonthlyRent;
     [ContractType.SALE]: PriceRange;
   };
+  tagIds: number[] | undefined;
 }
 
 interface PropertyFilterModalProps {
@@ -43,6 +47,8 @@ const PropertyFilterModal: React.FC<PropertyFilterModalProps> = ({
   onApplyFilters,
 }) => {
   const [filters, setFilters] = useState<FilterValues>(initialValues);
+  const [, setTags] = useState<TagResDto[]>([]);
+  const [, setIsLoadingTags] = useState(false);
 
   // Reset filters to initial values when modal opens
   useEffect(() => {
@@ -50,6 +56,27 @@ const PropertyFilterModal: React.FC<PropertyFilterModalProps> = ({
       setFilters(initialValues);
     }
   }, [isOpen, initialValues]);
+
+  // Fetch tags when modal opens
+  useEffect(() => {
+    const fetchTags = async () => {
+      if (isOpen) {
+        setIsLoadingTags(true);
+        try {
+          const response = await getTags();
+          if (response.success && response.data) {
+            setTags(response.data);
+          }
+        } catch (error) {
+          console.error('Error fetching tags:', error);
+        } finally {
+          setIsLoadingTags(false);
+        }
+      }
+    };
+
+    fetchTags();
+  }, [isOpen]);
 
   const handlePropertyTypeChange = (type: PropertyType) => {
     setFilters((prev) => ({
@@ -97,6 +124,13 @@ const PropertyFilterModal: React.FC<PropertyFilterModalProps> = ({
     });
   };
 
+  const handleTagChange = (tagIds: number[]) => {
+    setFilters((prev) => ({
+      ...prev,
+      tagIds: tagIds.length > 0 ? tagIds : undefined,
+    }));
+  };
+
   const handleReset = () => {
     setFilters({
       propertyType: null,
@@ -110,6 +144,7 @@ const PropertyFilterModal: React.FC<PropertyFilterModalProps> = ({
         },
         [ContractType.SALE]: { min: 0, max: 100000 },
       },
+      tagIds: undefined,
     });
   };
 
@@ -132,31 +167,6 @@ const PropertyFilterModal: React.FC<PropertyFilterModalProps> = ({
   const formatMonthlyRent = (price: number): string => {
     return `${price}만원`;
   };
-
-  // 이미지에 맞게 마커 값 수정
-  // 보증금 마커 수정
-  // const depositMarkers = [
-  //   { value: 0, label: '최소' },
-  //   { value: 5000, label: '5천만' },
-  //   { value: 25000, label: '2.5억' },
-  //   { value: 50000, label: '최대' },
-  // ];
-
-  // // 매매가 마커 수정
-  // const purchaseMarkers = [
-  //   { value: 0, label: '최소' },
-  //   { value: 5000, label: '5천만' },
-  //   { value: 25000, label: '2.5억' },
-  //   { value: 50000, label: '최대' },
-  // ];
-
-  // // 월세 마커 수정 (최대 300만원)
-  // const monthlyRentMarkers = [
-  //   { value: 0, label: '최소' },
-  //   { value: 35, label: '35만' },
-  //   { value: 150, label: '150만' },
-  //   { value: 300, label: '최대' },
-  // ];
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="매물 필터" size="md">
@@ -277,7 +287,6 @@ const PropertyFilterModal: React.FC<PropertyFilterModalProps> = ({
                 handlePriceRangeChange(ContractType.SALE, 'price', value)
               }
               formatValue={formatPrice}
-              // markers={depositMarkers}
             />
           </div>
         )}
@@ -309,6 +318,13 @@ const PropertyFilterModal: React.FC<PropertyFilterModalProps> = ({
             ))}
           </div>
         </div>
+
+        {/* 태그 선택 */}
+        <TagSelector
+          selectedTagIds={filters.tagIds || []}
+          onTagChange={handleTagChange}
+          className="mt-4"
+        />
       </div>
 
       <div className="mt-6 flex justify-between">

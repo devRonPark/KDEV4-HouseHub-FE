@@ -16,6 +16,7 @@ const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const {
+    notifications: existingNotifications,
     loadNotifications,
     markMultipleAsRead,
     markMultipleAsUnread,
@@ -28,8 +29,9 @@ const NotificationsPage: React.FC = () => {
     markAsUnread,
   } = useNotification();
 
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>(existingNotifications);
   const [isLoading, setIsLoading] = useState(true);
+  // filter.filter: 'all' 이거나 page 가 변경될 때 loadNotifications 호출
   const [filter, setFilter] = useState<NotificationFilter>({
     filter: 'all',
     page: 1,
@@ -54,8 +56,6 @@ const NotificationsPage: React.FC = () => {
       if (result) {
         setNotifications(result.content);
         setPagination(result.pagination);
-        setSelectAll(false); // 알림 목록 로드 후 전체 선택 해제
-        setSelectedNotifications([]); // 알림 목록 로드 후 선택된 알림 ID 목록 초기화
       } else {
         showToast('알림 목록을 불러오는데 실패했습니다.', 'error');
       }
@@ -64,12 +64,18 @@ const NotificationsPage: React.FC = () => {
       showToast('알림 목록을 불러오는 중 오류가 발생했습니다.', 'error');
     } finally {
       setIsLoading(false);
+      setSelectAll(false); // 알림 목록 로드 후 전체 선택 해제
+      setSelectedNotifications([]); // 알림 목록 로드 후 선택된 알림 ID 목록 초기화
     }
-  }, [filter, showToast, loadNotifications]);
+  }, [filter]);
 
   // 컴포넌트 마운트 시 알림 목록 로드
   useEffect(() => {
-    fetchNotifications();
+    if (existingNotifications.length > 0) {
+      setNotifications(existingNotifications);
+    } else {
+      fetchNotifications();
+    }
   }, [filter]);
 
   // 필터 변경 핸들러
@@ -209,6 +215,62 @@ const NotificationsPage: React.FC = () => {
     }
   };
 
+  const handleToggleReadStatus = async (notification: Notification) => {
+    try {
+      const updatedNotification = { ...notification, isRead: !notification.isRead };
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((n) => (n.id === notification.id ? updatedNotification : n))
+      );
+      if (updatedNotification.isRead) {
+        await markAsRead(notification);
+      } else {
+        await markAsUnread(notification);
+      }
+    } catch {
+      showToast('알림 상태 업데이트 중 오류가 발생했습니다.', 'error');
+    }
+  };
+
+  const renderNotifications = (notifications: Notification[], filter: NotificationFilter) => {
+    const filteredNotifications = notifications.filter((notification) => {
+      if (filter.filter === 'read') return notification.isRead;
+      if (filter.filter === 'unread') return !notification.isRead;
+      return true; // 'all' filter
+    });
+
+    // 필터링된 알림이 없을 경우 처리
+    if (filteredNotifications.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <Bell className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">알림이 없습니다</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {filter.filter === 'all'
+              ? '새로운 알림이 없습니다.'
+              : filter.filter === 'unread'
+                ? '읽지 않은 알림이 없습니다.'
+                : '읽은 알림이 없습니다.'}
+          </p>
+        </div>
+      );
+    }
+
+    // 필터링된 알림이 있을 경우 처리
+    return filteredNotifications.map((notification) => (
+      <div key={notification.id} className="p-2">
+        <NotificationItem
+          notification={notification}
+          onMarkAsRead={handleToggleReadStatus}
+          onMarkAsUnread={handleToggleReadStatus}
+          onRemove={removeNotification}
+          onClick={handleNotificationClick}
+          isSelected={selectedNotifications.includes(notification.id)}
+          onSelect={handleSelectNotification}
+        />
+      </div>
+    ));
+  };
+
   return (
     <DashboardLayout>
       <div className="pb-5 mb-6 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
@@ -248,7 +310,7 @@ const NotificationsPage: React.FC = () => {
             }`}
             onClick={() => handleFilterChange('all')}
           >
-            전체 {notifications.length > 0 && `(${notifications.length})`}
+            전체 {notifications.length > 0 ? `(${notifications.length})` : `(0)`}
           </button>
           <button
             className={`px-4 py-2 text-sm font-medium ${
@@ -269,7 +331,9 @@ const NotificationsPage: React.FC = () => {
             onClick={() => handleFilterChange('read')}
           >
             읽음{' '}
-            {notifications.length - unreadCount > 0 && `(${notifications.length - unreadCount})`}
+            {notifications.length - unreadCount > 0
+              ? `(${notifications.length - unreadCount})`
+              : `(0)`}
           </button>
         </div>
       </div>
@@ -323,39 +387,11 @@ const NotificationsPage: React.FC = () => {
 
       {/* 알림 목록 */}
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        {isLoading && notifications.length === 0 ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          </div>
-        ) : notifications.length === 0 ? (
-          <div className="text-center py-12">
-            <Bell className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">알림이 없습니다</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {filter.filter === 'all'
-                ? '새로운 알림이 없습니다.'
-                : filter.filter === 'unread'
-                  ? '읽지 않은 알림이 없습니다.'
-                  : '읽은 알림이 없습니다.'}
-            </p>
-          </div>
-        ) : (
+        {
           <div className="divide-y divide-gray-200">
-            {notifications.map((notification) => (
-              <div key={notification.id} className="p-2">
-                <NotificationItem
-                  notification={notification}
-                  onMarkAsRead={markAsRead}
-                  onMarkAsUnread={markAsUnread}
-                  onRemove={removeNotification}
-                  onClick={handleNotificationClick}
-                  isSelected={selectedNotifications.includes(notification.id)}
-                  onSelect={handleSelectNotification}
-                />
-              </div>
-            ))}
+            {renderNotifications(notifications, filter)}
           </div>
-        )}
+        }
 
         {/* 페이지네이션 */}
         {!isLoading && notifications.length > 0 && pagination.totalPages > 1 && (

@@ -6,6 +6,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/useAuth';
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
+import MyPage from './pages/auth/MyPage';
 import Dashboard from './pages/dashboard/Dashboard';
 import PropertyRegistration from './pages/property/PropertyRegistration';
 import PropertyList from './pages/property/PropertyList';
@@ -49,6 +50,8 @@ const RegionDropdown = () => {
     </div>
   );
 };
+import ForgetPassword from './pages/auth/ForgetPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -101,6 +104,22 @@ function App() {
         element={
           <PublicRoute>
             <SignUp />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forget-password"
+        element={
+          <PublicRoute>
+            <ForgetPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password/:token"
+        element={
+          <PublicRoute>
+            <ResetPassword />
           </PublicRoute>
         }
       />
@@ -298,6 +317,15 @@ function App() {
         element={
           <ProtectedRoute>
             <CrawlingPropertyPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <MyPage />
           </ProtectedRoute>
         }
       />

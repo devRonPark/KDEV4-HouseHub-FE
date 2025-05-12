@@ -1,6 +1,7 @@
-import type { CustomerResDto } from './customer';
-import type { ContractResDto, ContractReqDto, ContractType } from './contract';
+import type { CustomerSummaryDto } from './customer';
+import type { ContractType, BasicContractReqDto, ContractSummaryDto } from './contract';
 import type { PaginationDto } from './pagination';
+import type { TagResDto } from './tag';
 
 // 매물 유형 enum
 export enum PropertyType {
@@ -70,7 +71,7 @@ export interface PropertyRegistrationDTO {
   bathroomCnt?: number; // 욕실 개수
   roomCnt?: number; // 방 개수
   active?: boolean; // 계약 가능 여부
-  contract?: ContractReqDto;
+  contract?: BasicContractReqDto;
   tagIds?: number[];
 }
 
@@ -83,7 +84,8 @@ export interface FindPropertyResDto {
   jibunAddress: string;
   active: boolean;
   contractTypes: ContractType[];
-  customer: CustomerResDto;
+  tags: TagResDto[];
+  // customer: CustomerResDto;
 }
 
 // 매물 목록 응답 LIST DTO
@@ -110,18 +112,19 @@ export interface PropertySearchFilter {
   maxDeposit?: number; // 최대 보증금
   minMonthlyRent?: number; // 최소 월세
   maxMonthlyRent?: number; // 최대 월세
+  tagIds?: number[]; // 태그 아이디 배열
 }
 
 // 매물 상세 정보 응답 DTO
 export interface FindPropertyDetailResDto {
   id: number;
   propertyType: PropertyType;
-  customer: CustomerResDto;
+  customer: CustomerSummaryDto;
   memo?: string;
   detailAddress: string;
   roadAddress: string;
   jibunAddress: string;
-  contractList: ContractResDto[];
+  contractList: ContractSummaryDto[];
   active: boolean;
   createdAt: string;
   area?: number; // 면적
@@ -130,5 +133,38 @@ export interface FindPropertyDetailResDto {
   direction?: PropertyDirection; // 방향
   bathroomCnt?: number; // 욕실 개수
   roomCnt?: number; // 방 개수
+  tags?: TagResDto[];
 }
 
+// 공개 매물 응답 DTO
+export interface CrawlingPropertyResDto {
+  crawlingPropertiesId: string;
+  propertyType: PropertyType;
+  transactionType: 'SALE' | 'JEONSE' | 'MONTHLY';
+  province: string;
+  city: string;
+  dong: string;
+  detailAddress: string;
+  area: number;
+  floor: string;
+  allFloors: string;
+  salePrice: string;
+  deposit: string;
+  monthlyRentFee: string;
+  direction: PropertyDirection;
+  bathRoomCnt: number;
+  roomCnt: number;
+  realEstateAgentId: string;
+  realEstateAgentName: string;
+  realEstateAgentContact: string;
+  realEstateOfficeName: string;
+  realEstateOfficeAddress: string;
+  tags: TagResDto[];
+}
+
+export interface PropertySummaryResDto {
+  id: number;
+  propertyType: PropertyType;
+  detailAddress: string;
+  roadAddress: string;
+}

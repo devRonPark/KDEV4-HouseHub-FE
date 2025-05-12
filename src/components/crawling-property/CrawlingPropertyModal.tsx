@@ -16,13 +16,13 @@ const propertyTypeMap = {
   ROWHOUSE: '연립',
   OFFICETEL: '오피스텔',
   ONE_ROOM: '원룸',
-  COUNTRYHOUSE: '전원'
+  COUNTRYHOUSE: '전원',
 };
 
 const transactionTypeMap = {
   SALE: '매매',
   JEONSE: '전세',
-  MONTHLY: '월세'
+  MONTHLY: '월세',
 };
 
 const directionMap = {
@@ -33,7 +33,7 @@ const directionMap = {
   SOUTH_EAST: '남동향',
   SOUTH_WEST: '남서향',
   NORTH_EAST: '북동향',
-  NORTH_WEST: '북서향'
+  NORTH_WEST: '북서향',
 };
 
 interface InfoItemProps {
@@ -43,8 +43,18 @@ interface InfoItemProps {
 
 const InfoItem = ({ label, value }: InfoItemProps) => (
   <div>
-    <dt className="text-sm font-medium" style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '16px' }}>{label}</dt>
-    <dd className="mt-1 text-sm" style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '16px' }}>{value}</dd>
+    <dt
+      className="text-sm font-medium"
+      style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '16px' }}
+    >
+      {label}
+    </dt>
+    <dd
+      className="mt-1 text-sm"
+      style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '16px' }}
+    >
+      {value}
+    </dd>
   </div>
 );
 
@@ -56,15 +66,15 @@ export const CrawlingPropertyModal = ({ property, onClose }: CrawlingPropertyMod
           <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
             <h2
               className="text-lg font-semibold"
-              style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '20px' }}
+              style={{
+                color: '#000',
+                fontFamily: 'Malgun Gothic, Arial, sans-serif',
+                fontSize: '20px',
+              }}
             >
               매물 상세 정보
             </h2>
-            <button
-              onClick={onClose}
-              className="hover:text-gray-500"
-              style={{ color: '#000' }}
-            >
+            <button onClick={onClose} className="hover:text-gray-500" style={{ color: '#000' }}>
               <X size={20} />
             </button>
           </div>
@@ -73,13 +83,21 @@ export const CrawlingPropertyModal = ({ property, onClose }: CrawlingPropertyMod
             <div className="mb-4">
               <h3
                 className="text-xl font-medium"
-                style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '18px' }}
+                style={{
+                  color: '#000',
+                  fontFamily: 'Malgun Gothic, Arial, sans-serif',
+                  fontSize: '18px',
+                }}
               >
                 {property.detailAddress}
               </h3>
               <p
                 className="mt-1 text-sm"
-                style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '15px' }}
+                style={{
+                  color: '#000',
+                  fontFamily: 'Malgun Gothic, Arial, sans-serif',
+                  fontSize: '15px',
+                }}
               >
                 {property.province} {property.city} {property.dong}
               </p>
@@ -92,13 +110,20 @@ export const CrawlingPropertyModal = ({ property, onClose }: CrawlingPropertyMod
                 <InfoItem label="전용면적" value={`${property.area.toFixed(2)}m²`} />
                 <InfoItem label="층수" value={`${property.floor}층 / ${property.allFloors}층`} />
                 <InfoItem label="방향" value={directionMap[property.direction]} />
-                <InfoItem label="구조" value={`${property.roomCnt}방 ${property.bathRoomCnt}욕실`} />
+                <InfoItem
+                  label="구조"
+                  value={`${property.roomCnt}방 ${property.bathRoomCnt}욕실`}
+                />
               </div>
 
               <div className="border-t border-gray-200 pt-4">
                 <h4
                   className="text-lg font-medium mb-3"
-                  style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '17px' }}
+                  style={{
+                    color: '#000',
+                    fontFamily: 'Malgun Gothic, Arial, sans-serif',
+                    fontSize: '17px',
+                  }}
                 >
                   가격 정보
                 </h4>
@@ -111,8 +136,14 @@ export const CrawlingPropertyModal = ({ property, onClose }: CrawlingPropertyMod
                   )}
                   {property.transactionType === 'MONTHLY' && (
                     <>
-                      <InfoItem label="보증금" value={`${property.deposit?.toLocaleString()}만원`} />
-                      <InfoItem label="월세" value={`${property.monthlyRentFee?.toLocaleString()}만원`} />
+                      <InfoItem
+                        label="보증금"
+                        value={`${property.deposit?.toLocaleString()}만원`}
+                      />
+                      <InfoItem
+                        label="월세"
+                        value={`${property.monthlyRentFee?.toLocaleString()}만원`}
+                      />
                     </>
                   )}
                 </div>
@@ -121,7 +152,11 @@ export const CrawlingPropertyModal = ({ property, onClose }: CrawlingPropertyMod
               <div className="border-t border-gray-200 pt-4">
                 <h4
                   className="text-lg font-medium mb-3"
-                  style={{ color: '#000', fontFamily: 'Malgun Gothic, Arial, sans-serif', fontSize: '17px' }}
+                  style={{
+                    color: '#000',
+                    fontFamily: 'Malgun Gothic, Arial, sans-serif',
+                    fontSize: '17px',
+                  }}
                 >
                   부동산 정보
                 </h4>
@@ -140,4 +175,4 @@ export const CrawlingPropertyModal = ({ property, onClose }: CrawlingPropertyMod
       </div>
     </Modal>
   );
-}; 
+};

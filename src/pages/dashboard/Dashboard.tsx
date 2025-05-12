@@ -8,14 +8,21 @@ import StatCard from '../../components/dashboard/StatCard';
 import ChartContainer from '../../components/dashboard/ChartContainer';
 import { useToast } from '../../context/useToast';
 import { getDashboardStats, getRecentProperties, getChartData } from '../../api/dashboard';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { formatDate } from '../../utils/format';
 import { ChartData, RecentProperty } from '../../types/dashboard';
 import { PropertyTypeLabels } from '../../types/property';
+import ContractExpiryAccordion from '../../components/dashboard/ContractExpiryAccordion';
+import { ContractStatus } from '../../types/contract';
+import CompletedContractsModal from '../../components/contract/CompletedContractsModal';
+import RecentCustomersModal from '../../components/customers/RecentCustomersModal';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [isCompletedContractsModalOpen, setIsCompletedContractsModalOpen] = useState(false);
+  const [isRecentCustomersModalOpen, setIsRecentCustomersModalOpen] = useState(false);
   const [stats, setStats] = useState<{
     totalProperties: number;
     activeContracts: number;
@@ -100,21 +107,25 @@ const Dashboard: React.FC = () => {
               title="총 보유 매물 수"
               value={stats?.totalProperties || 0}
               icon={<Home className="h-6 w-6 text-blue-600" />}
+              onClick={() => navigate('/properties')}
             />
             <StatCard
               title="진행 중인 계약 수"
               value={stats?.activeContracts || 0}
               icon={<FileText className="h-6 w-6 text-indigo-600" />}
+              onClick={() => navigate('/contracts', { state: { status: ContractStatus.IN_PROGRESS } })}
             />
             <StatCard
               title="신규 고객 수 (7일)"
               value={stats?.newCustomers || 0}
               icon={<Users className="h-6 w-6 text-green-600" />}
+              onClick={() => setIsRecentCustomersModalOpen(true)}
             />
             <StatCard
               title="이번 달 완료 계약 수"
               value={stats?.completedContracts || 0}
               icon={<CheckCircle className="h-6 w-6 text-purple-600" />}
+              onClick={() => setIsCompletedContractsModalOpen(true)}
             />
           </div>
 
@@ -155,6 +166,10 @@ const Dashboard: React.FC = () => {
                 />
               </div>
             )}
+          </div>
+
+          <div className="bg-white shadow rounded-lg mb-8">
+            <ContractExpiryAccordion />
           </div>
 
           {/* 최근 등록 매물 리스트 */}
@@ -226,6 +241,18 @@ const Dashboard: React.FC = () => {
           </div>
         </>
       )}
+
+      {/* 완료된 계약 모달 */}
+      <CompletedContractsModal
+        isOpen={isCompletedContractsModalOpen}
+        onClose={() => setIsCompletedContractsModalOpen(false)}
+      />
+
+      {/* 신규 고객 모달 */}
+      <RecentCustomersModal
+        isOpen={isRecentCustomersModalOpen}
+        onClose={() => setIsRecentCustomersModalOpen(false)}
+      />
     </DashboardLayout>
   );
 };

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getCrawlingProperties } from '../../api/crawling-property';
+import { searchCrawlingPropertiesWithTags } from '../../api/crawling-property';
 import type {
   CrawlingPropertySearchParams,
   CrawlingPropertyItem,
@@ -25,7 +25,7 @@ export const CrawlingPropertyList = ({
 
   const { data, isLoading } = useQuery({
     queryKey: ['crawlingProperties', { ...searchParams, page }],
-    queryFn: () => getCrawlingProperties({ ...searchParams, page: page - 1, size: 10 }),
+    queryFn: () => searchCrawlingPropertiesWithTags({ ...searchParams, page: page - 1, size: 10 }),
   });
 
   if (isLoading) return <LoadingScreen />;

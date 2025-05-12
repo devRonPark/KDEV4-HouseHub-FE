@@ -8,6 +8,7 @@ interface DatePickerProps {
   onBlur?: () => void;
   error?: string;
   leftIcon?: React.ReactNode;
+  max?: string;
 }
 
 const DatePicker: React.FC<DatePickerProps> = ({
@@ -18,6 +19,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   onBlur,
   error,
   leftIcon,
+  max,
 }) => {
   return (
     <div className="space-y-1">
@@ -37,6 +39,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           onBlur={onBlur}
+          max={max}
         />
       </div>
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}

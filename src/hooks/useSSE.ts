@@ -36,9 +36,7 @@ const useSSE = ({
 
   // SSE 연결 함수
   const connect = useCallback(() => {
-    console.log('🔌 SSE 연결 시도:', url);
     if (eventSourceRef.current || isConnected) {
-      console.log('SSE 이미 연결됨. 재연결 생략');
       return;
     }
 

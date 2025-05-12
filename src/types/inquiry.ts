@@ -79,6 +79,7 @@ export interface InquiryListItem {
   email: string;
   contact: string;
   createdAt: string;
+  customerStatus: string;
 }
 
 // 고객 유형 열거형

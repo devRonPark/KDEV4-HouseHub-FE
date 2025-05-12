@@ -13,7 +13,7 @@ import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import Card from '../../components/ui/Card';
 import { useToast } from '../../context/useToast';
-import { sendSms, getAllTemplates } from '../../api/smsApi';
+import { sendSms, getAllTemplates } from '../../api/sms';
 import { getMyCustomers } from '../../api/customer';
 import type { SendSmsReqDto, SmsTemplateListResDto } from '../../types/sms';
 import type { CustomerResDto, CustomerListResDto } from '../../types/customer';
@@ -50,6 +50,7 @@ const SmsSendPage = () => {
   const [filteredCustomers, setFilteredCustomers] = useState<CustomerResDto[]>([]);
   const { user } = useAuth();
   const [title, setTitle] = useState('');
+  const [previewMessage, setPreviewMessage] = useState<string>('');
 
   // 필터 상태로 페이지네이션 관리
   const [filter, setFilter] = useState({
@@ -60,6 +61,24 @@ const SmsSendPage = () => {
 
   // 검색 버튼 클릭 상태
   const [searchBtnClicked, setSearchBtnClicked] = useState(false);
+
+  // 메시지 미리보기 업데이트 함수
+  const updatePreviewMessage = useCallback(
+    (content: string, sender: string) => {
+      const preview = `보낸이: ${user?.realEstate?.name ? user.realEstate.name + ' 중개사 ' : ''}${user?.name || '알 수 없는 중개인'}\n\n${content}\n\n문의 번호: ${sender}`;
+      setPreviewMessage(preview);
+    },
+    [user?.realEstate?.name, user?.name]
+  );
+
+  // 메시지 내용이 변경될 때마다 미리보기 업데이트
+  useEffect(() => {
+    if (message && sender) {
+      updatePreviewMessage(message, sender);
+    } else {
+      setPreviewMessage('');
+    }
+  }, [message, sender, updatePreviewMessage]);
 
   // 템플릿 목록 조회
   const fetchTemplates = async () => {
@@ -149,10 +168,11 @@ const SmsSendPage = () => {
 
   // 메시지 길이에 따라 메시지 타입 자동 변경
   useEffect(() => {
-    if (message.length > 90 && messageType === 'SMS') {
+    const previewText = `보낸이: ${user?.realEstate?.name ? user.realEstate.name + ' ' : ''}${user?.name || '알 수 없는 중개인'}\n\n${message}\n\n문의 번호: ${sender}`;
+    if (previewText.length > 90 && messageType === 'SMS') {
       setMessageType('LMS');
     }
-  }, [message, messageType]);
+  }, [message, messageType, user?.realEstate?.name, user?.name, sender]);
 
   const handleMessageTypeChange = (type: 'SMS' | 'LMS' | 'MMS') => {
     if (isTemplateAutoFill) setSelectedTemplateId(null);
@@ -607,25 +627,50 @@ const SmsSendPage = () => {
               )}
 
               {/* 메시지 내용 */}
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
-                  메시지 내용
-                </label>
-                <Textarea
-                  id="message"
-                  value={message}
-                  onChange={handleMessageChange}
-                  placeholder="메시지 내용을 입력하세요"
-                  rows={6}
-                  required
-                />
-                <div className="mt-1 text-sm text-gray-500 flex justify-between">
-                  <span>
-                    {message.length}자 / {messageType === 'SMS' ? '90' : '2,000'}자
-                  </span>
-                  {messageType === 'SMS' && message.length > 90 && (
-                    <span className="text-red-500">90자를 초과하여 LMS로 전환되었습니다.</span>
-                  )}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                    메시지 내용
+                  </label>
+                  <Textarea
+                    id="message"
+                    value={message}
+                    onChange={handleMessageChange}
+                    placeholder="메시지 내용을 입력하세요"
+                    required
+                    className="resize-none h-48"
+                  />
+                  <div className="text-sm text-gray-500 flex justify-between items-center">
+                    <span>
+                      {
+                        `보낸이: ${user?.realEstate?.name ? user.realEstate.name + ' ' : ''}${user?.name || '알 수 없는 중개인'}\n\n${message}\n\n문의 번호: ${sender}`
+                          .length
+                      }
+                      자 / {messageType === 'SMS' ? '90' : '2,000'}자 (발송인 정보 포함)
+                    </span>
+                    {messageType === 'SMS' && message.length > 90 && (
+                      <span className="text-red-500 text-xs">
+                        90자를 초과하여 LMS로 전환되었습니다.
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 메시지 미리보기 섹션 */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">메시지 미리보기</label>
+                  <div className="border border-gray-300 rounded-lg bg-gray-50 h-48 flex">
+                    <div className="p-4 w-full overflow-y-auto">
+                      <pre className="whitespace-pre-wrap font-mono text-sm text-gray-700 h-full">
+                        {previewMessage ||
+                          '메시지를 입력하면 여기에 실제 발송될 형식이 표시됩니다.'}
+                      </pre>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <p>• 실제 발송 시 위와 같은 형식으로 발송됩니다.</p>
+                    <p>• 보낸이 정보와 문의 번호가 자동으로 추가됩니다.</p>
+                  </div>
                 </div>
               </div>
 
@@ -700,7 +745,9 @@ const SmsSendPage = () => {
                     </Button>
                   )}
                 </div>
-                <div className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 min-h-[100px] max-h-[200px] overflow-y-auto">
+                <div
+                  className={`mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 min-h-[100px] max-h-[200px] overflow-y-auto h-32${selectedCustomers.length === 0 ? ' flex justify-center items-center' : ''}`}
+                >
                   {selectedCustomers.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {selectedCustomers.map((customer) => (
@@ -725,7 +772,7 @@ const SmsSendPage = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-500 text-center py-2">
+                    <div className="text-sm text-gray-500 text-center">
                       선택된 수신자가 없습니다.
                     </div>
                   )}

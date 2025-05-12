@@ -187,10 +187,32 @@ const ConsultationFormPage: React.FC = () => {
     }
   };
 
+  // 연락처 포맷팅 함수
+  const formatPhoneNumber = (value: string) => {
+    // 숫자만 추출
+    const numbers = value.replace(/[^\d]/g, '');
+
+    // 길이에 따라 포맷팅
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
   // 신규 고객 정보 입력 핸들러
   const handleNewCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setNewCustomerData((prev) => ({ ...prev, [name]: value }));
+
+    // 연락처 필드인 경우 포맷팅 적용
+    if (name === 'contact') {
+      const formattedValue = formatPhoneNumber(value);
+      setNewCustomerData((prev) => ({ ...prev, [name]: formattedValue }));
+    } else {
+      setNewCustomerData((prev) => ({ ...prev, [name]: value }));
+    }
 
     // 입력 필드 변경 시 해당 필드의 오류 메시지 제거
     if (errors[`newCustomer.${name}`]) {
@@ -512,6 +534,7 @@ const ConsultationFormPage: React.FC = () => {
                           leftIcon={<Phone size={18} />}
                           error={errors['newCustomer.contact']}
                           required
+                          maxLength={13} // 010-0000-0000 형식의 최대 길이
                         />
                       </div>
                       <div className="md:col-span-2">

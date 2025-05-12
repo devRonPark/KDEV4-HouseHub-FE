@@ -90,6 +90,10 @@ export const getProperties = async (
       url += `&maxMonthlyRent=${filter.maxMonthlyRent}`;
     }
 
+    if (filter.tagIds) {
+      url += `&tagIds=${filter.tagIds.join(',')}`;
+    }
+
     const response = await apiClient.get<ApiResponse<PropertyListResDto>>(url);
 
     // 응답 구조 로깅
@@ -113,7 +117,6 @@ export const getPropertyById = async (
     const response = await apiClient.get<ApiResponse<FindPropertyDetailResDto>>(
       `/properties/${id}`
     );
-    console.log('Property detail response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching property details:', error);

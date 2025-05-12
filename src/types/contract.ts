@@ -1,8 +1,6 @@
-import type { CustomerResDto } from './customer';
-import type { FindPropertyResDto } from './property';
-import type { Agent } from './agent';
+import type { CustomerSummaryDto } from './customer';
+import type { PropertySummaryResDto } from './property';
 import type { PaginationDto } from './pagination';
-
 // 계약 유형 enum
 export enum ContractType {
   SALE = 'SALE', // 매매
@@ -48,6 +46,15 @@ export const ContractStatusColors: Record<ContractStatus, { bg: string; text: st
   [ContractStatus.CANCELED]: { bg: 'bg-red-100', text: 'text-red-800' },
 };
 
+// 매물 등록시 기본 계약 정보 등록 요청 DTO
+export interface BasicContractReqDto {
+  contractType: ContractType;
+  salePrice?: number | null;
+  jeonsePrice?: number | null;
+  monthlyRentDeposit?: number | null;
+  monthlyRentFee?: number | null;
+}
+
 // 계약 등록 요청 DTO
 export interface ContractReqDto {
   propertyId?: number;
@@ -65,28 +72,28 @@ export interface ContractReqDto {
   // active?: boolean; // 계약 활성화 여부
 }
 
-// 계약 응답 DTO
-export interface ContractResDto {
-  id: number;
-  agent: Agent;
-  property: FindPropertyResDto;
-  customer?: CustomerResDto | null;
-  contractType: ContractType;
-  status: ContractStatus;
-  salePrice?: string | null;
-  jeonsePrice?: string | null;
-  monthlyRentFee?: string | null;
-  monthlyRentDeposit?: string | null;
-  memo?: string;
-  startedAt?: string;
-  expiredAt?: string;
-  completedAt?: string;
-  // active?: boolean;
+export interface FindContractResDto {
+  id: number; // 계약 ID
+  contractType: ContractType; // 거래 유형 (매매, 전세, 월세 등)
+  property: PropertySummaryResDto; // 매물 요약 정보
+  seeker: CustomerSummaryDto; // 고객 정보 (매수/임차)
+  provider: CustomerSummaryDto; // 고객 정보 (매도/임대) - 집주인
+  // 금액 정보
+  salePrice: string; // 매매가
+  jeonsePrice: string; // 전세가
+  monthlyRentFee: string; // 월세 금액
+  monthlyRentDeposit: string; // 월세 보증금
+  status: ContractStatus; // 계약 상태
+  memo: string; // 계약 관련 메모
+  // 계약 기간 정보
+  startedAt: string;     // 계약 시작일 (ISO 8601 형식 날짜 문자열 예상)
+  expiredAt: string;     // 계약 만료일
+  completedAt: string;   // 계약 완료일
 }
 
 // 계약 목록 응답 DTO
 export interface ContractListResDto {
-  content: ContractResDto[];
+  content: FindContractResDto[];
   pagination: PaginationDto;
 }
 
@@ -99,4 +106,39 @@ export interface ContractSearchFilter {
   // active?: boolean | null;
   page: number;
   size: number;
+}
+
+export interface ExpiringContract {
+  id: number;
+  propertyAddress: string;
+  customerName: string;
+  contractType: '매매' | '전세' | '월세';
+  expiredAt: string;
+  displayStatus: '임박' | '만료' | '정상';
+  dday: string;
+}
+
+export interface ContractSummaryDto {
+  id: number; // 계약 ID
+  status: ContractStatus; // 계약 상태
+  contractType: ContractType; // 거래 유형
+  salePrice?: string; // 매매가 (SALE일 경우만)
+  jeonsePrice?: string; // 전세가 (JEONSE일 경우만)
+  monthlyRentFee?: string; // 월세 금액 (MONTHLY일 경우만)
+  monthlyRentDeposit?: string; // 월세 보증금 (MONTHLY일 경우만)
+}
+
+export interface ContractFormData {
+  propertyId: number | null;
+  customerId: number | null;
+  contractType: ContractType;
+  contractStatus: ContractStatus;
+  salePrice: string;
+  jeonsePrice: string;
+  monthlyRentDeposit: string;
+  monthlyRentFee: string;
+  startedAt: string;
+  expiredAt: string;
+  completedAt: string;
+  memo: string;
 }

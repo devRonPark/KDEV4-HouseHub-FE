@@ -7,6 +7,7 @@ export interface Agent {
   licenseNumber?: string;
   role: 'ADMIN' | 'AGENT';
   profileImage?: string;
+  birthdayTemplateId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,4 +22,12 @@ export interface AgentDetail extends Agent {
     roadAddress?: string;
     contact?: string;
   };
+}
+
+export interface UpdateAgentReqDto {
+  name?: string;
+  email: string;
+  contact: string;
+  licenseNumber?: string;
+  birthdayTemplateId?: string;
 }

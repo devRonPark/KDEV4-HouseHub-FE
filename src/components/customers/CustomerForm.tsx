@@ -4,16 +4,14 @@ import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { User, Mail, Phone, Calendar, Tag } from 'react-feather';
+import { User, Mail, Phone, Calendar } from 'react-feather';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
 import Textarea from '../../components/ui/Textarea';
 import DatePicker from '../../components/ui/DatePicker';
+import TagSelector from '../tag/TagSelector';
 import type { CreateCustomerReqDto, Customer } from '../../types/customer';
-import type { TagResDto } from '../../types/tag';
-import { getTags } from '../../api/tag';
-import { useToast } from '../../context/useToast';
 
 interface Option {
   value: string;
@@ -53,15 +51,36 @@ interface CustomerFormProps {
 }
 
 const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) => {
-  const { showToast } = useToast();
-  const [tags, setTags] = useState<TagResDto[]>([]);
-  const [isLoadingTags, setIsLoadingTags] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>(() => {
     if (initialData?.tags && initialData.tags.length > 0) {
       return initialData.tags.map((tag) => tag.tagId);
     }
     return [];
   });
+
+  // 현재 날짜 기준으로 19년 전 날짜 계산
+  const getDefaultBirthDate = () => {
+    const today = new Date();
+    const year = today.getFullYear() - 19;
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // 연락처 포맷팅 함수
+  const formatPhoneNumber = (value: string) => {
+    // 숫자만 추출
+    const numbers = value.replace(/[^\d]/g, '');
+
+    // 길이에 따라 포맷팅
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
 
   const {
     control,
@@ -75,7 +94,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
       email: initialData?.email || '',
       contact: initialData?.contact || '',
       memo: initialData?.memo,
-      birthDate: initialData?.birthDate || '',
+      birthDate: initialData?.birthDate || getDefaultBirthDate(),
       gender: initialData?.gender || undefined,
       tagIds: initialData?.tagIds || [],
     },
@@ -88,70 +107,11 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
       email: initialData?.email || '',
       contact: initialData?.contact || '',
       memo: initialData?.memo,
-      birthDate: initialData?.birthDate || '',
+      birthDate: initialData?.birthDate || getDefaultBirthDate(),
       gender: initialData?.gender || undefined,
       tagIds: initialData?.tagIds || [],
     });
   }, [initialData, reset]);
-
-  // 태그 목록 로드
-  useEffect(() => {
-    const loadTags = async () => {
-      setIsLoadingTags(true);
-      try {
-        const response = await getTags();
-        if (response.success && response.data) {
-          setTags(response.data);
-        } else {
-          showToast(response.error || '태그 목록을 불러오는데 실패했습니다.', 'error');
-        }
-      } catch {
-        showToast('태그 목록을 불러오는 중 오류가 발생했습니다.', 'error');
-      } finally {
-        setIsLoadingTags(false);
-      }
-    };
-
-    loadTags();
-  }, [showToast]);
-
-  // 태그를 타입별로 그룹화
-  const groupedTags = tags.reduce(
-    (acc, tag) => {
-      if (!acc[tag.type]) {
-        acc[tag.type] = [];
-      }
-      acc[tag.type].push(tag);
-      return acc;
-    },
-    {} as Record<string, TagResDto[]>
-  );
-
-  // 태그 선택/해제 처리
-  const handleTagClick = (tagId: number) => {
-    setSelectedTagIds((prev) => {
-      // 같은 타입의 태그가 이미 선택되어 있는지 확인
-      const selectedTag = tags.find((tag) => tag.tagId === tagId);
-      if (!selectedTag) return prev;
-
-      // 같은 타입의 다른 태그가 선택되어 있는지 확인
-      const sameTypeTag = tags.find(
-        (tag) => tag.type === selectedTag.type && prev.includes(tag.tagId) && tag.tagId !== tagId
-      );
-
-      if (sameTypeTag) {
-        // 같은 타입의 다른 태그가 선택되어 있다면, 해당 태그를 제거하고 새로운 태그를 추가
-        return [...prev.filter((id) => id !== sameTypeTag.tagId), tagId];
-      } else {
-        // 같은 타입의 태그가 선택되어 있지 않다면, 토글
-        if (prev.includes(tagId)) {
-          return prev.filter((id) => id !== tagId);
-        } else {
-          return [...prev, tagId];
-        }
-      }
-    });
-  };
 
   // 폼 제출 처리
   const onFormSubmit = (data: CustomerFormData) => {
@@ -221,6 +181,11 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
                     error={errors.contact?.message}
                     leftIcon={<Phone size={18} />}
                     required
+                    onChange={(e) => {
+                      const formattedValue = formatPhoneNumber(e.target.value);
+                      field.onChange(formattedValue);
+                    }}
+                    maxLength={13} // 010-0000-0000 형식의 최대 길이
                   />
                 )}
               />
@@ -254,6 +219,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
                     placeholder="YYYY-MM-DD"
                     error={errors.birthDate?.message}
                     leftIcon={<Calendar size={18} />}
+                    max={getDefaultBirthDate()} // 최대값을 현재 날짜 기준 19년 전으로 설정
                   />
                 )}
               />
@@ -295,48 +261,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
         </div>
 
         {/* 태그 정보 섹션 */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-medium text-gray-900">태그 정보</h3>
-
-          {/* 태그 목록 */}
-          <div className="bg-gray-50 p-3 rounded-lg max-h-[500px] overflow-y-auto">
-            <h3 className="text-sm font-medium text-gray-800 mb-3 sticky top-0 bg-gray-50 py-1">
-              사용 가능한 태그
-            </h3>
-            {isLoadingTags ? (
-              <div className="text-sm text-gray-600">태그 목록을 불러오는 중...</div>
-            ) : Object.keys(groupedTags).length > 0 ? (
-              <div className="space-y-3">
-                {Object.entries(groupedTags).map(([type, typeTags]) => (
-                  <div key={type} className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-700 sticky top-8 bg-gray-50 py-1">
-                      {type}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {typeTags.map((tag) => (
-                        <button
-                          key={tag.tagId}
-                          type="button"
-                          onClick={() => handleTagClick(tag.tagId)}
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
-                            selectedTagIds.includes(tag.tagId)
-                              ? 'bg-blue-500 text-white hover:bg-blue-600'
-                              : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                          }`}
-                        >
-                          <Tag size={12} className="mr-1" />
-                          {tag.value}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-sm text-gray-600">사용 가능한 태그가 없습니다.</div>
-            )}
-          </div>
-        </div>
+        <TagSelector selectedTagIds={selectedTagIds} onTagChange={setSelectedTagIds} />
       </div>
 
       <div className="flex justify-end space-x-3 pt-3 border-t">
@@ -344,7 +269,7 @@ const CustomerForm = ({ initialData, onSubmit, onCancel }: CustomerFormProps) =>
           취소
         </Button>
         <Button type="submit" variant="primary" isLoading={isSubmitting}>
-          저장
+          {initialData ? '수정하기' : '등록하기'}
         </Button>
       </div>
     </form>

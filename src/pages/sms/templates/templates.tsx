@@ -12,7 +12,7 @@ import Table from '../../../components/ui/Table';
 import Modal from '../../../components/ui/Modal';
 import Pagination from '../../../components/ui/Pagination';
 import { useToast } from '../../../context/useToast';
-import { getAllTemplates, getTemplateById, deleteTemplate } from '../../../api/smsApi';
+import { getAllTemplates, getTemplateById, deleteTemplate } from '../../../api/sms';
 import type { TemplateResDto } from '../../../types/sms';
 import Input from '../../../components/ui/Input';
 

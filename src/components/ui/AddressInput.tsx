@@ -28,12 +28,16 @@ const AddressInput: React.FC<AddressProps> = ({ onAddressSelect }) => {
   const handleAddressSearch = () => {
     try {
       new window.daum.Postcode({
-        oncomplete: (data: { jibunAddress: string; roadAddress: string; zonecode: string }) => {
+        oncomplete: (data: { jibunAddress: string; roadAddress: string; zonecode: string; autoJibunAddress: string }) => {
           const jibunAddr = data.jibunAddress;
           const roadAddr = data.roadAddress;
           const zip = data.zonecode;
 
-          setJibunAddress(jibunAddr);
+          if (data.autoJibunAddress) {
+            setJibunAddress(data.autoJibunAddress);
+          } else {
+            setJibunAddress(jibunAddr);
+          }
           setRoadAddress(roadAddr);
           setZipCode(zip);
 
@@ -46,7 +50,6 @@ const AddressInput: React.FC<AddressProps> = ({ onAddressSelect }) => {
         },
       }).open();
     } catch (error) {
-      console.error('주소 검색 오류:', error);
       // 사용자에게 오류 메시지 표시
       showToast('주소 검색에 실패했습니다.', 'error');
     }
