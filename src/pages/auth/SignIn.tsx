@@ -149,7 +149,7 @@ const SignIn: React.FC = () => {
           </div>
 
           <div className="text-sm">
-            <Link to="/reset-password" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link to="/forget-password" className="font-medium text-blue-600 hover:text-blue-500">
               비밀번호를 잊으셨나요?
             </Link>
           </div>

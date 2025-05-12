@@ -35,6 +35,8 @@ import ConsultationListPage from './pages/consultation/ConsultationListPage';
 import InquiryDetailPage from './pages/inquiryManagement/InquiryDetail';
 import NotificationsPage from './pages/notification/NotificationPage';
 import { CrawlingPropertyPage } from './pages/crawling-property/CrawlingPropertyPage';
+import ForgetPassword from './pages/auth/ForgetPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -87,6 +89,22 @@ function App() {
         element={
           <PublicRoute>
             <SignUp />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forget-password"
+        element={
+          <PublicRoute>
+            <ForgetPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password/:token"
+        element={
+          <PublicRoute>
+            <ResetPassword />
           </PublicRoute>
         }
       />
