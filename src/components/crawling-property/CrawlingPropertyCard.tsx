@@ -1,18 +1,15 @@
 import { Home, Users, Phone } from 'react-feather';
-import { CrawlingPropertyItem } from '../../types/crawling-property';
+import { CrawlingPropertyResDto } from '../../types/crawling-property';
 import Card from '../ui/Card';
 
 interface CrawlingPropertyCardProps {
-  property: CrawlingPropertyItem;
+  property: CrawlingPropertyResDto;
   onClick: () => void;
 }
 
 export const CrawlingPropertyCard = ({ property, onClick }: CrawlingPropertyCardProps) => {
   return (
-    <Card 
-      className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={onClick}
-    >
+    <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={onClick}>
       <div className="p-4 space-y-4">
         <div className="flex justify-between items-start">
           <div className="space-y-2">
@@ -29,7 +26,7 @@ export const CrawlingPropertyCard = ({ property, onClick }: CrawlingPropertyCard
             {property.salePrice.toLocaleString()}만원
           </div>
         </div>
-        
+
         <div className="flex items-center text-sm text-gray-500">
           <Home className="w-4 h-4 mr-2" />
           <span>{property.realEstateAgentName}</span>
@@ -40,4 +37,4 @@ export const CrawlingPropertyCard = ({ property, onClick }: CrawlingPropertyCard
       </div>
     </Card>
   );
-}; 
+};

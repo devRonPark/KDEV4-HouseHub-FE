@@ -6,17 +6,16 @@ import {
   getCrawlingPropertyById,
 } from '../../api/crawling-property';
 import {
-  CrawlingPropertyItem,
   PaginationDto,
-  CrawlingPropertyType,
   CrawlingTransactionType,
   CrawlingPropertySearchParams,
+  CrawlingPropertyResDto,
 } from '../../types/crawling-property';
+import { PropertyType } from '../../types/property';
 import { useToast } from '../../context/useToast';
 import Pagination from '../../components/ui/Pagination';
 import { getCrawlingTags } from '../../api/crawling-tag';
 import { CrawlingTagResDto } from '../../types/crawling-tag';
-import { PropertyType } from '../../types/property';
 import CrawlingPropertyDetailModal from '../../components/crawling-property/CrawlingPropertyDetailModal';
 
 interface ToggleOption {
@@ -30,16 +29,17 @@ interface PriceRange {
   max: string;
 }
 
-const propertyTypeKoreanMap = {
-  MULTIFAMILY: '다세대',
-  SINGLEMULTIFAMILY: '단독/다가구',
-  VILLA: '빌라',
-  COMMERCIAL: '상가주택',
-  APARTMENT: '아파트',
-  ROWHOUSE: '연립',
-  OFFICETEL: '오피스텔',
-  ONE_ROOM: '원룸',
-  COUNTRYHOUSE: '전원',
+const propertyTypeKoreanMap: Record<PropertyType, string> = {
+  [PropertyType.APARTMENT]: '아파트',
+  [PropertyType.VILLA]: '빌라',
+  [PropertyType.OFFICETEL]: '오피스텔',
+  [PropertyType.COMMERCIAL]: '상가',
+  [PropertyType.ONE_ROOM]: '원룸',
+  [PropertyType.TWO_ROOM]: '투룸',
+  [PropertyType.MULTIFAMILY]: '다가구',
+  [PropertyType.SINGLEMULTIFAMILY]: '단독/다가구',
+  [PropertyType.ROWHOUSE]: '연립',
+  [PropertyType.COUNTRYHOUSE]: '주택',
 };
 
 export const CrawlingPropertyPage = () => {
@@ -57,15 +57,15 @@ export const CrawlingPropertyPage = () => {
   ]);
 
   const [propertyTypes] = useState<ToggleOption[]>([
-    { id: 'APARTMENT', label: '아파트', isSelected: false },
-    { id: 'OFFICETEL', label: '오피스텔', isSelected: false },
-    { id: 'VILLA', label: '빌라', isSelected: false },
-    { id: 'ONE_ROOM', label: '원룸', isSelected: false },
-    { id: 'MULTIFAMILY', label: '다세대', isSelected: false },
-    { id: 'SINGLEMULTIFAMILY', label: '단독/다가구', isSelected: false },
-    { id: 'COMMERCIAL', label: '상가주택', isSelected: false },
-    { id: 'ROWHOUSE', label: '연립', isSelected: false },
-    { id: 'COUNTRYHOUSE', label: '전원', isSelected: false },
+    { id: PropertyType.APARTMENT, label: '아파트', isSelected: false },
+    { id: PropertyType.OFFICETEL, label: '오피스텔', isSelected: false },
+    { id: PropertyType.VILLA, label: '빌라', isSelected: false },
+    { id: PropertyType.ONE_ROOM, label: '원룸', isSelected: false },
+    { id: PropertyType.MULTIFAMILY, label: '다가구', isSelected: false },
+    { id: PropertyType.SINGLEMULTIFAMILY, label: '단독/다가구', isSelected: false },
+    { id: PropertyType.COMMERCIAL, label: '상가', isSelected: false },
+    { id: PropertyType.ROWHOUSE, label: '연립', isSelected: false },
+    { id: PropertyType.COUNTRYHOUSE, label: '주택', isSelected: false },
   ]);
   const [selectedPropertyType, setSelectedPropertyType] = useState<PropertyType | null>(null);
 
@@ -81,7 +81,7 @@ export const CrawlingPropertyPage = () => {
     monthly: { min: '', max: '' },
   });
 
-  const [searchResults, setSearchResults] = useState<CrawlingPropertyItem[]>([]);
+  const [searchResults, setSearchResults] = useState<CrawlingPropertyResDto[]>([]);
   const [pagination, setPagination] = useState<PaginationDto>({
     currentPage: 1,
     totalPages: 1,
@@ -90,7 +90,7 @@ export const CrawlingPropertyPage = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const [selectedProperty, setSelectedProperty] = useState<CrawlingPropertyItem | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<CrawlingPropertyResDto | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [tags, setTags] = useState<CrawlingTagResDto[]>([]);
@@ -193,14 +193,14 @@ export const CrawlingPropertyPage = () => {
       const selectedContractType = getSelectedContractType();
 
       const params: CrawlingPropertySearchParams = {
-        propertyType: (selectedPropertyType as CrawlingPropertyType) || undefined,
+        propertyType: selectedPropertyType || undefined,
         transactionType: (selectedContractType as CrawlingTransactionType) || undefined,
         province: searchParams.province || undefined,
         city: searchParams.city || undefined,
         dong: searchParams.dong || undefined,
         page: 1,
         size: pagination.size,
-        tagIds: selectedTags?.length ? selectedTags : [], // 태그가 없으면 기본 태그 배열 사용
+        tagIds: selectedTags?.length ? selectedTags : [],
       };
 
       // 선택된 거래 유형에 따라 가격 범위 파라미터 추가
@@ -268,9 +268,9 @@ export const CrawlingPropertyPage = () => {
       const selectedContractType = getSelectedContractType();
 
       const params: CrawlingPropertySearchParams = {
-        propertyType: (selectedPropertyType as CrawlingPropertyType) || undefined,
+        propertyType: selectedPropertyType || undefined,
         transactionType: (selectedContractType as CrawlingTransactionType) || undefined,
-        province: searchParams.province || '서울시', // 초기 화면에서 로딩이 너무 길기 때문에 전체 조회를 피하기 위해 초기값 설정
+        province: searchParams.province || '서울시',
         city: searchParams.city || '마포구',
         dong: searchParams.dong || undefined,
         page: page,

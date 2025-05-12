@@ -11,6 +11,10 @@ export enum PropertyType {
   COMMERCIAL = 'COMMERCIAL',
   ONE_ROOM = 'ONE_ROOM',
   TWO_ROOM = 'TWO_ROOM',
+  MULTIFAMILY = 'MULTIFAMILY',
+  SINGLEMULTIFAMILY = 'SINGLEMULTIFAMILY',
+  ROWHOUSE = 'ROWHOUSE',
+  COUNTRYHOUSE = 'COUNTRYHOUSE',
 }
 
 // 매물 유형 표시 텍스트
@@ -21,6 +25,10 @@ export const PropertyTypeLabels: Record<PropertyType, string> = {
   [PropertyType.COMMERCIAL]: '상가',
   [PropertyType.ONE_ROOM]: '원룸',
   [PropertyType.TWO_ROOM]: '투룸',
+  [PropertyType.MULTIFAMILY]: '다가구',
+  [PropertyType.SINGLEMULTIFAMILY]: '단독/다가구',
+  [PropertyType.ROWHOUSE]: '연립',
+  [PropertyType.COUNTRYHOUSE]: '주택',
 };
 
 // 매물 유형별 배경색 및 텍스트 색상
@@ -31,6 +39,10 @@ export const PropertyTypeColors: Record<PropertyType, { bg: string; text: string
   [PropertyType.COMMERCIAL]: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
   [PropertyType.ONE_ROOM]: { bg: 'bg-pink-100', text: 'text-pink-800' },
   [PropertyType.TWO_ROOM]: { bg: 'bg-indigo-100', text: 'text-indigo-800' },
+  [PropertyType.MULTIFAMILY]: { bg: 'bg-orange-100', text: 'text-orange-800' },
+  [PropertyType.SINGLEMULTIFAMILY]: { bg: 'bg-teal-100', text: 'text-teal-800' },
+  [PropertyType.ROWHOUSE]: { bg: 'bg-cyan-100', text: 'text-cyan-800' },
+  [PropertyType.COUNTRYHOUSE]: { bg: 'bg-emerald-100', text: 'text-emerald-800' },
 };
 
 export enum PropertyDirection {
@@ -133,32 +145,6 @@ export interface FindPropertyDetailResDto {
   bathroomCnt?: number; // 욕실 개수
   roomCnt?: number; // 방 개수
   tags?: TagResDto[];
-}
-
-// 공개 매물 응답 DTO
-export interface CrawlingPropertyResDto {
-  crawlingPropertiesId: string;
-  propertyType: PropertyType;
-  transactionType: 'SALE' | 'JEONSE' | 'MONTHLY';
-  province: string;
-  city: string;
-  dong: string;
-  detailAddress: string;
-  area: number;
-  floor: string;
-  allFloors: string;
-  salePrice: string;
-  deposit: string;
-  monthlyRentFee: string;
-  direction: PropertyDirection;
-  bathRoomCnt: number;
-  roomCnt: number;
-  realEstateAgentId: string;
-  realEstateAgentName: string;
-  realEstateAgentContact: string;
-  realEstateOfficeName: string;
-  realEstateOfficeAddress: string;
-  tags: TagResDto[];
 }
 
 export interface PropertySummaryResDto {

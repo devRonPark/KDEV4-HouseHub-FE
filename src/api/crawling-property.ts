@@ -3,9 +3,8 @@ import type { ApiResponse } from '../types/api';
 import type {
   CrawlingPropertySearchParams,
   CrawlingPropertyListResponse,
-  CrawlingPropertyItem
+  CrawlingPropertyResDto,
 } from '../types/crawling-property';
-
 
 //크롤링 매물 목록 조회 API
 export const searchCrawlingPropertiesWithTags = async (
@@ -14,7 +13,7 @@ export const searchCrawlingPropertiesWithTags = async (
   try {
     const response = await apiClient.get<ApiResponse<CrawlingPropertyListResponse>>(
       '/crawlingProperties',
-      { 
+      {
         params,
         paramsSerializer: {
           serialize: (params) => {
@@ -24,7 +23,7 @@ export const searchCrawlingPropertiesWithTags = async (
                 return; // undefined나 null 값은 제외
               }
               if (Array.isArray(value)) {
-                value.forEach(item => {
+                value.forEach((item) => {
                   if (item !== undefined && item !== null) {
                     searchParams.append(key, item.toString());
                   }
@@ -34,8 +33,8 @@ export const searchCrawlingPropertiesWithTags = async (
               }
             });
             return searchParams.toString();
-          }
-        }
+          },
+        },
       }
     );
     return response.data;
@@ -44,7 +43,7 @@ export const searchCrawlingPropertiesWithTags = async (
     return {
       success: false,
       data: undefined,
-      error: '매물 검색 중 오류가 발생했습니다.'
+      error: '매물 검색 중 오류가 발생했습니다.',
     };
   }
 };
@@ -52,9 +51,9 @@ export const searchCrawlingPropertiesWithTags = async (
 // 크롤링 매물 상세 조회 API
 export const getCrawlingPropertyById = async (
   id: string
-): Promise<ApiResponse<CrawlingPropertyItem>> => {
+): Promise<ApiResponse<CrawlingPropertyResDto>> => {
   try {
-    const response = await apiClient.get<ApiResponse<CrawlingPropertyItem>>(
+    const response = await apiClient.get<ApiResponse<CrawlingPropertyResDto>>(
       `/crawlingProperties/${id}`
     );
     return response.data;

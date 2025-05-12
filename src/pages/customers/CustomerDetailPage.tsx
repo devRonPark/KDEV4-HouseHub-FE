@@ -39,7 +39,8 @@ import type { InquiryListResponse } from '../../types/inquiry';
 import { ContractType, ContractStatus } from '../../types/contract';
 import type { SmsListResDto, SendSmsResDto } from '../../types/sms';
 import SmsDetailModal from '../../components/sms/SmsDetailModal';
-import type { FindPropertyResDto, CrawlingPropertyResDto } from '../../types/property';
+import type { FindPropertyResDto } from '../../types/property';
+import type { CrawlingPropertyResDto } from '../../types/crawling-property';
 import { PropertyTypeLabels, PropertyDirectionLabels } from '../../types/property';
 import PropertyListItem from '../../components/property/PropertyListItem';
 import CrawlingPropertyDetailModal from '../../components/crawling-property/CrawlingPropertyDetailModal';
@@ -98,10 +99,6 @@ const CustomerDetailPage: React.FC = () => {
 
   const handlePurchasePageChange = (page: number) => {
     setPurchaseCurrentPage(page);
-  };
-
-  const handleSmsPageChange = (page: number) => {
-    setSmsCurrentPage(page);
   };
 
   // 추천 매물 로드 함수
@@ -1024,7 +1021,7 @@ const CustomerDetailPage: React.FC = () => {
                                       <div className="flex-1 border-l border-gray-200 pl-4">
                                         <div className="space-y-2">
                                           <p className="text-sm text-gray-600">
-                                            {property.area}㎡ · {property.floor}층/
+                                            {property.area}㎡ · 매물층 {property.floor}층 / 총{' '}
                                             {property.allFloors}층
                                           </p>
                                           <p className="text-sm font-medium text-gray-900">

@@ -1,11 +1,12 @@
 import React from 'react';
 import Modal from '../ui/Modal';
-import { CrawlingPropertyItem } from '../../types/crawling-property';
+import type { CrawlingPropertyResDto } from '../../types/crawling-property';
+import { PropertyTypeLabels } from '../../types/property';
 
 interface CrawlingPropertyDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  property: CrawlingPropertyItem | null;
+  property: CrawlingPropertyResDto | null;
 }
 
 const CrawlingPropertyDetailModal: React.FC<CrawlingPropertyDetailModalProps> = ({
@@ -14,18 +15,6 @@ const CrawlingPropertyDetailModal: React.FC<CrawlingPropertyDetailModalProps> = 
   property,
 }) => {
   if (!property) return null;
-
-  const propertyTypeKoreanMap = {
-    MULTIFAMILY: '다세대',
-    SINGLEMULTIFAMILY: '단독/다가구',
-    VILLA: '빌라',
-    COMMERCIAL: '상가주택',
-    APARTMENT: '아파트',
-    ROWHOUSE: '연립',
-    OFFICETEL: '오피스텔',
-    ONE_ROOM: '원룸',
-    COUNTRYHOUSE: '전원',
-  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="매물 상세 정보" size="lg">
@@ -37,8 +26,9 @@ const CrawlingPropertyDetailModal: React.FC<CrawlingPropertyDetailModalProps> = 
         <div className="border-t border-gray-200 pt-4">
           <h4 className="font-medium text-gray-900">상세 정보</h4>
           <p className="text-gray-500">
-            {propertyTypeKoreanMap[property.propertyType]} · {property.area}m² · {property.floor}/
-            {property.allFloors}층 · {property.roomCnt}방 · {property.bathRoomCnt}욕실
+            {PropertyTypeLabels[property.propertyType]} · {property.area}m² · 매물층{' '}
+            {property.floor}층 / 전체 {property.allFloors}층 · {property.roomCnt}방 ·{' '}
+            {property.bathRoomCnt}욕실
           </p>
         </div>
         <div className="border-t border-gray-200 pt-4">
@@ -78,6 +68,10 @@ const CrawlingPropertyDetailModal: React.FC<CrawlingPropertyDetailModalProps> = 
             </div>
           </div>
         )}
+        <div className="border-t border-gray-200 pt-4">
+          <h4 className="font-medium text-gray-900">종류</h4>
+          <p className="text-sm text-gray-600">{PropertyTypeLabels[property.propertyType]}</p>
+        </div>
       </div>
     </Modal>
   );

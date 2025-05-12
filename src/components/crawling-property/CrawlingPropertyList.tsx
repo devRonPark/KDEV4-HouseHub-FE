@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { searchCrawlingPropertiesWithTags } from '../../api/crawling-property';
 import type {
   CrawlingPropertySearchParams,
-  CrawlingPropertyItem,
+  CrawlingPropertyResDto,
 } from '../../types/crawling-property';
 import LoadingScreen from '../ui/LoadingScreen';
 import { CrawlingPropertyCard } from './CrawlingPropertyCard';
@@ -21,7 +21,7 @@ export const CrawlingPropertyList = ({
   page,
   onPageChange,
 }: CrawlingPropertyListProps) => {
-  const [selectedProperty, setSelectedProperty] = useState<CrawlingPropertyItem | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<CrawlingPropertyResDto | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['crawlingProperties', { ...searchParams, page }],
@@ -40,7 +40,7 @@ export const CrawlingPropertyList = ({
   return (
     <div>
       <div className="space-y-4">
-        {properties.map((property: CrawlingPropertyItem) => (
+        {properties.map((property: CrawlingPropertyResDto) => (
           <CrawlingPropertyCard
             key={property.crawlingPropertiesId}
             property={property}
