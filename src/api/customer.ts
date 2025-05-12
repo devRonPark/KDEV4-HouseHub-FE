@@ -12,6 +12,7 @@ import { ConsultationListResDto } from '../types/consultation';
 import { ContractListResDto } from '../types/contract';
 import { InquiryListResponse } from '../types/inquiry';
 import { SmsListResDto } from '../types/sms';
+import { FindPropertyResDto, CrawlingPropertyResDto } from '../types/property';
 
 // 현재 로그인한 에이전트의 고객 리스트 조회 (상담 내역 제외)
 export const getMyCustomers = async (
@@ -280,6 +281,42 @@ export const getCustomerSms = async (
     return {
       success: false,
       error: '고객 문자 내역을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+export const getCustomerRecommendProperties = async (
+  customerId: number,
+  limit: number
+): Promise<ApiResponse<FindPropertyResDto[]>> => {
+  try {
+    const response = await apiClient.get(`/customers/${customerId}/recommend?limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<FindPropertyResDto[]>;
+    }
+    return {
+      success: false,
+      error: '추천 매물을 불러오는 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+export const getCustomerRecommendCrawlProperties = async (
+  customerId: number,
+  limit: number
+): Promise<ApiResponse<CrawlingPropertyResDto[]>> => {
+  try {
+    const response = await apiClient.get(`/customers/${customerId}/recommend-crawl?limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<CrawlingPropertyResDto[]>;
+    }
+    return {
+      success: false,
+      error: '추천 공개 매물을 불러오는 중 오류가 발생했습니다.',
     };
   }
 };

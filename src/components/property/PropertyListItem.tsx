@@ -14,7 +14,6 @@ interface PropertyListItemProps {
 }
 
 const PropertyListItem: React.FC<PropertyListItemProps> = ({ property }) => {
-
   return (
     <Link
       to={`/properties/${property.id}`}
@@ -62,6 +61,21 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({ property }) => {
             </div>
           )}
         </div>
+
+        {/* 태그 표시 */}
+        {property.tags && property.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1">
+            {property.tags.map((tag) => (
+              <Badge
+                key={tag.tagId}
+                variant="secondary"
+                className="text-xs font-medium px-2 py-0.5"
+              >
+                {tag.value}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
     </Link>
   );

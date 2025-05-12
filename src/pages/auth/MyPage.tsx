@@ -129,14 +129,24 @@ function MyPage() {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6">소속 부동산 정보</h2>
             {profile.realEstate ? (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">부동산 이름</p>
-                  <p className="text-gray-900">{profile.realEstate.name || '미등록'}</p>
+              <div className="space-y-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <User className="text-gray-600" size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">부동산 이름</p>
+                    <p className="text-gray-900">{profile.realEstate.name || '미등록'}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">부동산 연락처</p>
-                  <p className="text-gray-900">{profile.realEstate.contact || '미등록'}</p>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Phone className="text-gray-600" size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">부동산 연락처</p>
+                    <p className="text-gray-900">{profile.realEstate.contact || '미등록'}</p>
+                  </div>
                 </div>
               </div>
             ) : (

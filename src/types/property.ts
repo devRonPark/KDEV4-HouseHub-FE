@@ -84,6 +84,7 @@ export interface FindPropertyResDto {
   jibunAddress: string;
   active: boolean;
   contractTypes: ContractType[];
+  tags: TagResDto[];
   // customer: CustomerResDto;
 }
 
@@ -133,6 +134,32 @@ export interface FindPropertyDetailResDto {
   bathroomCnt?: number; // 욕실 개수
   roomCnt?: number; // 방 개수
   tags?: TagResDto[];
+}
+
+// 공개 매물 응답 DTO
+export interface CrawlingPropertyResDto {
+  crawlingPropertiesId: string;
+  propertyType: PropertyType;
+  transactionType: 'SALE' | 'JEONSE' | 'MONTHLY';
+  province: string;
+  city: string;
+  dong: string;
+  detailAddress: string;
+  area: number;
+  floor: string;
+  allFloors: string;
+  salePrice: string;
+  deposit: string;
+  monthlyRentFee: string;
+  direction: PropertyDirection;
+  bathRoomCnt: number;
+  roomCnt: number;
+  realEstateAgentId: string;
+  realEstateAgentName: string;
+  realEstateAgentContact: string;
+  realEstateOfficeName: string;
+  realEstateOfficeAddress: string;
+  tags: TagResDto[];
 }
 
 export interface PropertySummaryResDto {
