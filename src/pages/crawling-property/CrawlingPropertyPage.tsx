@@ -23,6 +23,8 @@ import PriceRangeInput from '../../components/ui/PriceRangeInput';
 import { ContractType } from '../../types/contract';
 import PropertyCard from '../../components/crawling-property/PropertyCard';
 import PropertyDetailContent from '../../components/crawling-property/PropertyDetailContent';
+import ThreeLevelSelect from '../../components/region/ThreeLevelSelect';
+import { regionNameMap } from '../../types/region';
 
 const initialContractTypes = [
   { id: 'SALE', label: '매매' },
@@ -49,11 +51,6 @@ interface PriceRange {
 
 export const CrawlingPropertyPage = () => {
   const { showToast } = useToast();
-  const [searchParams, setSearchParams] = useState({
-    province: '서울시', // 초기 화면에서 로딩이 너무 길기 때문에 전체 조회를 피하기 위해 초기값 설정
-    city: '마포구',
-    dong: ''
-  });
   const [selectedContractType, setSelectedContractType] = useState<ContractType | null>(null);
   const [selectedPropertyType, setSelectedPropertyType] = useState<PropertyType | null>(null);
 
@@ -67,6 +64,21 @@ export const CrawlingPropertyPage = () => {
     jeonse: { min: '', max: '' },
     deposit: { min: '', max: '' },
     monthly: { min: '', max: '' },
+  });
+  const [selectedRegion, setSelectedRegion] = useState<{
+    doCode?: string;
+    doName?: string;
+    sigunguCode?: string;
+    sigunguName?: string;
+    dongCode?: string;
+    dongName?: string;
+  }>({
+    doCode: '1100000000',
+    doName: '서울특별시',
+    sigunguCode: '1144000000',
+    sigunguName: '마포구',
+    dongCode: '',
+    dongName: '',
   });
 
   const [searchResults, setSearchResults] = useState<CrawlingPropertyItem[]>([]);
@@ -110,6 +122,10 @@ export const CrawlingPropertyPage = () => {
     fetchTags();
   }, []);
 
+  const handleRegionSelect = (region: typeof selectedRegion) => {
+    setSelectedRegion(region);
+  };
+
   const handleContractTypeToggle = (contractType: ContractType) => {
     setSelectedContractType(contractType);
   };
@@ -133,11 +149,14 @@ export const CrawlingPropertyPage = () => {
   };
 
   const handleReset = () => {
-    // 검색 조건 초기화
-    setSearchParams({
-      province: '',
-      city: '',
-      dong: '',
+    // 지역 선택 초기화
+    setSelectedRegion({
+      doCode: undefined,
+      doName: undefined,
+      sigunguCode: undefined,
+      sigunguName: undefined,
+      dongCode: undefined,
+      dongName: undefined,
     });
 
     // 계약 유형 초기화
@@ -167,9 +186,12 @@ export const CrawlingPropertyPage = () => {
       const params: CrawlingPropertySearchParams = {
         propertyType: (selectedPropertyType as CrawlingPropertyType) || undefined,
         transactionType: (selectedContractType as CrawlingTransactionType) || undefined,
-        province: searchParams.province || undefined,
-        city: searchParams.city || undefined,
-        dong: searchParams.dong || undefined,
+        province:
+          selectedRegion.doName && regionNameMap[selectedRegion.doName]
+            ? regionNameMap[selectedRegion.doName]
+            : selectedRegion.doName || '서울',
+        city: selectedRegion.sigunguName || '마포구',
+        dong: selectedRegion.dongName || '',
         page: 1,
         size: pagination.size,
         tagIds: selectedTags?.length ? selectedTags : [], // 태그가 없으면 기본 태그 배열 사용
@@ -265,9 +287,12 @@ export const CrawlingPropertyPage = () => {
       const params: CrawlingPropertySearchParams = {
         propertyType: (selectedPropertyType as CrawlingPropertyType) || undefined,
         transactionType: (selectedContractType as CrawlingTransactionType) || undefined,
-        province: searchParams.province || '서울시', // 초기 화면에서 로딩이 너무 길기 때문에 전체 조회를 피하기 위해 초기값 설정
-        city: searchParams.city || '마포구',
-        dong: searchParams.dong || undefined,
+        province:
+          selectedRegion.doName && regionNameMap[selectedRegion.doName]
+            ? regionNameMap[selectedRegion.doName]
+            : selectedRegion.doName || '서울',
+        city: selectedRegion.sigunguName || '마포구',
+        dong: selectedRegion.dongName || '',
         page: page,
         size: pagination.size,
         tagIds: selectedTags.length > 0 ? selectedTags : [],
@@ -369,28 +394,11 @@ export const CrawlingPropertyPage = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">지역</label>
                 <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={searchParams.province}
-                    onChange={(e) =>
-                      setSearchParams((prev) => ({ ...prev, province: e.target.value }))
-                    }
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="도/특별시/광역시"
-                  />
-                  <input
-                    type="text"
-                    value={searchParams.city}
-                    onChange={(e) => setSearchParams((prev) => ({ ...prev, city: e.target.value }))}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="시/군/구"
-                  />
-                  <input
-                    type="text"
-                    value={searchParams.dong}
-                    onChange={(e) => setSearchParams((prev) => ({ ...prev, dong: e.target.value }))}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="읍/면/동"
+                  <ThreeLevelSelect
+                    onRegionSelect={handleRegionSelect}
+                    initialDoCode={selectedRegion.doCode}
+                    initialSigunguCode={selectedRegion.sigunguCode}
+                    initialDongCode={selectedRegion.dongCode}
                   />
                 </div>
               </div>

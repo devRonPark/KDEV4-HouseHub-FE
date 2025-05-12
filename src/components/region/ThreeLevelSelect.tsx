@@ -43,7 +43,6 @@ export const REGION_DONG = 'dong';
 
 export default function ThreeLevelSelect({
   onRegionSelect,
-  className,
   initialDoCode,
   initialSigunguCode,
   initialDongCode,
@@ -86,7 +85,6 @@ export default function ThreeLevelSelect({
         }
 
         const data = response.data;
-        console.log(data);
         setRegionState((prevState) => ({
           ...prevState,
           do: { ...prevState[REGION_DO], list: data.data },
@@ -94,7 +92,7 @@ export default function ThreeLevelSelect({
 
         // 초기값이 있는 경우 시/군/구 데이터도 불러오기
         if (initialDoCode) {
-          const doItem = data.find((item: RegionItem) => item.code === initialDoCode);
+          const doItem = data.data.find((item: RegionItem) => item.code === initialDoCode);
           if (doItem) {
             setSelectedRegion((prevState) => ({
               ...prevState,
@@ -119,6 +117,16 @@ export default function ThreeLevelSelect({
     fetchDoList();
   }, [initialDoCode]);
 
+  useEffect(() => {
+    if (!initialDoCode && !initialSigunguCode && !initialDongCode) {
+      setSelectedRegion({
+        do: { code: '', name: '' },
+        sigungu: { code: '', name: '' },
+        dong: { code: '', name: '' },
+      });
+    }
+  }, [initialDoCode, initialSigunguCode, initialDongCode]);
+
   // 시/군/구 목록 불러오기
   const fetchSigunguList = async (doCode: string) => {
     setRegionState((prevState) => ({
@@ -130,7 +138,6 @@ export default function ThreeLevelSelect({
       const response = await apiClient.get(`/regions/sigungus?doCode=${doCode}`);
 
       const data = response.data;
-      console.log(data);
       setRegionState((prevState) => ({
         ...prevState,
         sigungu: { ...prevState[REGION_SIGUNGU], list: data.data },
@@ -266,7 +273,6 @@ export default function ThreeLevelSelect({
     const dongCode = event.target.value;
     const dongItem = regionState[REGION_DONG].list.find((item) => item.code === dongCode);
 
-    console.log(dongItem);
     setSelectedRegion((prevState) => ({
       ...prevState,
       dong: { code: dongCode, name: dongItem?.name || '' },
@@ -328,10 +334,11 @@ export default function ThreeLevelSelect({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-screen-lg">
+      <SelectedRegion />
       <Breadcrumb />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* 도/광역시 선택 */}
         <FormControl fullWidth variant="outlined" size="small">
           <InputLabel id="do-select-label">도/광역시 선택</InputLabel>
@@ -416,10 +423,10 @@ export default function ThreeLevelSelect({
           <Select
             labelId="dong-select-label"
             id="dong-select"
-            value={selectedRegion[REGION_SIGUNGU]?.code || ''}
+            value={selectedRegion[REGION_DONG]?.code || ''}
             onChange={handleDongChange}
             label="읍/면/동 선택"
-            disabled={!selectedRegion[REGION_SIGUNGU] || regionState[REGION_SIGUNGU].isLoading}
+            disabled={!selectedRegion[REGION_DONG] || regionState[REGION_DONG].isLoading}
             error={!!regionState[REGION_DONG].error}
             className="bg-white"
             MenuProps={{
@@ -449,8 +456,6 @@ export default function ThreeLevelSelect({
           )}
         </FormControl>
       </div>
-
-      <SelectedRegion />
     </div>
   );
 }
