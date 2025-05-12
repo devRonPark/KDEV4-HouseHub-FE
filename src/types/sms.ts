@@ -30,7 +30,7 @@ export interface SendSmsReqDto {
   sender: string; // 발신 번호
   receiver: string; // 수신 번호 목록
   msg: string; // 메시지 내용
-  msgType: 'SMS' | 'LMS' | 'MMS'; // 메시지 유형
+  msgType: 'SMS' | 'LMS'; // 메시지 유형
   title?: string;
   rdate?: string; // 예약일(YYYYMMDD)
   rtime?: string; // 예약 발송 시간 (ISO 형식)
@@ -43,7 +43,7 @@ export interface SendSmsResDto {
   sender: string; // 발신 번호
   receiver: string; // 수신 번호 목록
   msg: string; // 메시지 내용
-  msgType: 'SMS' | 'LMS' | 'MMS'; // 메시지 유형
+  msgType: 'SMS' | 'LMS'; // 메시지 유형
   title?: string; // 제목
   status: 'SUCCESS' | 'FAIL' | 'PERMANENT_FAIL';
   rdate: string | null;

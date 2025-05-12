@@ -42,6 +42,8 @@ import SmsDetailModal from '../../components/sms/SmsDetailModal';
 import type { FindPropertyResDto, CrawlingPropertyResDto } from '../../types/property';
 import { PropertyTypeLabels, PropertyDirectionLabels } from '../../types/property';
 import PropertyListItem from '../../components/property/PropertyListItem';
+import CrawlingPropertyDetailModal from '../../components/crawling-property/CrawlingPropertyDetailModal';
+import Pagination from '../../components/ui/Pagination';
 
 type TabType = 'consultation' | 'contract' | 'inquiry' | 'sms' | 'recommend';
 type ContractTabType = 'sale' | 'purchase';
@@ -79,6 +81,11 @@ const CustomerDetailPage: React.FC = () => {
     CrawlingPropertyResDto[]
   >([]);
   const [isLoadingRecommendCrawl, setIsLoadingRecommendCrawl] = useState(false);
+
+  const [selectedCrawlProperty, setSelectedCrawlProperty] = useState<CrawlingPropertyResDto | null>(
+    null
+  );
+  const [isCrawlPropertyModalOpen, setIsCrawlPropertyModalOpen] = useState(false);
 
   // 페이지 변경 핸들러 추가
   const handlePageChange = (page: number) => {
@@ -823,42 +830,65 @@ const CustomerDetailPage: React.FC = () => {
                             {smsList.content.map((sms) => (
                               <div
                                 key={sms.id}
-                                className="flex items-center border rounded px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-sm cursor-pointer mt-4"
+                                className="border rounded-lg p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer mt-4"
                                 onClick={() => {
                                   setSelectedSms(sms);
                                   setIsSmsModalOpen(true);
                                 }}
                               >
-                                <div className="flex items-center gap-2">
-                                  <span
-                                    className={`px-2 py-0.5 text-xs rounded-full ${
-                                      sms.status === 'SUCCESS'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-red-100 text-red-800'
-                                    }`}
-                                  >
-                                    {sms.status === 'SUCCESS' ? '성공' : '실패'}
-                                  </span>
-                                  {sms.rdate && (
-                                    <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">
-                                      예약
-                                    </span>
-                                  )}
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span
+                                        className={`px-2 py-0.5 text-xs rounded-full ${
+                                          sms.status === 'SUCCESS'
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-red-100 text-red-800'
+                                        }`}
+                                      >
+                                        {sms.status === 'SUCCESS' ? '성공' : '실패'}
+                                      </span>
+                                      {sms.rdate && (
+                                        <span className="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">
+                                          예약
+                                        </span>
+                                      )}
+                                      <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800">
+                                        {sms.msgType}
+                                      </span>
+                                    </div>
+                                    {sms.title && (
+                                      <h3 className="text-sm font-medium text-gray-900 mb-1">
+                                        {sms.title}
+                                      </h3>
+                                    )}
+                                    <p className="text-sm text-gray-700 whitespace-pre-line mb-2">
+                                      {sms.msg}
+                                    </p>
+                                    <div className="flex items-center text-xs text-gray-500">
+                                      <span>
+                                        {sms.createdAt
+                                          ? new Date(sms.createdAt).toLocaleString('ko-KR', {
+                                              year: 'numeric',
+                                              month: 'long',
+                                              day: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                              hour12: true,
+                                            })
+                                          : '날짜 정보 없음'}
+                                      </span>
+                                      {sms.rdate && (
+                                        <>
+                                          <span className="mx-2">•</span>
+                                          <span>
+                                            예약: {sms.rdate} {sms.rtime}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                <span className="font-medium text-gray-900 mx-2">
-                                  {sms.msgType}
-                                </span>
-                                <span
-                                  className="truncate max-w-[300px] text-gray-700 mr-2"
-                                  title={sms.msg}
-                                >
-                                  {sms.msg}
-                                </span>
-                                <span className="ml-auto text-gray-400">
-                                  {sms.createdAt
-                                    ? new Date(sms.createdAt).toLocaleString('ko-KR')
-                                    : '날짜 정보 없음'}
-                                </span>
                               </div>
                             ))}
                           </div>
@@ -874,22 +904,13 @@ const CustomerDetailPage: React.FC = () => {
                           </div>
                         )}
                         {/* 페이지네이션 */}
-                        {smsList && (
+                        {smsList?.pagination && smsList.pagination.totalPages > 1 && (
                           <div className="mt-4 flex justify-center">
-                            <div className="flex space-x-2">
-                              {Array.from(
-                                { length: Math.ceil(smsList.pagination.totalElements / pageSize) },
-                                (_, i) => (
-                                  <button
-                                    key={i + 1}
-                                    onClick={() => handleSmsPageChange(i + 1)}
-                                    className={`px-3 py-1 rounded ${smsCurrentPage === i + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                                  >
-                                    {i + 1}
-                                  </button>
-                                )
-                              )}
-                            </div>
+                            <Pagination
+                              currentPage={smsList.pagination.currentPage}
+                              totalPages={smsList.pagination.totalPages}
+                              onPageChange={(page) => setSmsCurrentPage(page)}
+                            />
                           </div>
                         )}
                       </div>
@@ -958,6 +979,10 @@ const CustomerDetailPage: React.FC = () => {
                                   <div
                                     key={property.crawlingPropertiesId}
                                     className="border rounded-lg p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+                                    onClick={() => {
+                                      setSelectedCrawlProperty(property);
+                                      setIsCrawlPropertyModalOpen(true);
+                                    }}
                                   >
                                     <div className="flex gap-4">
                                       {/* 왼쪽: 기본 정보 */}
@@ -976,6 +1001,23 @@ const CustomerDetailPage: React.FC = () => {
                                             {property.roomCnt}룸 {property.bathRoomCnt}욕실
                                           </span>
                                         </div>
+                                        {property.tags && property.tags.length > 0 && (
+                                          <div className="mt-2 flex flex-wrap gap-1">
+                                            {property.tags.slice(0, 4).map((tag) => (
+                                              <span
+                                                key={tag.tagId}
+                                                className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600"
+                                              >
+                                                {tag.value}
+                                              </span>
+                                            ))}
+                                            {property.tags.length > 4 && (
+                                              <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                                                +{property.tags.length - 4}
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
                                       </div>
 
                                       {/* 오른쪽: 가격 및 중개사 정보 */}
@@ -1040,6 +1082,13 @@ const CustomerDetailPage: React.FC = () => {
         isOpen={isSmsModalOpen}
         onClose={() => setIsSmsModalOpen(false)}
         sms={selectedSms}
+      />
+
+      {/* 공개 매물 상세 모달 */}
+      <CrawlingPropertyDetailModal
+        isOpen={isCrawlPropertyModalOpen}
+        onClose={() => setIsCrawlPropertyModalOpen(false)}
+        property={selectedCrawlProperty}
       />
     </DashboardLayout>
   );
