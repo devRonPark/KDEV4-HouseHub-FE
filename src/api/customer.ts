@@ -263,6 +263,9 @@ export const getRecentCustomers = async (
     });
     return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<CustomerListResDto>;
+    }
     return {
       success: false,
       error: '최근 신규 고객 목록을 불러오는 중 오류가 발생했습니다.',
