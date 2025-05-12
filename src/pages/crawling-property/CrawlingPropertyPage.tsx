@@ -11,11 +11,11 @@ import {
   CrawlingTransactionType,
   CrawlingPropertySearchParams,
 } from '../../types/crawling-property';
-import { PropertyType } from '../../types/property';
 import { useToast } from '../../context/useToast';
 import Pagination from '../../components/ui/Pagination';
 import { getCrawlingTags } from '../../api/crawling-tag';
 import { CrawlingTagResDto } from '../../types/crawling-tag';
+import { PropertyType } from '../../types/property';
 import ToggleButtonGroup from '../../components/ui/ToggleButtonGroup';
 import PriceRangeInput from '../../components/ui/PriceRangeInput';
 import { ContractType } from '../../types/contract';
@@ -170,7 +170,7 @@ export const CrawlingPropertyPage = () => {
         dong: searchParams.dong || undefined,
         page: 1,
         size: pagination.size,
-        tagIds: selectedTags?.length ? selectedTags : [],
+        tagIds: selectedTags?.length ? selectedTags : [], // 태그가 없으면 기본 태그 배열 사용
       };
 
       // 선택된 거래 유형에 따라 가격 범위 파라미터 추가
@@ -294,7 +294,7 @@ export const CrawlingPropertyPage = () => {
         setSelectedProperty(detail.data);
         setIsModalOpen(true);
       } else {
-        showToast('상세 정보를 불러오지 못했습니다.', 'error');
+        alert('상세 정보를 불러오지 못했습니다.');
       }
     } catch {
       alert('상세 정보를 불러오지 못했습니다.');
