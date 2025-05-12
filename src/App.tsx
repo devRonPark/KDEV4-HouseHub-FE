@@ -338,6 +338,18 @@ function App() {
         {/* 기본 리다이렉트 */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        {/* 라우트 추가 */}
+        <Route
+          path="/crawling-properties"
+          element={
+            <ProtectedRoute>
+              <CrawlingPropertyPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* 기본 리다이렉트 */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </SSEManager>
   );

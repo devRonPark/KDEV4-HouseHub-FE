@@ -15,6 +15,8 @@ import { getProperties } from '../../api/property';
 import type { PropertyType, FindPropertyResDto, PropertySearchFilter } from '../../types/property';
 import type { PaginationDto } from '../../types/pagination';
 import { ContractType } from '../../types/contract';
+import ThreeLevelSelect from '../../components/region/ThreeLevelSelect';
+import { regionNameMap } from '../../types/region';
 
 const DEFAULT_MAX_PRICE = 100000;
 const DEFAULT_MAX_MONTHLY_RENT = 300;
@@ -35,6 +37,25 @@ const PropertyList: React.FC = () => {
   const [searchBtnClicked, setSearchBtnClicked] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filterModalValues, setFilterModalValues] = useState(getInitialFilterModalValues());
+  const [selectedRegion, setSelectedRegion] = useState<{
+    doCode?: string;
+    doName?: string;
+    sigunguCode?: string;
+    sigunguName?: string;
+    dongCode?: string;
+    dongName?: string;
+  }>({
+    doCode: '',
+    doName: '',
+    sigunguCode: '',
+    sigunguName: '',
+    dongCode: '',
+    dongName: '',
+  });
+
+  const handleRegionSelect = (region: typeof selectedRegion) => {
+    setSelectedRegion(region);
+  };
 
   function getInitialFilter(): PropertySearchFilter {
     return {
@@ -99,9 +120,12 @@ const PropertyList: React.FC = () => {
     e.preventDefault();
     setFilter((prev) => ({
       ...prev,
-      province: filter.province,
-      city: filter.city,
-      dong: filter.dong,
+      province:
+        selectedRegion.doName && regionNameMap[selectedRegion.doName]
+          ? regionNameMap[selectedRegion.doName]
+          : selectedRegion.doName || '',
+      city: selectedRegion.sigunguName || '',
+      dong: selectedRegion.dongName || '',
       customerName: filter.customerName,
       agentName: filter.agentName,
       page: 1,
@@ -216,6 +240,14 @@ const PropertyList: React.FC = () => {
 
   const resetFilters = () => {
     setFilter(getInitialFilter());
+    setSelectedRegion({
+      doCode: undefined,
+      doName: undefined,
+      sigunguCode: undefined,
+      sigunguName: undefined,
+      dongCode: undefined,
+      dongName: undefined,
+    });
     setSearchBtnClicked(true);
   };
 
@@ -225,6 +257,7 @@ const PropertyList: React.FC = () => {
 
   useEffect(() => {
     if (searchBtnClicked) {
+      console.log('필터:', filter);
       fetchProperties();
       setSearchBtnClicked(false);
     }
@@ -248,20 +281,11 @@ const PropertyList: React.FC = () => {
       <div className="mt-6 bg-white shadow rounded-lg p-4">
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input
-              placeholder="도/특별시/광역시"
-              value={filter.province}
-              onChange={(e) => setFilter({ ...filter, province: e.target.value })}
-            />
-            <Input
-              placeholder="시/군/구"
-              value={filter.city}
-              onChange={(e) => setFilter({ ...filter, city: e.target.value })}
-            />
-            <Input
-              placeholder="읍/면/동"
-              value={filter.dong}
-              onChange={(e) => setFilter({ ...filter, dong: e.target.value })}
+            <ThreeLevelSelect
+              onRegionSelect={handleRegionSelect}
+              initialDoCode={selectedRegion.doCode}
+              initialSigunguCode={selectedRegion.sigunguCode}
+              initialDongCode={selectedRegion.dongCode}
             />
           </div>
 
