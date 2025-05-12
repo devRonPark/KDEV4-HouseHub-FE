@@ -346,11 +346,31 @@ const PropertyRegistration: React.FC = () => {
                       key={tag.tagId}
                       type="button"
                       onClick={() => {
-                        setSelectedTags((prev) =>
-                          prev.includes(tag.tagId)
-                            ? prev.filter((id) => id !== tag.tagId)
-                            : [...prev, tag.tagId]
-                        );
+                        // 방 개수 태그인 경우
+                        if (tag.type === '방 개수') {
+                          // 이미 선택된 방 개수 태그가 있는지 확인
+                          const existingRoomTag = availableTags.find(
+                            (t) => t.type === '방 개수' && selectedTags.includes(t.tagId)
+                          );
+
+                          if (existingRoomTag) {
+                            // 이미 선택된 방 개수 태그가 있다면, 해당 태그를 제거하고 새로운 태그를 추가
+                            setSelectedTags((prev) => [
+                              ...prev.filter((id) => id !== existingRoomTag.tagId),
+                              tag.tagId,
+                            ]);
+                          } else {
+                            // 선택된 방 개수 태그가 없다면, 새로운 태그 추가
+                            setSelectedTags((prev) => [...prev, tag.tagId]);
+                          }
+                        } else {
+                          // 방 개수가 아닌 다른 태그들은 자유롭게 선택 가능
+                          setSelectedTags((prev) =>
+                            prev.includes(tag.tagId)
+                              ? prev.filter((id) => id !== tag.tagId)
+                              : [...prev, tag.tagId]
+                          );
+                        }
                       }}
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         selectedTags.includes(tag.tagId)
