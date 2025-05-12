@@ -2,10 +2,8 @@
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import useSSE from '../hooks/useSSE';
 import { useAuth } from './useAuth';
-import { useToast } from './useToast';
-import type { Notification, NotificationEvent, NotificationFilter } from '../types/notification';
+import type { Notification, NotificationFilter } from '../types/notification';
 import {
   deleteNotifications,
   getNotifications,
@@ -16,8 +14,8 @@ import { useLocation } from 'react-router-dom';
 
 interface NotificationContextType {
   notifications: Notification[];
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
   unreadCount: number;
-  isConnected: boolean;
   loadNotifications: (filter: NotificationFilter) => Promise<{
     content: Notification[];
     pagination: {
@@ -40,8 +38,8 @@ interface NotificationContextType {
 
 const NotificationContext = createContext<NotificationContextType>({
   notifications: [],
+  setNotifications: () => {},
   unreadCount: 0,
-  isConnected: false,
   loadNotifications: async () => null,
   markAsRead: async () => {},
   markAsUnread: async () => {},
@@ -60,62 +58,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const location = useLocation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { isAuthenticated } = useAuth();
-  const { showToast } = useToast();
   const [isNotificationsLoaded, setIsNotificationsLoaded] = useState(false);
 
   // 읽지 않은 알림 개수 계산
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
-
-  // SSE 메시지 핸들러
-  const handleSSEMessage = useCallback((event: MessageEvent) => {
-    try {
-      const data: NotificationEvent = JSON.parse(event.data);
-
-      // 알림 객체 생성
-      const newNotification: Notification = {
-        id: data.id,
-        type: data.type,
-        content: data.content,
-        url: data.url,
-        isRead: data.isRead,
-        createdAt: data.createdAt,
-        receiverId: data.receiverId,
-      };
-
-      // 알림 추가 (중복 방지)
-      setNotifications((prev) => {
-        // 이미 같은 ID의 알림이 있는지 확인
-        const exists = prev.some((item) => item.id === newNotification.id);
-        if (exists) {
-          return prev;
-        }
-        // 새 알림 추가 (최신 알림이 맨 위에 오도록)
-        return [newNotification, ...prev];
-      });
-
-      // 토스트 알림 표시
-      showToast(data.content, 'info');
-
-      // 브라우저 알림 표시 (선택적)
-      if (Notification.permission === 'granted') {
-        new Notification('새 문의 알림', {
-          body: data.content,
-        });
-      }
-    } catch (error) {
-      console.error('SSE 메시지 처리 중 오류:', error);
-    }
-  }, []);
-
-  // SSE 연결 설정
-  const { isConnected } = useSSE({
-    url: `https://www.house-hub.store:8443/api/notifications/sse/connect`,
-    withCredentials: true, // 쿠키 기반 인증을 사용하는 경우
-    onMessage: handleSSEMessage,
-    onError: (error) => console.error('SSE 연결 오류:', error),
-    reconnectInterval: 180000,
-    maxReconnectAttempts: 10,
-  });
 
   // 알림 목록 로드 (페이지네이션 및 필터링 지원)
   const loadNotifications = useCallback(async (filter: NotificationFilter) => {
@@ -371,8 +317,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     <NotificationContext.Provider
       value={{
         notifications,
+        setNotifications,
         unreadCount,
-        isConnected,
         loadNotifications,
         markAsRead,
         markAsUnread,
