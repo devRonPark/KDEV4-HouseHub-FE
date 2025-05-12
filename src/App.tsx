@@ -37,6 +37,7 @@ import NotificationsPage from './pages/notification/NotificationPage';
 import { CrawlingPropertyPage } from './pages/crawling-property/CrawlingPropertyPage';
 import ForgetPassword from './pages/auth/ForgetPassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import SSEManager from './components/sse/SSEManager';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -74,269 +75,271 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <Routes>
-      {/* 공개 라우트 */}
-      <Route
-        path="/signin"
-        element={
-          <PublicRoute>
-            <SignIn />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/signup"
-        element={
-          <PublicRoute>
-            <SignUp />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/forget-password"
-        element={
-          <PublicRoute>
-            <ForgetPassword />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/reset-password/:token"
-        element={
-          <PublicRoute>
-            <ResetPassword />
-          </PublicRoute>
-        }
-      />
+    <SSEManager>
+      <Routes>
+        {/* 공개 라우트 */}
+        <Route
+          path="/signin"
+          element={
+            <PublicRoute>
+              <SignIn />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute>
+              <SignUp />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/forget-password"
+          element={
+            <PublicRoute>
+              <ForgetPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/reset-password/:token"
+          element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          }
+        />
 
-      {/* 인증이 필요한 페이지 */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inquiry-templates"
-        element={
-          <ProtectedRoute>
-            <InquiryTemplateManagement />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inquiry-templates/create"
-        element={
-          <ProtectedRoute>
-            <InquiryTemplateCreate />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inquiry-templates/edit/:id"
-        element={
-          <ProtectedRoute>
-            <InquiryTemplateCreate />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/customers"
-        element={
-          <ProtectedRoute>
-            <CustomersPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/customers/:id"
-        element={
-          <ProtectedRoute>
-            <CustomerDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sms"
-        element={
-          <ProtectedRoute>
-            <SmsListPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sms/send"
-        element={
-          <ProtectedRoute>
-            <SmsSendPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sms/templates"
-        element={
-          <ProtectedRoute>
-            <SmsTemplateListPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sms/templates/create"
-        element={
-          <ProtectedRoute>
-            <SmsTemplateCreatePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/sms/templates/edit/:id"
-        element={
-          <ProtectedRoute>
-            <SmsTemplateEditPage />
-          </ProtectedRoute>
-        }
-      />
+        {/* 인증이 필요한 페이지 */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inquiry-templates"
+          element={
+            <ProtectedRoute>
+              <InquiryTemplateManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inquiry-templates/create"
+          element={
+            <ProtectedRoute>
+              <InquiryTemplateCreate />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inquiry-templates/edit/:id"
+          element={
+            <ProtectedRoute>
+              <InquiryTemplateCreate />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customers"
+          element={
+            <ProtectedRoute>
+              <CustomersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customers/:id"
+          element={
+            <ProtectedRoute>
+              <CustomerDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sms"
+          element={
+            <ProtectedRoute>
+              <SmsListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sms/send"
+          element={
+            <ProtectedRoute>
+              <SmsSendPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sms/templates"
+          element={
+            <ProtectedRoute>
+              <SmsTemplateListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sms/templates/create"
+          element={
+            <ProtectedRoute>
+              <SmsTemplateCreatePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sms/templates/edit/:id"
+          element={
+            <ProtectedRoute>
+              <SmsTemplateEditPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/properties/register"
-        element={
-          <ProtectedRoute>
-            <PropertyRegistration />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/properties"
-        element={
-          <ProtectedRoute>
-            <PropertyList />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/properties/:id"
-        element={
-          <ProtectedRoute>
-            <PropertyDetail />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/properties/edit/:id"
-        element={
-          <ProtectedRoute>
-            <PropertyEdit />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/contracts"
-        element={
-          <ProtectedRoute>
-            <ContractList />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/contracts/register"
-        element={
-          <ProtectedRoute>
-            <ContractRegistration />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/contracts/:id"
-        element={
-          <ProtectedRoute>
-            <ContractDetail />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/contracts/edit/:id"
-        element={
-          <ProtectedRoute>
-            <ContractEdit />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/properties/register"
+          element={
+            <ProtectedRoute>
+              <PropertyRegistration />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/properties"
+          element={
+            <ProtectedRoute>
+              <PropertyList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/properties/:id"
+          element={
+            <ProtectedRoute>
+              <PropertyDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/properties/edit/:id"
+          element={
+            <ProtectedRoute>
+              <PropertyEdit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts"
+          element={
+            <ProtectedRoute>
+              <ContractList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/register"
+          element={
+            <ProtectedRoute>
+              <ContractRegistration />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/:id"
+          element={
+            <ProtectedRoute>
+              <ContractDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contracts/edit/:id"
+          element={
+            <ProtectedRoute>
+              <ContractEdit />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/inquiries"
-        element={
-          <ProtectedRoute>
-            <InquiryManagement />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/inquiries/:inquiryId/answers"
-        element={
-          <ProtectedRoute>
-            <InquiryDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/notifications"
-        element={
-          <ProtectedRoute>
-            <NotificationsPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/inquiries"
+          element={
+            <ProtectedRoute>
+              <InquiryManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inquiries/:inquiryId/answers"
+          element={
+            <ProtectedRoute>
+              <InquiryDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/crawling-properties"
-        element={
-          <ProtectedRoute>
-            <CrawlingPropertyPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/crawling-properties"
+          element={
+            <ProtectedRoute>
+              <CrawlingPropertyPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <MyPage />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <MyPage />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route path="/consultations" element={<ConsultationListPage />} />
-      <Route path="/consultations/:id" element={<ConsultationDetailPage />} />
-      <Route path="/consultations/new" element={<ConsultationFormPage />} />
-      <Route path="/consultations/:id/edit" element={<ConsultationFormPage />} />
+        <Route path="/consultations" element={<ConsultationListPage />} />
+        <Route path="/consultations/:id" element={<ConsultationDetailPage />} />
+        <Route path="/consultations/new" element={<ConsultationFormPage />} />
+        <Route path="/consultations/:id/edit" element={<ConsultationFormPage />} />
 
-      {/* 공개 문의 페이지 (인증 불필요) */}
-      <Route path="/inquiry/share/:shareToken" element={<InquiryFormPage />} />
-      <Route path="/inquiry/complete" element={<InquiryCompletePage />} />
+        {/* 공개 문의 페이지 (인증 불필요) */}
+        <Route path="/inquiry/share/:shareToken" element={<InquiryFormPage />} />
+        <Route path="/inquiry/complete" element={<InquiryCompletePage />} />
 
-      {/* 라우트 추가 */}
-      <Route
-        path="/crawling-properties"
-        element={
-          <ProtectedRoute>
-            <CrawlingPropertyPage />
-          </ProtectedRoute>
-        }
-      />
-      {/* 기본 리다이렉트 */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+        {/* 라우트 추가 */}
+        <Route
+          path="/crawling-properties"
+          element={
+            <ProtectedRoute>
+              <CrawlingPropertyPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* 기본 리다이렉트 */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </SSEManager>
   );
 }
 

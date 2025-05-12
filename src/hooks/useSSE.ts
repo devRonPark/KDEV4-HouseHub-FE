@@ -13,6 +13,7 @@ interface UseSSEOptions {
   maxReconnectAttempts?: number;
   headers?: Record<string, string>;
   withCredentials?: boolean;
+  enabled?: boolean;
 }
 
 /**
@@ -28,6 +29,7 @@ const useSSE = ({
   maxReconnectAttempts = 5,
   headers = {},
   withCredentials = true,
+  enabled = true,
 }: UseSSEOptions & { userId?: string | null }) => {
   const [isConnected, setIsConnected] = useState(false);
   const reconnectAttemptsRef = useRef(0);
@@ -119,6 +121,7 @@ const useSSE = ({
 
   // ✅ userId가 존재할 때만 연결 시도
   useEffect(() => {
+    if (!enabled) return;
     if (!eventSourceRef.current && !isConnected) {
       connect();
     }
