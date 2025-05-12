@@ -111,6 +111,7 @@ export interface PropertySearchFilter {
   maxDeposit?: number; // 최대 보증금
   minMonthlyRent?: number; // 최소 월세
   maxMonthlyRent?: number; // 최대 월세
+  tagIds?: number[]; // 태그 아이디 배열
 }
 
 // 매물 상세 정보 응답 DTO
