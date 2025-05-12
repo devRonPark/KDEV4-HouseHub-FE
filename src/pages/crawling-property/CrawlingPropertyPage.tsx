@@ -50,9 +50,9 @@ interface PriceRange {
 export const CrawlingPropertyPage = () => {
   const { showToast } = useToast();
   const [searchParams, setSearchParams] = useState({
-    province: '서울시',
+    province: '서울시', // 초기 화면에서 로딩이 너무 길기 때문에 전체 조회를 피하기 위해 초기값 설정
     city: '마포구',
-    dong: '',
+    dong: ''
   });
   const [selectedContractType, setSelectedContractType] = useState<ContractType | null>(null);
   const [selectedPropertyType, setSelectedPropertyType] = useState<PropertyType | null>(null);
