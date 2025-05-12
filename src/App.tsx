@@ -35,7 +35,6 @@ import ConsultationListPage from './pages/consultation/ConsultationListPage';
 import InquiryDetailPage from './pages/inquiryManagement/InquiryDetail';
 import NotificationsPage from './pages/notification/NotificationPage';
 import { CrawlingPropertyPage } from './pages/crawling-property/CrawlingPropertyPage';
-import ThreeLevelSelect from './components/region/ThreeLevelSelect';
 import ForgetPassword from './pages/auth/ForgetPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import SSEManager from './components/sse/SSEManager';
@@ -327,19 +326,18 @@ function App() {
         <Route path="/inquiry/share/:shareToken" element={<InquiryFormPage />} />
         <Route path="/inquiry/complete" element={<InquiryCompletePage />} />
 
-      {/* 라우트 추가 */}
-      <Route
-        path="/crawling-properties"
-        element={
-          <ProtectedRoute>
-            <CrawlingPropertyPage />
-          </ProtectedRoute>
-        }
-      />
-      {/* 기본 리다이렉트 */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
+        {/* 라우트 추가 */}
+        <Route
+          path="/crawling-properties"
+          element={
+            <ProtectedRoute>
+              <CrawlingPropertyPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* 기본 리다이렉트 */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
         {/* 라우트 추가 */}
         <Route
           path="/crawling-properties"
