@@ -1,4 +1,4 @@
-import { VerificationType } from '../types/auth';
+import { ResetPasswordResponse, VerificationType } from '../types/auth';
 import apiClient from './client';
 import axios from 'axios';
 import { ApiResponse } from '../types/api';
@@ -47,6 +47,27 @@ export interface SignUpRequest {
 
 // 인증 메일 발송 API
 export const sendVerificationEmail = async (
+  email: string,
+  type: VerificationType
+): Promise<ApiResponse<SendVerificationEmailResponse>> => {
+  try {
+    const response = await apiClient.post<ApiResponse<SendVerificationEmailResponse>>(
+      '/auth/email/send',
+      { email, type }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<SendVerificationEmailResponse>;
+    }
+    return {
+      success: false,
+      error: '인증 메일 발송 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+export const sendPasswordResetEmail = async (
   email: string,
   type: VerificationType
 ): Promise<ApiResponse<SendVerificationEmailResponse>> => {
@@ -151,6 +172,60 @@ export const signOut = async (): Promise<ApiResponse> => {
     return {
       success: false,
       error: '로그아웃 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+/**
+ * 비밀번호 재설정 요청
+ * @param token 인증 토큰
+ * @param newPassword 새 비밀번호
+ * @returns API 응답
+ */
+export const resetPassword = async (
+  token: string,
+  newPassword: string
+): Promise<ApiResponse<ResetPasswordResponse>> => {
+  try {
+    const response = await apiClient.post<ApiResponse<ResetPasswordResponse>>(
+      '/auth/reset-password',
+      {
+        token,
+        newPassword,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<ResetPasswordResponse>;
+    }
+    return {
+      success: false,
+      error: '비밀번호 재설정 중 오류가 발생했습니다.',
+    };
+  }
+};
+
+/**
+ * 토큰 유효성 검증
+ * @param token 인증 토큰
+ * @returns API 응답
+ */
+export const validateResetToken = async (
+  token: string
+): Promise<ApiResponse<{ valid: boolean }>> => {
+  try {
+    const response = await apiClient.get<ApiResponse<{ valid: boolean }>>(
+      `/auth/validate-token?token=${token}&type=${VerificationType.PASSWORD_RESET}`
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      return error.response.data as ApiResponse<{ valid: boolean }>;
+    }
+    return {
+      success: false,
+      error: '토큰 검증 중 오류가 발생했습니다.',
     };
   }
 };

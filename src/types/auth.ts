@@ -52,5 +52,16 @@ export interface EmailVerificationData {
 
 export enum VerificationType {
   SIGNUP = 'SIGNUP',
-  RESET_PASSWORD = 'RESET_PASSWORD',
+  PASSWORD_RESET = 'PASSWORD_RESET',
+}
+
+// 비밀번호 재설정 요청 타입
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
+// 비밀번호 재설정 응답 타입
+export interface ResetPasswordResponse {
+  userId: string;
 }

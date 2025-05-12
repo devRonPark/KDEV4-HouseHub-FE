@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, RefreshCw } from 'react-feather';
-import { getProperties } from '../../api/property';
+import { getProperties, getPropertyById } from '../../api/property';
 import {
   type PropertySearchFilter,
   type PropertyListResDto,
   type PropertyType,
   PropertyTypeLabels,
-  FindPropertyResDto,
+  FindPropertyDetailResDto,
 } from '../../types/property';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -18,7 +18,7 @@ import PropertyTypeFilter from '../property/PropertyTypeFilter';
 interface PropertySelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectProperty: (property: FindPropertyResDto) => void;
+  onSelectProperty: (property: FindPropertyDetailResDto) => void;
   selectedPropertyId?: number | null;
 }
 
@@ -137,14 +137,24 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
   };
 
   // 선택 확인 핸들러
-  const handleConfirmSelection = () => {
-    if (selectedId && properties) {
-      const selectedProperty = properties.content.find((property) => property.id === selectedId);
-      if (selectedProperty) {
-        onSelectProperty(selectedProperty);
-        onClose();
-      } else {
-        showToast('선택한 매물 정보를 찾을 수 없습니다.', 'error');
+  const handleConfirmSelection = async () => {
+    if (selectedId) {
+      try {
+        setLoading(true);
+        const response = await getPropertyById(selectedId);
+        
+        if (response.success && response.data) {
+          const propertyDetail = response.data as FindPropertyDetailResDto;
+          onSelectProperty(propertyDetail);
+          onClose();
+        } else {
+          showToast(response.error || '매물 상세 정보를 불러오는데 실패했습니다.', 'error');
+        }
+      } catch (error) {
+        console.error('Error fetching property detail:', error);
+        showToast('매물 상세 정보를 불러오는 중 오류가 발생했습니다.', 'error');
+      } finally {
+        setLoading(false);
       }
     } else {
       showToast('매물을 선택해주세요.', 'error');
