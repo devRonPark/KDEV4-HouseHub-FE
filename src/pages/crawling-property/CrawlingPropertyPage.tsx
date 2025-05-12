@@ -6,15 +6,13 @@ import {
   getCrawlingPropertyById,
 } from '../../api/crawling-property';
 import {
-  CrawlingPropertyItem,
+  CrawlingPropertyResDto,
   PaginationDto,
-  CrawlingPropertyType,
   CrawlingTransactionType,
   CrawlingPropertySearchParams,
 } from '../../types/crawling-property';
 import { useToast } from '../../context/useToast';
 import Pagination from '../../components/ui/Pagination';
-import Modal from '../../components/ui/Modal';
 import { getCrawlingTags } from '../../api/crawling-tag';
 import { CrawlingTagResDto } from '../../types/crawling-tag';
 import { PropertyType } from '../../types/property';
@@ -22,9 +20,9 @@ import ToggleButtonGroup from '../../components/ui/ToggleButtonGroup';
 import PriceRangeInput from '../../components/ui/PriceRangeInput';
 import { ContractType } from '../../types/contract';
 import PropertyCard from '../../components/crawling-property/PropertyCard';
-import PropertyDetailContent from '../../components/crawling-property/PropertyDetailContent';
 import ThreeLevelSelect from '../../components/region/ThreeLevelSelect';
 import { regionNameMap } from '../../types/region';
+import CrawlingPropertyDetailModal from '../../components/crawling-property/CrawlingPropertyDetailModal';
 
 const initialContractTypes = [
   { id: 'SALE', label: '매매' },
@@ -81,7 +79,7 @@ export const CrawlingPropertyPage = () => {
     dongName: '',
   });
 
-  const [searchResults, setSearchResults] = useState<CrawlingPropertyItem[]>([]);
+  const [searchResults, setSearchResults] = useState<CrawlingPropertyResDto[]>([]);
   const [pagination, setPagination] = useState<PaginationDto>({
     currentPage: 1,
     totalPages: 1,
@@ -90,7 +88,7 @@ export const CrawlingPropertyPage = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const [selectedProperty, setSelectedProperty] = useState<CrawlingPropertyItem | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<CrawlingPropertyResDto | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [tags, setTags] = useState<CrawlingTagResDto[]>([]);
@@ -184,7 +182,7 @@ export const CrawlingPropertyPage = () => {
     setIsLoading(true);
     try {
       const params: CrawlingPropertySearchParams = {
-        propertyType: (selectedPropertyType as CrawlingPropertyType) || undefined,
+        propertyType: (selectedPropertyType as PropertyType) || undefined,
         transactionType: (selectedContractType as CrawlingTransactionType) || undefined,
         province:
           selectedRegion.doName && regionNameMap[selectedRegion.doName]
@@ -285,7 +283,7 @@ export const CrawlingPropertyPage = () => {
     setIsLoading(true);
     try {
       const params: CrawlingPropertySearchParams = {
-        propertyType: (selectedPropertyType as CrawlingPropertyType) || undefined,
+        propertyType: (selectedPropertyType as PropertyType) || undefined,
         transactionType: (selectedContractType as CrawlingTransactionType) || undefined,
         province:
           selectedRegion.doName && regionNameMap[selectedRegion.doName]
@@ -546,14 +544,11 @@ export const CrawlingPropertyPage = () => {
       </div>
 
       {/* 매물 상세 정보 모달 */}
-      <Modal
+      <CrawlingPropertyDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="매물 상세 정보"
-        size="lg"
-      >
-        {selectedProperty && <PropertyDetailContent property={selectedProperty} />}
-      </Modal>
+        property={selectedProperty}
+      />
     </DashboardLayout>
   );
 };
