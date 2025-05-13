@@ -11,6 +11,7 @@ import {
 import { CustomerResDto } from '../types/customer';
 import { getConsultationById, createConsultation, updateConsultation } from '../api/consultation';
 import useCustomerSelection from './useCustomerSelection';
+import { FindPropertyResDto } from '../types/property';
 
 const useConsultationForm = () => {
   const { id } = useParams<{ id?: string }>();
@@ -29,6 +30,7 @@ const useConsultationForm = () => {
   });
 
   const [initialData, setInitialData] = useState<ConsultationReqDto | null>(null);
+  const [initialShownProperties, setInitialShownProperties] = useState<FindPropertyResDto[]>([]);
   const [loading, setLoading] = useState(isEditMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -98,6 +100,7 @@ const useConsultationForm = () => {
         setLoading(true);
         try {
           const response = await getConsultationById(Number(id));
+
           if (response.success && response.data) {
             const consultation = response.data;
             const consultationData = {
@@ -107,9 +110,12 @@ const useConsultationForm = () => {
               content: consultation.content || '',
               consultationDate: consultation.consultationDate || new Date().toISOString(),
               status: consultation.status.toUpperCase() as ConsultationStatus,
+              shownProperties: consultation.shownProperties.map((property) => property.id),
             };
+
             setFormData(consultationData);
             setInitialData(consultationData);
+            setInitialShownProperties(consultation.shownProperties);
             setOriginalStatus(consultationData.status);
             if (consultation.customer) {
               setSelectedCustomer(consultation.customer);
@@ -227,33 +233,55 @@ const useConsultationForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const getChangedFields = (): Partial<UpdateConsultationReqDto> => {
-    if (!initialData) return { agentId: formData.agentId };
+  const isEqualSet = (a?: number[], b?: number[]): boolean => {
+    const setA = new Set(a ?? []);
+    const setB = new Set(b ?? []);
+
+    if (setA.size !== setB.size) return false;
+
+    for (const item of setA) {
+      if (!setB.has(item)) return false;
+    }
+
+    return true;
+  };
+
+  const getChangedFields = (requestData: ConsultationReqDto): Partial<UpdateConsultationReqDto> => {
+    if (!initialData) return { agentId: requestData.agentId };
 
     const changedFields: Partial<UpdateConsultationReqDto> = {
-      agentId: formData.agentId,
+      agentId: requestData.agentId,
     };
 
-    if (formData.consultationType !== initialData.consultationType) {
-      changedFields.consultationType = formData.consultationType;
+    if (requestData.consultationType !== initialData.consultationType) {
+      changedFields.consultationType = requestData.consultationType;
     }
 
-    if (formData.content !== initialData.content) {
-      changedFields.content = formData.content === '' ? undefined : formData.content;
+    if (requestData.content !== initialData.content) {
+      changedFields.content = requestData.content === '' ? undefined : requestData.content;
     }
 
-    if (formData.consultationDate !== initialData.consultationDate) {
-      changedFields.consultationDate = formData.consultationDate;
+    if (requestData.consultationDate !== initialData.consultationDate) {
+      changedFields.consultationDate = requestData.consultationDate;
     }
 
-    if (formData.status !== initialData.status) {
-      changedFields.status = formData.status;
+    if (requestData.status !== initialData.status) {
+      changedFields.status = requestData.status;
+    }
+
+    const hasShownPropertyChanged = !isEqualSet(
+      requestData.shownPropertyIds,
+      initialData.shownPropertyIds
+    );
+
+    if (hasShownPropertyChanged) {
+      changedFields.shownPropertyIds = requestData.shownPropertyIds;
     }
 
     return changedFields;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, selectedPropertyIds: number[] = []) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -263,18 +291,25 @@ const useConsultationForm = () => {
     setIsSubmitting(true);
     try {
       let response;
+
       if (isEditMode && id) {
-        const updateData = getChangedFields();
+        const requestData = {
+          ...formData,
+          shownPropertyIds: selectedPropertyIds,
+        };
+        const updateData = getChangedFields(requestData);
         const hasRealChanges = Object.keys(updateData).length > 1;
         if (!hasRealChanges) {
           showToast('변경된 내용이 없습니다.', 'info');
           setIsSubmitting(false);
           return;
         }
+        updateData.shownPropertyIds = selectedPropertyIds;
         response = await updateConsultation(Number(id), updateData);
       } else {
         const consultationData = {
           ...formData,
+          shownPropertyIds: selectedPropertyIds,
           newCustomer: isNewCustomer
             ? {
                 name: newCustomerData.name || undefined,
@@ -311,10 +346,11 @@ const useConsultationForm = () => {
 
   const isDateFieldDisabled = isEditMode && originalStatus !== ConsultationStatus.RESERVED;
   const isStatusChangeRestricted = isEditMode && originalStatus !== ConsultationStatus.RESERVED;
-  const isConsultationImmutable =
-    isEditMode &&
-    (formData.status === ConsultationStatus.COMPLETED ||
-      formData.status === ConsultationStatus.CANCELED);
+  // 상담 수정 불가 여부 (취소된 상담)
+  const isConsultationImmutable = isEditMode && originalStatus === ConsultationStatus.CANCELED;
+
+  // 완료된 상담 여부 (일부 필드만 수정 가능)
+  const isCompletedConsultation = isEditMode && originalStatus === ConsultationStatus.COMPLETED;
 
   return {
     formData,
@@ -329,11 +365,13 @@ const useConsultationForm = () => {
     isDateFieldDisabled,
     isStatusChangeRestricted,
     isConsultationImmutable,
+    isCompletedConsultation,
     setFormData,
     setErrors,
     selectedCustomer,
     isNewCustomer,
     newCustomerData,
+    shownProperties: initialShownProperties,
     setSelectedCustomer,
     setNewCustomerData,
     setIsNewCustomer,

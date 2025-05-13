@@ -19,7 +19,11 @@ import {
   ContractStatusLabels,
   type ContractReqDto,
 } from '../../types/contract';
-import { PropertyType, PropertyTypeLabels, type FindPropertyDetailResDto } from '../../types/property';
+import {
+  PropertyType,
+  PropertyTypeLabels,
+  type FindPropertyDetailResDto,
+} from '../../types/property';
 import PropertySelectionModal from '../../components/property/PropertySelectionModal';
 import type { CustomerResDto, CustomerSummaryDto } from '../../types/customer';
 import CustomerSelectionModal from '../../components/customers/CustomerSelectionModal';
@@ -122,7 +126,9 @@ const ContractRegistration: React.FC = () => {
   const isCustomerRequired = formData.contractStatus !== ContractStatus.AVAILABLE;
 
   // 매매가 아닐 때만 계약 기간 필드 표시
-  const showContractPeriod = formData.contractStatus !== ContractStatus.AVAILABLE && formData.contractType !== ContractType.SALE;
+  const showContractPeriod =
+    formData.contractStatus !== ContractStatus.AVAILABLE &&
+    formData.contractType !== ContractType.SALE;
 
   // 계약 상태가 완료인 경우 완료일 필드 표시
   const showCompletedDate = formData.contractStatus === ContractStatus.COMPLETED;
@@ -131,7 +137,7 @@ const ContractRegistration: React.FC = () => {
   useEffect(() => {
     if (formData.contractStatus === ContractStatus.AVAILABLE) {
       setSelectedTenant(null);
-      setFormData(prev => ({ ...prev, customerId: null }));
+      setFormData((prev) => ({ ...prev, customerId: null }));
     }
   }, [formData.contractStatus]);
 
@@ -148,7 +154,7 @@ const ContractRegistration: React.FC = () => {
             propertyType: response.data.propertyType as PropertyType,
           } as unknown as FindPropertyDetailResDto);
           setSelectedLandlord(response.data.customer || null);
-          setFormData(prev => ({ ...prev, propertyId: response.data?.id || null }));
+          setFormData((prev) => ({ ...prev, propertyId: response.data?.id || null }));
         } else {
           showToast(response.error || '매물 정보를 불러오는데 실패했습니다.', 'error');
         }
@@ -163,10 +169,10 @@ const ContractRegistration: React.FC = () => {
   const handlePropertySelect = async (property: FindPropertyDetailResDto) => {
     setSelectedProperty(property);
     setSelectedLandlord(property.customer || null);
-    setFormData(prev => ({ ...prev, propertyId: property.id }));
+    setFormData((prev) => ({ ...prev, propertyId: property.id }));
     if (selectedTenant) {
       setSelectedTenant(null);
-      setFormData(prev => ({ ...prev, customerId: null }));
+      setFormData((prev) => ({ ...prev, customerId: null }));
     }
     showToast('매물이 성공적으로 선택되었습니다.', 'success');
   };
@@ -178,7 +184,7 @@ const ContractRegistration: React.FC = () => {
       return;
     }
     setSelectedTenant(customer);
-    setFormData(prev => ({ ...prev, customerId: customer.id }));
+    setFormData((prev) => ({ ...prev, customerId: customer.id }));
     showToast('고객이 성공적으로 선택되었습니다.', 'success');
   };
 
@@ -203,7 +209,7 @@ const ContractRegistration: React.FC = () => {
 
   // 계약 유형 변경 시 가격 필드 초기화
   useEffect(() => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       salePrice: '',
       jeonsePrice: '',
@@ -468,7 +474,7 @@ const ContractRegistration: React.FC = () => {
                         key={type}
                         type={type}
                         selected={formData.contractType === type}
-                        onClick={() => setFormData(prev => ({ ...prev, contractType: type }))}
+                        onClick={() => setFormData((prev) => ({ ...prev, contractType: type }))}
                       />
                     ))}
                   </div>
@@ -485,7 +491,7 @@ const ContractRegistration: React.FC = () => {
                         key={status}
                         status={status}
                         selected={formData.contractStatus === status}
-                        onClick={() => setFormData(prev => ({ ...prev, contractStatus: status }))}
+                        onClick={() => setFormData((prev) => ({ ...prev, contractStatus: status }))}
                       />
                     ))}
                   </div>
@@ -500,7 +506,7 @@ const ContractRegistration: React.FC = () => {
                   </label>
                   <PriceInput
                     value={formData.salePrice}
-                    onChange={(value) => setFormData(prev => ({ ...prev, salePrice: value }))}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, salePrice: value }))}
                     placeholder="매매가 입력 (만원 단위)"
                     required
                   />
@@ -514,7 +520,7 @@ const ContractRegistration: React.FC = () => {
                   </label>
                   <PriceInput
                     value={formData.jeonsePrice}
-                    onChange={(value) => setFormData(prev => ({ ...prev, jeonsePrice: value }))}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, jeonsePrice: value }))}
                     placeholder="전세가 입력 (만원 단위)"
                     required
                   />
@@ -529,13 +535,17 @@ const ContractRegistration: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <PriceInput
                       value={formData.monthlyRentDeposit}
-                      onChange={(value) => setFormData(prev => ({ ...prev, monthlyRentDeposit: value }))}
+                      onChange={(value) =>
+                        setFormData((prev) => ({ ...prev, monthlyRentDeposit: value }))
+                      }
                       placeholder="보증금 입력 (만원 단위)"
                       required
                     />
                     <PriceInput
                       value={formData.monthlyRentFee}
-                      onChange={(value) => setFormData(prev => ({ ...prev, monthlyRentFee: value }))}
+                      onChange={(value) =>
+                        setFormData((prev) => ({ ...prev, monthlyRentFee: value }))
+                      }
                       placeholder="월세 입력 (만원 단위)"
                       required
                     />
@@ -553,13 +563,17 @@ const ContractRegistration: React.FC = () => {
                     <Input
                       type="date"
                       value={formData.startDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, startDate: e.target.value }))
+                      }
                       leftIcon={<Calendar size={18} />}
                     />
                     <Input
                       type="date"
                       value={formData.endDate}
-                      onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, endDate: e.target.value }))
+                      }
                       leftIcon={<Calendar size={18} />}
                     />
                   </div>
@@ -575,7 +589,9 @@ const ContractRegistration: React.FC = () => {
                   <Input
                     type="date"
                     value={formData.completedDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, completedDate: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, completedDate: e.target.value }))
+                    }
                     leftIcon={<CheckCircle size={18} />}
                     className="border-green-500 focus:ring-green-500"
                   />
@@ -593,7 +609,7 @@ const ContractRegistration: React.FC = () => {
                 <Textarea
                   placeholder="계약에 대한 추가 정보를 입력하세요."
                   value={formData.memo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, memo: e.target.value }))}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, memo: e.target.value }))}
                   className="min-h-[100px]"
                 />
               </div>

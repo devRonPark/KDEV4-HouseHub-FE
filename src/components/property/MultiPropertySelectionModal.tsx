@@ -1,37 +1,51 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, RefreshCw } from 'react-feather';
-import { getProperties, getPropertyById } from '../../api/property';
+import { X, ChevronLeft, ChevronRight, RefreshCw, Check } from 'react-feather';
+import { getProperties } from '../../api/property';
 import {
   type PropertySearchFilter,
   type PropertyListResDto,
   type PropertyType,
   PropertyTypeLabels,
-  FindPropertyDetailResDto,
+  PropertySummaryResDto,
 } from '../../types/property';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { useToast } from '../../context/useToast';
 import PropertyTypeFilter from '../property/PropertyTypeFilter';
 
-interface PropertySelectionModalProps {
+interface MultiPropertySelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectProperty: (property: FindPropertyDetailResDto) => void;
+  // 단일 선택 인터페이스
+  onSelectProperty?: (property: PropertySummaryResDto) => void;
   selectedPropertyId?: number | null;
+  // 다중 선택 인터페이스
+  onSelectProperties?: (properties: PropertySummaryResDto[]) => void;
+  selectedPropertyIds?: number[];
+  // 선택 모드 제어
+  multiSelect: boolean;
 }
 
-const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
+const MultiPropertySelectionModal: React.FC<MultiPropertySelectionModalProps> = ({
   isOpen,
   onClose,
   onSelectProperty,
+  onSelectProperties,
   selectedPropertyId = null,
+  selectedPropertyIds = [],
+  multiSelect = false, // 기본값은 단일 선택 모드
 }) => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [properties, setProperties] = useState<PropertyListResDto | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  // 선택된 매물 정보 저장 맵 (ID -> 매물 정보)
+  const [propertyMap, setPropertyMap] = useState<Map<number, PropertySummaryResDto>>(new Map());
+
+  // 내부적으로는 항상 배열로 관리
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   // 검색 필터 상태
   const [filter, setFilter] = useState<PropertySearchFilter>({
@@ -49,12 +63,34 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
   const [dongInput, setDongInput] = useState('');
   const [searchBtnClicked, setSearchBtnClicked] = useState(false);
 
-  // 모달이 열릴 때 selectedPropertyId 초기화
+  // 모달이 열릴 때 선택된 매물 ID 초기화
   useEffect(() => {
     if (isOpen) {
-      setSelectedId(selectedPropertyId);
+      // 다중 선택 모드인 경우 selectedPropertyIds 사용
+      if (multiSelect && selectedPropertyIds && selectedPropertyIds.length > 0) {
+        setSelectedIds(selectedPropertyIds);
+      }
+      // 단일 선택 모드인 경우 selectedPropertyId를 배열로 변환
+      else if (selectedPropertyId) {
+        setSelectedIds([selectedPropertyId]);
+      }
+      // 아무것도 선택되지 않은 경우
+      else {
+        setSelectedIds([]);
+      }
+
+      // 모달이 열릴 때 body 스크롤 방지
+      document.body.style.overflow = 'hidden';
+    } else {
+      // 모달이 닫힐 때 body 스크롤 복원
+      document.body.style.overflow = '';
     }
-  }, [isOpen, selectedPropertyId]);
+
+    // 컴포넌트 언마운트 시 body 스크롤 복원
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   // 매물 목록 로드
   const loadProperties = async () => {
@@ -63,6 +99,13 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
       const response = await getProperties(filter);
       if (response.success && response.data) {
         setProperties(response.data);
+
+        // 매물 정보를 맵에 저장
+        const newPropertyMap = new Map<number, PropertySummaryResDto>();
+        response.data.content.forEach((property) => {
+          newPropertyMap.set(property.id, property);
+        });
+        setPropertyMap(newPropertyMap);
       } else {
         showToast(response.error || '매물 목록을 불러오는데 실패했습니다.', 'error');
       }
@@ -132,32 +175,72 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
   };
 
   // 매물 선택 핸들러
-  const handleSelectProperty = (propertyId: number) => {
-    setSelectedId(propertyId);
+  const handleToggleProperty = (propertyId: number) => {
+    if (multiSelect) {
+      // 다중 선택 모드
+      setSelectedIds((prev) => {
+        // 이미 선택된 매물이면 선택 해제
+        if (prev.includes(propertyId)) {
+          return prev.filter((id) => id !== propertyId);
+        }
+        // 선택되지 않은 매물이면 선택 추가
+        else {
+          return [...prev, propertyId];
+        }
+      });
+    } else {
+      // 단일 선택 모드 - 항상 하나의 매물만 선택
+      setSelectedIds([propertyId]);
+    }
   };
 
   // 선택 확인 핸들러
   const handleConfirmSelection = async () => {
-    if (selectedId) {
-      try {
-        setLoading(true);
-        const response = await getPropertyById(selectedId);
+    if (selectedIds.length === 0) {
+      showToast('매물을 선택해주세요.', 'error');
+      return;
+    }
 
-        if (response.success && response.data) {
-          const propertyDetail = response.data as FindPropertyDetailResDto;
-          onSelectProperty(propertyDetail);
+    try {
+      setLoading(true);
+
+      // 다중 선택 모드이고 onSelectProperties 콜백이 제공된 경우
+      if (multiSelect && onSelectProperties) {
+        const selectedProperties: PropertySummaryResDto[] = [];
+
+        // 선택된 모든 매물의 정보를 맵에서 가져오기
+        for (const id of selectedIds) {
+          const property = propertyMap.get(id);
+          if (property) {
+            // 타입 변환 없이 그대로 사용
+            selectedProperties.push(property);
+          }
+        }
+
+        if (selectedProperties.length > 0) {
+          onSelectProperties(selectedProperties);
+          onClose();
+        }
+      }
+      // 단일 선택 모드이거나 onSelectProperty 콜백만 제공된 경우
+      else if (onSelectProperty) {
+        // 단일 선택 모드에서는 첫 번째 선택된 매물만 사용
+        const propertyId = selectedIds[0];
+        const property = propertyMap.get(propertyId);
+
+        if (property) {
+          // 타입 변환 없이 그대로 사용
+          onSelectProperty(property);
           onClose();
         } else {
-          showToast(response.error || '매물 상세 정보를 불러오는데 실패했습니다.', 'error');
+          showToast('선택한 매물 정보를 찾을 수 없습니다.', 'error');
         }
-      } catch (error) {
-        console.error('Error fetching property detail:', error);
-        showToast('매물 상세 정보를 불러오는 중 오류가 발생했습니다.', 'error');
-      } finally {
-        setLoading(false);
       }
-    } else {
-      showToast('매물을 선택해주세요.', 'error');
+    } catch (error) {
+      console.error('Error fetching property details:', error);
+      showToast('매물 상세 정보를 불러오는 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -193,8 +276,10 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
           onClick={handleModalClick} // 모달 내부 클릭 시 이벤트 전파 중단
         >
           {/* 모달 헤더 */}
-          <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold">매물 선택</h2>
+          <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+            <h2 className="text-xl font-semibold">
+              매물 선택 {multiSelect ? '(다중 선택 가능)' : '(단일 선택)'}
+            </h2>
             <button
               onClick={(e) => {
                 e.stopPropagation(); // 이벤트 전파 중단
@@ -208,7 +293,7 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
           </div>
 
           {/* 검색 필터 */}
-          <div className="p-4 border-b">
+          <div className="p-4 border-b sticky top-[65px] bg-white z-10">
             <form onSubmit={handleSearch} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <Input
@@ -228,11 +313,12 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                 />
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
                 <Button
                   type="submit"
                   variant="primary"
                   onClick={(e) => e.stopPropagation()} // 이벤트 전파 중단
+                  className="w-full sm:w-auto"
                 >
                   검색
                 </Button>
@@ -244,6 +330,7 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                       e.stopPropagation(); // 이벤트 전파 중단
                       resetFilters();
                     }}
+                    className="flex-1 sm:flex-none"
                   >
                     필터 초기화
                   </Button>
@@ -255,6 +342,7 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                       setSearchBtnClicked(true);
                     }}
                     leftIcon={<RefreshCw size={14} />}
+                    className="flex-1 sm:flex-none"
                   >
                     새로고침
                   </Button>
@@ -283,37 +371,54 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                     key={property.id}
                     className={`border rounded-lg p-3 transition-colors cursor-pointer
                     ${
-                      selectedId === property.id
+                      selectedIds.includes(property.id)
                         ? 'bg-blue-50 border-blue-500'
                         : 'hover:bg-gray-50 border-gray-200'
                     }`}
                     onClick={(e) => {
                       e.stopPropagation(); // 이벤트 전파 중단
-                      handleSelectProperty(property.id);
+                      handleToggleProperty(property.id);
                     }}
                   >
                     <div className="flex justify-between items-center">
                       <div className="flex-1">
-                        <p className="font-medium">{property.roadAddress}</p>
-                        <p className="text-sm text-gray-500">{property.detailAddress}</p>
-                        <div className="mt-1 flex items-center flex-wrap gap-2">
+                        <div className="flex items-center">
+                          {/* 선택 모드에 따라 체크박스 또는 라디오 버튼 스타일 표시 */}
+                          <div className="flex items-center justify-center w-5 h-5 mr-3">
+                            {multiSelect ? (
+                              // 다중 선택 모드 - 체크박스 스타일
+                              <div
+                                className={`w-4 h-4 border rounded flex items-center justify-center
+                                  ${
+                                    selectedIds.includes(property.id)
+                                      ? 'bg-blue-500 border-blue-500'
+                                      : 'border-gray-300'
+                                  }`}
+                              >
+                                {selectedIds.includes(property.id) && (
+                                  <Check size={12} className="text-white" />
+                                )}
+                              </div>
+                            ) : (
+                              // 단일 선택 모드 - 라디오 버튼 스타일
+                              <div
+                                className={`w-4 h-4 border rounded-full flex items-center justify-center
+                                  ${selectedIds.includes(property.id) ? 'border-blue-500' : 'border-gray-300'}`}
+                              >
+                                {selectedIds.includes(property.id) && (
+                                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <p className="font-medium">{property.roadAddress}</p>
+                        </div>
+                        <p className="text-sm text-gray-500 ml-8">{property.detailAddress}</p>
+                        <div className="mt-1 flex items-center flex-wrap gap-2 ml-8">
                           <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
                             {PropertyTypeLabels[property.propertyType]}
                           </span>
                         </div>
-                      </div>
-                      <div className="flex items-center">
-                        <Button
-                          variant={selectedId === property.id ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation(); // 이벤트 전파 중단
-                            handleSelectProperty(property.id);
-                          }}
-                          className="transition-colors"
-                        >
-                          {selectedId === property.id ? '선택됨' : '선택'}
-                        </Button>
                       </div>
                     </div>
                   </div>
@@ -326,10 +431,19 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
             )}
           </div>
 
+          {/* 선택된 매물 수 표시 (다중 선택 모드에서만) */}
+          {multiSelect && selectedIds.length > 0 && (
+            <div className="px-4 py-2 bg-gray-50 border-t">
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">{selectedIds.length}</span>개의 매물이 선택되었습니다.
+              </p>
+            </div>
+          )}
+
           {/* 페이지네이션 */}
           {properties?.pagination && properties.pagination.totalPages > 1 && (
-            <div className="p-4 border-t flex justify-center">
-              <div className="flex items-center space-x-2">
+            <div className="p-4 border-t flex justify-center bg-white">
+              <div className="flex items-center space-x-2 overflow-x-auto">
                 <Button
                   variant="outline"
                   size="sm"
@@ -407,13 +521,14 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
           )}
 
           {/* 하단 버튼 */}
-          <div className="p-4 border-t flex justify-end space-x-2">
+          <div className="p-4 border-t flex justify-end space-x-2 bg-white sticky bottom-0">
             <Button
               variant="outline"
               onClick={(e) => {
                 e.stopPropagation(); // 이벤트 전파 중단
                 onClose();
               }}
+              className="w-full sm:w-auto"
             >
               취소
             </Button>
@@ -423,9 +538,14 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
                 e.stopPropagation(); // 이벤트 전파 중단
                 handleConfirmSelection();
               }}
-              disabled={!selectedId}
+              disabled={selectedIds.length === 0}
+              className="w-full sm:w-auto"
             >
-              선택 완료
+              {multiSelect
+                ? `${selectedIds.length}개 매물 선택 완료`
+                : selectedIds.length > 0
+                  ? '선택 완료'
+                  : '선택 완료'}
             </Button>
           </div>
         </div>
@@ -434,4 +554,4 @@ const PropertySelectionModal: React.FC<PropertySelectionModalProps> = ({
   );
 };
 
-export default PropertySelectionModal;
+export default MultiPropertySelectionModal;

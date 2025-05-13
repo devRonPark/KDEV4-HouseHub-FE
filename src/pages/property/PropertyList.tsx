@@ -280,7 +280,7 @@ const PropertyList: React.FC = () => {
 
       <div className="mt-6 bg-white shadow rounded-lg p-4">
         <form onSubmit={handleSearch} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
             <ThreeLevelSelect
               onRegionSelect={handleRegionSelect}
               initialDoCode={selectedRegion.doCode}

@@ -1,5 +1,6 @@
 import { PaginationInfo } from './inquiry';
 import type { CustomerResDto } from './customer';
+import { FindPropertyResDto } from './property';
 
 export enum ConsultationType {
   PHONE = 'PHONE',
@@ -31,6 +32,7 @@ export interface ConsultationResDto {
   createdAt: string;
   updatedAt?: string;
   deletedAt?: string;
+  shownProperties: FindPropertyResDto[]; // 상담에 연결된 매물 목록
 }
 
 export interface NewCustomerDto {
@@ -47,6 +49,7 @@ export interface ConsultationReqDto {
   content?: string;
   consultationDate?: string; // LocalDateTime을 string으로 표현
   status: ConsultationStatus;
+  shownPropertyIds?: number[]; // 상담에 연결할 매물 ID 목록
 }
 
 export interface UpdateConsultationReqDto {
@@ -55,6 +58,7 @@ export interface UpdateConsultationReqDto {
   content?: string;
   consultationDate?: string; // LocalDateTime을 string으로 표현
   status?: ConsultationStatus;
+  shownPropertyIds?: number[]; // 상담에 연결할 매물 ID 목록
 }
 
 // 상담 유형 표시 레이블 매핑
