@@ -879,7 +879,17 @@ const CustomerDetailPage: React.FC = () => {
                                         <>
                                           <span className="mx-2">•</span>
                                           <span>
-                                            예약: {sms.rdate} {sms.rtime}
+                                            예약:{' '}
+                                            {new Date(
+                                              `${sms.rdate.slice(0, 4)}-${sms.rdate.slice(4, 6)}-${sms.rdate.slice(6, 8)}T${sms.rtime}`
+                                            ).toLocaleString('ko-KR', {
+                                              year: 'numeric',
+                                              month: 'long',
+                                              day: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit',
+                                              hour12: true,
+                                            })}
                                           </span>
                                         </>
                                       )}
