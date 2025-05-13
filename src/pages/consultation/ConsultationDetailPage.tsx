@@ -3,7 +3,7 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, Home, Trash2 } from 'lucide-react';
 import {
   ConsultationType,
   ConsultationStatus,
@@ -14,6 +14,7 @@ import { useToast } from '../../context/useToast';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
+import { PropertyTypeLabels } from '../../types/property';
 
 const ConsultationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -251,6 +252,37 @@ const ConsultationDetailPage: React.FC = () => {
               <dt className="text-sm font-medium text-gray-500">상담 내용</dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 whitespace-pre-line">
                 {consultation.content || '-'}
+              </dd>
+            </div>
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">보여준 매물</dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {consultation.shownProperties && consultation.shownProperties.length > 0 ? (
+                  <div className="space-y-3">
+                    {consultation.shownProperties.map((property) => (
+                      <div
+                        key={property.id}
+                        className="flex items-center p-3 border border-gray-200 rounded-md bg-white cursor-pointer hover:bg-gray-50"
+                        onClick={() => navigate(`/properties/${property.id}`)}
+                      >
+                        <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center mr-3 flex-shrink-0">
+                          <Home size={18} className="text-gray-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900">{property.roadAddress}</p>
+                          <p className="text-sm text-gray-500">{property.detailAddress}</p>
+                          <div className="mt-1">
+                            <span className="inline-block px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+                              {PropertyTypeLabels[property.propertyType] || property.propertyType}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">보여준 매물이 없습니다.</p>
+                )}
               </dd>
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">

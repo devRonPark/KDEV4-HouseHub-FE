@@ -1,7 +1,18 @@
 'use client';
 
-import type React from 'react';
-import { Calendar, ArrowLeft, FileText, User, Edit, Phone, Plus, Search } from 'react-feather';
+import React, { useEffect, useState } from 'react';
+import {
+  Calendar,
+  ArrowLeft,
+  FileText,
+  User,
+  Edit,
+  Phone,
+  Plus,
+  Search,
+  Home,
+  Trash2,
+} from 'react-feather';
 import {
   ConsultationStatus,
   consultationTypeLabels,
@@ -17,6 +28,8 @@ import Alert from '../../components/ui/Alert';
 import CustomerHistory from '../../components/consultation/CustomerHistory';
 import useConsultationForm from '../../hooks/useConsultationForm';
 import { useNavigate } from 'react-router-dom';
+import type { PropertySummaryResDto } from '../../types/property';
+import MultiPropertySelectionModal from '../../components/property/MultiPropertySelectionModal';
 
 const ConsultationFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -33,9 +46,11 @@ const ConsultationFormPage: React.FC = () => {
     isDateFieldDisabled,
     isStatusChangeRestricted,
     isConsultationImmutable,
+    isCompletedConsultation, // 완료된 상담 여부 추가
     selectedCustomer,
     isNewCustomer,
     newCustomerData,
+    shownProperties,
     isCustomerModalOpen,
     handleOpenCustomerModal,
     handleCloseCustomerModal,
@@ -43,6 +58,54 @@ const ConsultationFormPage: React.FC = () => {
     handleSelectCustomer,
     setIsNewCustomer,
   } = useConsultationForm();
+
+  // 보여 준 매물 관련 상태 추가
+  const [selectedProperties, setSelectedProperties] = useState<PropertySummaryResDto[]>([]);
+  const [isPropertyModalOpen, setIsPropertyModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (isEditMode && shownProperties && shownProperties.length > 0) {
+      setSelectedProperties(shownProperties);
+    }
+  }, [isEditMode, shownProperties]);
+
+  // 매물 모달 열기
+  const handleOpenPropertyModal = () => {
+    setIsPropertyModalOpen(true);
+  };
+
+  // 매물 모달 닫기
+  const handleClosePropertyModal = () => {
+    setIsPropertyModalOpen(false);
+  };
+
+  // 매물 선택 처리 (다중 선택)
+  const handleSelectProperties = (properties: PropertySummaryResDto[]) => {
+    // 새로 선택된 매물들만 필터링하여 추가
+    const newProperties = properties.filter(
+      (newProp) => !selectedProperties.some((existingProp) => existingProp.id === newProp.id)
+    );
+
+    if (newProperties.length > 0) {
+      setSelectedProperties((prev) => [...prev, ...newProperties]);
+    }
+  };
+
+  // 매물 삭제 처리
+  const handleRemoveProperty = (propertyId: number) => {
+    setSelectedProperties((prev) => prev.filter((p) => p.id !== propertyId));
+  };
+
+  // 폼 제출 시 선택된 매물 ID 포함
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 선택된 매물 ID 배열 생성
+    const selectedPropertyIds = selectedProperties.map((p) => p.id);
+
+    // 기존 handleSubmit 함수에 selectedPropertyIds 전달
+    handleSubmit(e, selectedPropertyIds);
+  };
 
   if (loading) {
     return (
@@ -89,11 +152,20 @@ const ConsultationFormPage: React.FC = () => {
         />
       )}
 
+      {isEditMode && isCompletedConsultation && (
+        <Alert
+          variant="info"
+          className="mt-4"
+          title="완료된 상담 수정"
+          description="완료된 상담은 상담 수단, 상담 내용, 보여준 매물만 수정 가능합니다."
+        />
+      )}
+
       <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 왼쪽: 상담 등록 폼 */}
         <div className="lg:col-span-2">
           <div className="bg-white shadow rounded-lg p-6">
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleFormSubmit}>
               <Card className="mb-6">
                 <div className="space-y-6">
                   {/* 고객 정보 */}
@@ -249,7 +321,7 @@ const ConsultationFormPage: React.FC = () => {
                         value={formData.consultationType}
                         onChange={handleChange}
                         className="block w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        disabled={isConsultationImmutable}
+                        disabled={isConsultationImmutable} // 취소된 상담만 비활성화
                       >
                         {Object.entries(consultationTypeLabels).map(([type, label]) => (
                           <option key={type} value={type}>
@@ -259,7 +331,7 @@ const ConsultationFormPage: React.FC = () => {
                       </select>
                       {isConsultationImmutable && (
                         <p className="mt-1 text-sm text-gray-400">
-                          예약 상담만 상담 유형을 수정할 수 있습니다.
+                          취소된 상담은 수정할 수 없습니다.
                         </p>
                       )}
                     </div>
@@ -336,17 +408,78 @@ const ConsultationFormPage: React.FC = () => {
                       leftIcon={<Calendar size={18} />}
                       required
                       disabled={isDateFieldDisabled}
-                      readOnly={isConsultationImmutable}
+                      className={isDateFieldDisabled ? 'bg-gray-100 cursor-not-allowed' : ''}
                     />
-                    {isConsultationImmutable && (
-                      <p className="mt-1 text-sm text-gray-400">
-                        예약 상담만 상담일을 수정할 수 있습니다.
+                    {isCompletedConsultation && (
+                      <p className="mt-1 text-sm text-gray-500">
+                        완료된 상담은 상담일 수정이 불가능합니다.
                       </p>
                     )}
-                    {!isConsultationImmutable && isDateFieldDisabled && (
+                    {!isCompletedConsultation && isDateFieldDisabled && (
                       <p className="mt-1 text-xs text-gray-500">
                         예약 상태의 상담만 일자를 수정할 수 있습니다.
                       </p>
+                    )}
+                    {isConsultationImmutable && (
+                      <p className="mt-1 text-sm text-gray-400">
+                        취소된 상담은 수정할 수 없습니다.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* 보여 준 매물 영역 (신규 추가) */}
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <label className="block text-sm font-medium text-gray-700 text-left">
+                        보여 준 매물
+                      </label>
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        onClick={handleOpenPropertyModal}
+                        leftIcon={<Home size={14} />}
+                        disabled={isConsultationImmutable} // 취소된 상담만 비활성화
+                      >
+                        매물 추가
+                      </Button>
+                    </div>
+
+                    {selectedProperties.length > 0 ? (
+                      <div className="space-y-3">
+                        {selectedProperties.map((property) => (
+                          <div
+                            key={property.id}
+                            className="flex items-center p-3 border border-gray-200 rounded-md bg-white"
+                          >
+                            <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center mr-3 flex-shrink-0">
+                              <Home size={20} className="text-gray-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 truncate">
+                                {property.roadAddress}
+                              </p>
+                              <p className="text-sm text-gray-500 truncate">
+                                {property.detailAddress}
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveProperty(property.id)}
+                              className="text-gray-500 hover:text-red-500"
+                              disabled={isConsultationImmutable} // 취소된 상담만 비활성화
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-gray-50 rounded-md text-center">
+                        <p className="text-gray-500">선택된 매물이 없습니다.</p>
+                      </div>
                     )}
                   </div>
 
@@ -362,11 +495,11 @@ const ConsultationFormPage: React.FC = () => {
                       placeholder="상담 내용을 입력하세요 (선택)"
                       className="min-h-[100px]"
                       error={errors.content}
-                      readOnly={isConsultationImmutable}
+                      readOnly={isConsultationImmutable} // 취소된 상담만 비활성화
                     />
                     {isConsultationImmutable && (
                       <p className="mt-1 text-sm text-gray-400">
-                        예약 상담만 내용을 상담 내용을 수정할 수 있습니다.
+                        취소된 상담은 수정할 수 없습니다.
                       </p>
                     )}
                   </div>
@@ -387,6 +520,7 @@ const ConsultationFormPage: React.FC = () => {
                   variant="primary"
                   isLoading={isSubmitting}
                   leftIcon={<FileText size={16} />}
+                  disabled={isConsultationImmutable} // 취소된 상담만 비활성화
                 >
                   {isEditMode ? '수정하기' : '등록하기'}
                 </Button>
@@ -410,6 +544,15 @@ const ConsultationFormPage: React.FC = () => {
         onClose={handleCloseCustomerModal}
         onSelectCustomer={handleSelectCustomer}
         selectedCustomerId={selectedCustomer?.id || null}
+      />
+
+      {/* 매물 선택 모달 */}
+      <MultiPropertySelectionModal
+        isOpen={isPropertyModalOpen}
+        onClose={handleClosePropertyModal}
+        onSelectProperties={handleSelectProperties}
+        selectedPropertyIds={selectedProperties.map((property) => property.id)}
+        multiSelect={true}
       />
     </DashboardLayout>
   );
