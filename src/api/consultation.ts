@@ -13,10 +13,10 @@ export const getConsultationById = async (id: number) => {
       success: true,
       data: response.data.data as ConsultationResDto,
     };
-  } catch (error: any) {
+  } catch {
     return {
       success: false,
-      error: error.response?.data?.message || '상담 정보를 불러오는데 실패했습니다.',
+      error: '상담 정보를 불러오는데 실패했습니다.',
     };
   }
 };
@@ -29,11 +29,10 @@ export const createConsultation = async (data: ConsultationReqDto) => {
       success: true,
       data: response.data as ConsultationResDto,
     };
-  } catch (error: any) {
-    console.error('상담 등록 중 오류:', error);
+  } catch {
     return {
       success: false,
-      error: error.response?.data?.message || '상담 등록에 실패했습니다.',
+      error: '상담 등록에 실패했습니다.',
     };
   }
 };
@@ -55,10 +54,10 @@ export const updateConsultation = async (id: number, data: Partial<UpdateConsult
       success: true,
       data: response.data as ConsultationResDto,
     };
-  } catch (error: any) {
+  } catch {
     return {
       success: false,
-      error: error.response?.data?.message || '상담 정보 수정에 실패했습니다.',
+      error: '상담 정보 수정에 실패했습니다.',
     };
   }
 };
@@ -70,10 +69,10 @@ export const deleteConsultation = async (id: number) => {
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch {
     return {
       success: false,
-      error: error.response?.data?.message || '상담 삭제에 실패했습니다.',
+      error: '상담 삭제에 실패했습니다.',
     };
   }
 };
@@ -98,10 +97,10 @@ export const getConsultationList = async (params: {
       success: true,
       data: response.data.data,
     };
-  } catch (error: any) {
+  } catch {
     return {
       success: false,
-      error: error.response?.data?.message || '상담 목록을 불러오는데 실패했습니다.',
+      error: '상담 목록을 불러오는데 실패했습니다.',
     };
   }
 };
