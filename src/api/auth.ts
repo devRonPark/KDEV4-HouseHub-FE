@@ -56,10 +56,7 @@ export const sendVerificationEmail = async (
       { email, type }
     );
     return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      return error.response.data as ApiResponse<SendVerificationEmailResponse>;
-    }
+  } catch {
     return {
       success: false,
       error: '인증 메일 발송 중 오류가 발생했습니다.',

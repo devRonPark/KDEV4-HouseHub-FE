@@ -38,6 +38,7 @@ import { CrawlingPropertyPage } from './pages/crawling-property/CrawlingProperty
 import ForgetPassword from './pages/auth/ForgetPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import SSEManager from './components/sse/SSEManager';
+import LandingPage from './pages/landing/LandingPage';
 
 // 인증이 필요한 라우트를 위한 래퍼 컴포넌트
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -78,6 +79,14 @@ function App() {
     <SSEManager>
       <Routes>
         {/* 공개 라우트 */}
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <LandingPage />
+            </PublicRoute>
+          }
+        />
         <Route
           path="/signin"
           element={
