@@ -391,7 +391,7 @@ export const CrawlingPropertyPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">지역</label>
-                <div className="flex space-x-2">
+                <div className="space-x-2">
                   <ThreeLevelSelect
                     onRegionSelect={handleRegionSelect}
                     initialDoCode={selectedRegion.doCode}
