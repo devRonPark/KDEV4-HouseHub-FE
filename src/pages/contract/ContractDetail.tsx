@@ -259,7 +259,13 @@ const ContractDetail: React.FC = () => {
                       </h3>
                       <div
                         className="p-4 rounded-md hover:bg-gray-50 cursor-pointer transition"
-                        onClick={() => navigate(`/customers/${contract.seeker.id}`)}
+                        onClick={() => {
+                          if (!contract.seeker.id) {
+                            showToast('삭제된 고객의 상세 정보는 볼 수 없습니다.', 'error');
+                            return;
+                          }
+                          navigate(`/customers/${contract.seeker.id}`);
+                        }}
                       >
                         <div className="flex items-center mb-2">
                           <User className="h-5 w-5 text-gray-400 mr-2" />
@@ -267,7 +273,7 @@ const ContractDetail: React.FC = () => {
                         </div>
                         <div className="flex items-center">
                           <User className="h-5 w-5 text-gray-400 mr-2" />
-                          <span className="text-gray-700">연락처: {contract.seeker.contact}</span>
+                          <span className="text-gray-700">연락처: {contract.seeker.contact || '미등록'}</span>
                         </div>
                       </div>
                     </div>
@@ -279,7 +285,13 @@ const ContractDetail: React.FC = () => {
                       </h3>
                       <div
                         className="p-4 rounded-md hover:bg-gray-50 cursor-pointer transition"
-                        onClick={() => navigate(`/customers/${contract.provider.id}`)}
+                        onClick={() => {
+                          if (!contract.provider.id) {
+                            showToast('삭제된 고객의 상세 정보는 볼 수 없습니다.', 'error');
+                            return;
+                          }
+                          navigate(`/customers/${contract.provider.id}`);
+                        }}
                       >
                         <div className="flex items-center mb-2">
                           <User className="h-5 w-5 text-gray-400 mr-2" />
@@ -287,7 +299,7 @@ const ContractDetail: React.FC = () => {
                         </div>
                         <div className="flex items-center">
                           <User className="h-5 w-5 text-gray-400 mr-2" />
-                          <span className="text-gray-700">연락처: {contract.provider.contact}</span>
+                          <span className="text-gray-700">연락처: {contract.provider.contact || '미등록'}</span>
                         </div>
                       </div>
                     </div>
