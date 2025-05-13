@@ -40,7 +40,7 @@ import { ContractType, ContractStatus } from '../../types/contract';
 import type { SmsListResDto, SendSmsResDto } from '../../types/sms';
 import SmsDetailModal from '../../components/sms/SmsDetailModal';
 import type { FindPropertyResDto } from '../../types/property';
-import type { CrawlingPropertyResDto } from '../../types/crawling-property';
+import type { CrawlingPropertyResDto, CrawlingPropertyType } from '../../types/crawling-property';
 import { PropertyTypeLabels, PropertyDirectionLabels } from '../../types/property';
 import PropertyListItem from '../../components/property/PropertyListItem';
 import CrawlingPropertyDetailModal from '../../components/crawling-property/CrawlingPropertyDetailModal';
@@ -49,6 +49,18 @@ import Pagination from '../../components/ui/Pagination';
 type TabType = 'consultation' | 'contract' | 'inquiry' | 'sms' | 'recommend';
 type ContractTabType = 'sale' | 'purchase';
 type RecommendTabType = 'my' | 'public';
+
+const crawlingPropertyTypeKoreanMap: Record<CrawlingPropertyType, string> = {
+  'APARTMENT': '아파트',
+  'OFFICETEL': '오피스텔',
+  'VILLA': '빌라',
+  'ONE_ROOM': '원룸',
+  'MULTIFAMILY': '다세대',
+  'SINGLEMULTIFAMILY': '단독/다가구',
+  'COMMERCIAL': '상가주택',
+  'ROWHOUSE': '연립',
+  'COUNTRYHOUSE': '전원',
+};
 
 const CustomerDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -985,7 +997,7 @@ const CustomerDetailPage: React.FC = () => {
                                       {/* 왼쪽: 기본 정보 */}
                                       <div className="flex-1">
                                         <p className="font-medium text-gray-900">
-                                          {PropertyTypeLabels[property.propertyType]}
+                                          {crawlingPropertyTypeKoreanMap[property.propertyType]}
                                         </p>
                                         <p className="text-sm text-gray-500">
                                           {property.detailAddress}

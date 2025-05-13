@@ -32,7 +32,7 @@ export interface PaginationDto {
 // 공개 매물 응답 DTO
 export interface CrawlingPropertyResDto {
   crawlingPropertiesId: string;
-  propertyType: PropertyType;
+  propertyType: CrawlingPropertyType;
   transactionType: CrawlingTransactionType;
   province: string;
   city: string;

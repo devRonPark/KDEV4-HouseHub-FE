@@ -1,5 +1,5 @@
-import { CrawlingPropertyResDto } from '../../types/crawling-property';
-import { PropertyType } from '../../types/property';
+import { CrawlingPropertyResDto, CrawlingPropertyType } from '../../types/crawling-property';
+// import { PropertyType } from '../../types/property';
 
 const formatPriceLabel = (property: CrawlingPropertyResDto) => {
   const { transactionType, salePrice, deposit, monthlyRentFee } = property;
@@ -12,22 +12,21 @@ const formatPriceLabel = (property: CrawlingPropertyResDto) => {
 
 const formatSummary = (
   property: CrawlingPropertyResDto,
-  propertyTypeKoreanMap: Record<PropertyType, string>
+  propertyTypeKoreanMap: Record<CrawlingPropertyType, string>
 ) => {
   return `${propertyTypeKoreanMap[property.propertyType]} · ${property.area}m² · ${property.floor}/${property.allFloors}층 · ${property.roomCnt}방 · ${property.bathRoomCnt}욕실`;
 };
 
-const propertyTypeKoreanMap: Record<PropertyType, string> = {
-  [PropertyType.APARTMENT]: '아파트',
-  [PropertyType.OFFICETEL]: '오피스텔',
-  [PropertyType.VILLA]: '빌라',
-  [PropertyType.ONE_ROOM]: '원룸',
-  [PropertyType.TWO_ROOM]: '투룸',
-  [PropertyType.MULTIFAMILY]: '다세대',
-  [PropertyType.SINGLEMULTIFAMILY]: '단독/다가구',
-  [PropertyType.COMMERCIAL]: '상가주택',
-  [PropertyType.ROWHOUSE]: '연립',
-  [PropertyType.COUNTRYHOUSE]: '전원',
+const propertyTypeKoreanMap: Record<CrawlingPropertyType, string> = {
+  'APARTMENT': '아파트',
+  'OFFICETEL': '오피스텔',
+  'VILLA': '빌라',
+  'ONE_ROOM': '원룸',
+  'MULTIFAMILY': '다세대',
+  'SINGLEMULTIFAMILY': '단독/다가구',
+  'COMMERCIAL': '상가주택',
+  'ROWHOUSE': '연립',
+  'COUNTRYHOUSE': '전원',
 };
 
 type PropertyCardProps = {

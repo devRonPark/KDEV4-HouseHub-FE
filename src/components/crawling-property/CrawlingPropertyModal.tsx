@@ -1,24 +1,23 @@
 import { X } from 'react-feather';
 import Modal from '../../components/ui/Modal';
-import { CrawlingPropertyResDto } from '../../types/crawling-property';
-import { PropertyType, PropertyDirection } from '../../types/property';
+import { CrawlingPropertyResDto, CrawlingPropertyType } from '../../types/crawling-property';
+import { PropertyDirection } from '../../types/property';
 
 interface CrawlingPropertyModalProps {
   property: CrawlingPropertyResDto;
   onClose: () => void;
 }
 
-const propertyTypeMap: Record<PropertyType, string> = {
-  [PropertyType.APARTMENT]: '아파트',
-  [PropertyType.VILLA]: '빌라',
-  [PropertyType.OFFICETEL]: '오피스텔',
-  [PropertyType.COMMERCIAL]: '상가',
-  [PropertyType.ONE_ROOM]: '원룸',
-  [PropertyType.TWO_ROOM]: '투룸',
-  [PropertyType.MULTIFAMILY]: '다가구',
-  [PropertyType.SINGLEMULTIFAMILY]: '단독/다가구',
-  [PropertyType.ROWHOUSE]: '연립',
-  [PropertyType.COUNTRYHOUSE]: '주택',
+const propertyTypeMap: Record<CrawlingPropertyType, string> = {
+  'APARTMENT': '아파트',
+  'OFFICETEL': '오피스텔',
+  'VILLA': '빌라',
+  'ONE_ROOM': '원룸',
+  'MULTIFAMILY': '다세대',
+  'SINGLEMULTIFAMILY': '단독/다가구',
+  'COMMERCIAL': '상가주택',
+  'ROWHOUSE': '연립',
+  'COUNTRYHOUSE': '전원',
 };
 
 const transactionTypeMap = {
