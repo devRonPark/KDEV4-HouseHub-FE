@@ -1,7 +1,18 @@
 import React from 'react';
 import Modal from '../ui/Modal';
-import type { CrawlingPropertyResDto } from '../../types/crawling-property';
-import { PropertyTypeLabels } from '../../types/property';
+import type { CrawlingPropertyResDto, CrawlingPropertyType } from '../../types/crawling-property';
+
+const propertyTypeKoreanMap: Record<CrawlingPropertyType, string> = {
+  'APARTMENT': '아파트',
+  'OFFICETEL': '오피스텔',
+  'VILLA': '빌라',
+  'ONE_ROOM': '원룸',
+  'MULTIFAMILY': '다세대',
+  'SINGLEMULTIFAMILY': '단독/다가구',
+  'COMMERCIAL': '상가주택',
+  'ROWHOUSE': '연립',
+  'COUNTRYHOUSE': '전원',
+};
 
 interface CrawlingPropertyDetailModalProps {
   isOpen: boolean;
@@ -26,7 +37,7 @@ const CrawlingPropertyDetailModal: React.FC<CrawlingPropertyDetailModalProps> = 
         <div className="border-t border-gray-200 pt-4">
           <h4 className="font-medium text-gray-900">상세 정보</h4>
           <p className="text-gray-500">
-            {PropertyTypeLabels[property.propertyType]} · {property.area}m² · 매물층{' '}
+            {propertyTypeKoreanMap[property.propertyType]} · {property.area}m² · 매물층{' '}
             {property.floor}층 / 전체 {property.allFloors}층 · {property.roomCnt}방 ·{' '}
             {property.bathRoomCnt}욕실
           </p>
@@ -70,7 +81,7 @@ const CrawlingPropertyDetailModal: React.FC<CrawlingPropertyDetailModalProps> = 
         )}
         <div className="border-t border-gray-200 pt-4">
           <h4 className="font-medium text-gray-900">종류</h4>
-          <p className="text-sm text-gray-600">{PropertyTypeLabels[property.propertyType]}</p>
+          <p className="text-sm text-gray-600">{propertyTypeKoreanMap[property.propertyType]}</p>
         </div>
       </div>
     </Modal>
