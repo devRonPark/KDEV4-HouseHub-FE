@@ -119,6 +119,12 @@ const useSSE = ({
     setIsConnected(false);
   }, []);
 
+  const reconnect = useCallback(() => {
+    disconnect();
+    reconnectAttemptsRef.current = 0;
+    connect();
+  }, [disconnect, connect]);
+
   // ✅ userId가 존재할 때만 연결 시도
   useEffect(() => {
     if (!enabled) return;
@@ -135,6 +141,7 @@ const useSSE = ({
     isConnected,
     reconnectAttempts: reconnectAttemptsRef.current,
     connect,
+    reconnect,
     disconnect,
   };
 };
