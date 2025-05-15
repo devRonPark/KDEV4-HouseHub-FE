@@ -61,7 +61,7 @@ function SSEManager({ children }: { children: React.ReactNode }) {
   }, []);
 
   const { isConnected, reconnect } = useSSE({
-    url: `http://localhost:8080/api/notifications/sse/connect`,
+    url: `https://www.house-hub.store:8443/api/notifications/sse/connect`,
     withCredentials: true,
     onMessage: handleSSEMessage,
     onError: (error) => {
