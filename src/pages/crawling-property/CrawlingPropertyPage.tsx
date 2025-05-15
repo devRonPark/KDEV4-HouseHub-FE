@@ -187,8 +187,8 @@ export const CrawlingPropertyPage = () => {
         province:
           selectedRegion.doName && regionNameMap[selectedRegion.doName]
             ? regionNameMap[selectedRegion.doName]
-            : selectedRegion.doName || '서울',
-        city: selectedRegion.sigunguName || '마포구',
+            : selectedRegion.doName || '',
+        city: selectedRegion.sigunguName || '',
         dong: selectedRegion.dongName || '',
         page: 1,
         size: pagination.size,
