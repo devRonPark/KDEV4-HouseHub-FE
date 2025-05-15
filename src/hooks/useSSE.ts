@@ -135,7 +135,7 @@ const useSSE = ({
     return () => {
       disconnect();
     };
-  }, [connect, disconnect, isConnected]);
+  }, [isConnected]);
 
   return {
     isConnected,

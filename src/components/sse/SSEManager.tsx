@@ -79,7 +79,7 @@ function SSEManager({ children }: { children: React.ReactNode }) {
     if (isAuthenticated && isTabActive && !isConnected) {
       reconnect();
     }
-  }, [isAuthenticated, isTabActive, isConnected, reconnect]);
+  }, [isAuthenticated, isTabActive, isConnected]);
 
   useEffect(() => {
     if (isAuthenticated && isTabActive) {
