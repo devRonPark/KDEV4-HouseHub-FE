@@ -29,14 +29,14 @@ const RecentCustomersModal: React.FC<RecentCustomersModalProps> = ({ isOpen, onC
   useEffect(() => {
     const fetchRecentCustomers = async () => {
       if (!isOpen) return;
-      
+
       setIsLoading(true);
       try {
-        const response = await getRecentCustomers(pagination.currentPage - 1, pagination.size);
+        const response = await getRecentCustomers(pagination.currentPage, pagination.size);
         if (response.success && response.data) {
           setCustomers(response.data.content);
           setPagination({
-            currentPage: response.data.pagination.currentPage,
+            currentPage: 1,
             totalPages: response.data.pagination.totalPages,
             totalElements: response.data.pagination.totalElements,
             size: response.data.pagination.size,
@@ -45,6 +45,7 @@ const RecentCustomersModal: React.FC<RecentCustomersModalProps> = ({ isOpen, onC
           showToast(response.error || '신규 고객 목록을 불러오는데 실패했습니다.', 'error');
         }
       } catch (error) {
+        console.error('Failed to fetch recent customers:', error);
         showToast('신규 고객 목록을 불러오는 중 오류가 발생했습니다.', 'error');
       } finally {
         setIsLoading(false);
@@ -54,20 +55,31 @@ const RecentCustomersModal: React.FC<RecentCustomersModalProps> = ({ isOpen, onC
     fetchRecentCustomers();
   }, [isOpen]);
 
-  const handlePageChange = (page: number) => {
-    setPagination(prev => ({
-      ...prev,
-      currentPage: page,
-    }));
+  const handlePageChange = async (page: number) => {
+    setIsLoading(true);
+    try {
+      const response = await getRecentCustomers(page, pagination.size);
+      if (response.success && response.data) {
+        setCustomers(response.data.content);
+        setPagination({
+          currentPage: page,
+          totalPages: response.data.pagination.totalPages,
+          totalElements: response.data.pagination.totalElements,
+          size: response.data.pagination.size,
+        });
+      } else {
+        showToast(response.error || '신규 고객 목록을 불러오는데 실패했습니다.', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent customers:', error);
+      showToast('신규 고객 목록을 불러오는 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="최근 7일간 신규 고객"
-      size="lg"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="최근 7일간 신규 고객" size="lg">
       <div className="mt-4">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -96,9 +108,7 @@ const RecentCustomersModal: React.FC<RecentCustomersModalProps> = ({ isOpen, onC
                       </div>
                     </div>
                     <div className="flex flex-col items-end">
-                      <div className="text-sm text-gray-500">
-                        {formatDate(customer.createdAt)}
-                      </div>
+                      <div className="text-sm text-gray-500">{formatDate(customer.createdAt)}</div>
                     </div>
                   </div>
                 </div>
@@ -119,9 +129,7 @@ const RecentCustomersModal: React.FC<RecentCustomersModalProps> = ({ isOpen, onC
           <div className="text-center py-12">
             <User className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">신규 고객 없음</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              최근 7일간 등록된 신규 고객이 없습니다.
-            </p>
+            <p className="mt-1 text-sm text-gray-500">최근 7일간 등록된 신규 고객이 없습니다.</p>
           </div>
         )}
       </div>
@@ -129,4 +137,4 @@ const RecentCustomersModal: React.FC<RecentCustomersModalProps> = ({ isOpen, onC
   );
 };
 
-export default RecentCustomersModal; 
+export default RecentCustomersModal;
