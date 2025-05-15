@@ -14,6 +14,8 @@ const SSEHandler = ({ showToast, lastMessage }: Props) => {
   const handleMessage = useCallback(
     (event: MessageEvent) => {
       try {
+        if (!event || !event.data) return;
+
         const data: NotificationEvent = JSON.parse(event.data);
 
         const newNotification = {

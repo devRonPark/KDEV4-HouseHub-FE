@@ -7,6 +7,7 @@ import type { Notification, NotificationFilter } from '../types/notification';
 import {
   deleteNotifications,
   getNotifications,
+  getUnreadNotifications,
   markNotificationsAsRead,
   markNotificationsAsUnread,
 } from '../api/notification';
@@ -25,6 +26,7 @@ interface NotificationContextType {
       size: number;
     };
   } | null>;
+  loadUnreadNotifications: () => Promise<void>;
   markAsRead: (notification: Notification) => Promise<void>;
   markAsUnread: (notification: Notification) => Promise<void>;
   markMultipleAsRead: (ids: number[]) => Promise<void>;
@@ -41,6 +43,7 @@ const NotificationContext = createContext<NotificationContextType>({
   setNotifications: () => {},
   unreadCount: 0,
   loadNotifications: async () => null,
+  loadUnreadNotifications: async () => {},
   markAsRead: async () => {},
   markAsUnread: async () => {},
   markMultipleAsRead: async () => {},
@@ -64,29 +67,58 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
 
   // 알림 목록 로드 (페이지네이션 및 필터링 지원)
-  const loadNotifications = useCallback(async (filter: NotificationFilter) => {
-    try {
-      const response = await getNotifications({ ...filter, filter: 'all' });
-      if (response.success && response.data) {
-        // 첫 페이지인 경우 알림 목록 교체, 그렇지 않은 경우 추가
-        if (response.data.pagination.currentPage === 1) {
-          setNotifications(response.data.content);
+  const loadNotifications = useCallback(
+    async (filter: NotificationFilter) => {
+      try {
+        const response = await getNotifications({ ...filter, filter: 'all' });
+        if (response.success && response.data) {
+          // 첫 페이지인 경우 알림 목록 교체, 그렇지 않은 경우 추가
+          if (response.data.pagination.currentPage === 1) {
+            setNotifications(response.data.content);
+          } else {
+            // 중복 방지를 위해 ID 기준으로 필터링
+            const existingIds = new Set(notifications.map((n) => n.id));
+            const newNotifications = response.data.content.filter((n) => !existingIds.has(n.id));
+            setNotifications((prev) => [...prev, ...newNotifications]);
+          }
+          return response.data;
         } else {
-          // 중복 방지를 위해 ID 기준으로 필터링
-          const existingIds = new Set(notifications.map((n) => n.id));
-          const newNotifications = response.data.content.filter((n) => !existingIds.has(n.id));
-          setNotifications((prev) => [...prev, ...newNotifications]);
+          console.error('알림 목록 로드 실패:', response.error);
+          return null;
         }
-        return response.data;
-      } else {
-        console.error('알림 목록 로드 실패:', response.error);
+      } catch (error) {
+        console.error('알림 목록 로드 중 오류:', error);
         return null;
       }
+    },
+    [notifications]
+  );
+
+  // 읽지 않은 알림 목록 로드
+  const loadUnreadNotifications = useCallback(async () => {
+    try {
+      console.log('읽지 않은 알림 동기화 시작');
+      const response = await getUnreadNotifications();
+      if (response.success && response.data) {
+        setNotifications((prev) => {
+          const existingIds = new Set(prev.map((notification) => notification.id));
+          const newNotifications = response.data?.filter(
+            (notification) => !existingIds.has(notification.id)
+          );
+
+          if ((newNotifications ?? []).length > 0) {
+            console.log(`${(newNotifications ?? []).length}개의 읽지 않은 알림 동기화됨`);
+            return [...(newNotifications ?? []), ...prev];
+          }
+          return prev;
+        });
+      } else {
+        console.error('읽지 않은 알림 로드 실패:', response.error);
+      }
     } catch (error) {
-      console.error('알림 목록 로드 중 오류:', error);
-      return null;
+      console.error('읽지 않은 알림 로드 중 오류:', error);
     }
-  }, []);
+  }, [setNotifications]);
 
   // 알림을 읽음으로 표시
   const markAsRead = useCallback(async (notification: Notification) => {
@@ -320,6 +352,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setNotifications,
         unreadCount,
         loadNotifications,
+        loadUnreadNotifications,
         markAsRead,
         markAsUnread,
         markMultipleAsRead,
